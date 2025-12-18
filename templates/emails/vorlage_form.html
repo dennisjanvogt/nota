@@ -1,0 +1,142 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Vorlage bearbeiten{% else %}Neue Vorlage{% endif %} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-envelope"></i>
+                {% if form.instance.pk %}
+                    Vorlage bearbeiten
+                {% else %}
+                    Neue E-Mail-Vorlage erstellen
+                {% endif %}
+            </h1>
+            <p class="page-subtitle">Erstellen oder bearbeiten Sie eine E-Mail-Vorlage</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'vorlagen_liste' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Zurück
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}" class="form-label required">
+                            Name der Vorlage
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.kategorie.id_for_label }}" class="form-label required">
+                            Kategorie
+                        </label>
+                        {{ form.kategorie }}
+                        {% if form.kategorie.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.kategorie.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.betreff.id_for_label }}" class="form-label required">
+                    Betreff
+                </label>
+                {{ form.betreff }}
+                {% if form.betreff.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.betreff.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.nachricht.id_for_label }}" class="form-label required">
+                    Nachricht
+                </label>
+                {{ form.nachricht }}
+                <small class="form-text text-muted">
+                    Verfügbare Platzhalter: {vorname}, {nachname}, {titel}, {email}, {telefon}, {geburtsdatum}, {notarstelle}
+                </small>
+                {% if form.nachricht.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.nachricht.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.standard_empfaenger.id_for_label }}" class="form-label required">
+                            Standard-Empfänger
+                        </label>
+                        {{ form.standard_empfaenger }}
+                        {% if form.standard_empfaenger.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.standard_empfaenger.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.cc_empfaenger.id_for_label }}" class="form-label">
+                            CC-Empfänger (optional)
+                        </label>
+                        {{ form.cc_empfaenger }}
+                        {% if form.cc_empfaenger.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.cc_empfaenger.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    {{ form.ist_aktiv }}
+                    <label class="form-check-label" for="{{ form.ist_aktiv.id_for_label }}">
+                        Vorlage ist aktiv
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i>
+                    {% if form.instance.pk %}Speichern{% else %}Erstellen{% endif %}
+                </button>
+                <a href="{% url 'vorlagen_liste' %}" class="btn btn-secondary">
+                    Abbrechen
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

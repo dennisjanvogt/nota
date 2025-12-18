@@ -1,0 +1,73 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Notar-Anwärter löschen - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-trash"></i> Notar-Anwärter löschen
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card" style="border: 2px solid var(--danger);">
+        <div class="card-body">
+            <div class="alert alert-warning" style="margin-bottom: var(--spacing-lg);">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Achtung!</strong> Diese Aktion kann nicht rückgängig gemacht werden.
+            </div>
+
+            <p style="margin-bottom: var(--spacing-md); font-size: 15px;">
+                Möchten Sie den folgenden Notar-Anwärter wirklich löschen?
+            </p>
+
+            <div style="padding: var(--spacing-lg); background: var(--bg-primary); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg); border-left: 4px solid var(--danger);">
+                <div style="display: flex; align-items: start; gap: var(--spacing-md);">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary-blue), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 600; flex-shrink: 0;">
+                        {{ anwaerter.vorname.0 }}{{ anwaerter.nachname.0 }}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">
+                            {{ anwaerter.get_voller_name }}
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 2px;">
+                            <i class="bi bi-building"></i> {{ anwaerter.notarstelle.name }}
+                        </div>
+                        {% if anwaerter.betreuender_notar %}
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 2px;">
+                            <i class="bi bi-person"></i> Betreut von: {{ anwaerter.betreuender_notar.get_voller_name }}
+                        </div>
+                        {% endif %}
+                        <div style="font-size: 14px; color: var(--text-secondary);">
+                            <i class="bi bi-hash"></i> Anwärter-ID: {{ anwaerter.anwaerter_id }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-danger" style="margin-bottom: var(--spacing-lg);">
+                <i class="bi bi-info-circle"></i>
+                <strong>Hinweis:</strong> Wenn für diesen Anwärter Workflows oder andere Verknüpfungen existieren,
+                kann er möglicherweise nicht gelöscht werden. Sie müssen zuerst alle Verknüpfungen entfernen.
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md);">
+                    <a href="{% url 'anwaerter_detail' anwaerter.anwaerter_id %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Abbrechen
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Endgültig löschen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

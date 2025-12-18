@@ -1,0 +1,31 @@
+notarnummer,bezeichnung,name,strasse,plz,stadt,bundesland,telefon,email,ist_aktiv
+1,NOT-1,Notariat Wien 1,Stephansplatz 3,1010,Wien,Wien,+43 1 5123456,kanzlei@notariat-wien1.at,True
+2,NOT-2,Notariat Wien 2,Graben 19,1010,Wien,Wien,+43 1 5334567,office@notariat-graben.at,True
+3,NOT-3,Notariat Wien 3,Kärtner Straße 28,1010,Wien,Wien,+43 1 5125678,info@notariat-kaertnerstr.at,True
+4,NOT-4,Notariat Graz,Herrengasse 16,8010,Graz,Steiermark,+43 316 8234567,kanzlei@notariat-graz.at,True
+5,NOT-5,Notariat Linz,Landstraße 41,4020,Linz,Oberösterreich,+43 732 7734567,office@notariat-linz.at,True
+6,NOT-6,Notariat Salzburg,Mozartplatz 5,5020,Salzburg,Salzburg,+43 662 8434567,info@notariat-salzburg.at,True
+7,NOT-7,Notariat Innsbruck,Maria-Theresien-Straße 38,6020,Innsbruck,Tirol,+43 512 5834567,kanzlei@notariat-innsbruck.at,True
+8,NOT-8,Notariat Klagenfurt,Alter Platz 24,9020,Klagenfurt,Kärnten,+43 463 5134567,office@notariat-klagenfurt.at,True
+9,NOT-9,Notariat Bregenz,Kirchstraße 8,6900,Bregenz,Vorarlberg,+43 5574 4234567,info@notariat-bregenz.at,True
+10,NOT-10,Notariat St. Pölten,Rathausplatz 1,3100,St. Pölten,Niederösterreich,+43 2742 3534567,kanzlei@notariat-stpoelten.at,True
+11,NOT-11,Notariat Eisenstadt,Hauptstraße 35,7000,Eisenstadt,Burgenland,+43 2682 6334567,office@notariat-eisenstadt.at,True
+12,NOT-12,Notariat Wien 4,Opernring 7,1010,Wien,Wien,+43 1 5876543,info@notariat-opernring.at,True
+13,NOT-13,Notariat Wien 5,Kohlmarkt 11,1010,Wien,Wien,+43 1 5987654,kanzlei@notariat-kohlmarkt.at,True
+14,NOT-14,Notariat Wiener Neustadt,Hauptplatz 12,2700,Wiener Neustadt,Niederösterreich,+43 2622 2234567,office@notariat-wneustadt.at,True
+15,NOT-15,Notariat Wels,Stadtplatz 18,4600,Wels,Oberösterreich,+43 7242 4534567,info@notariat-wels.at,True
+16,NOT-16,Notariat Villach,Hauptplatz 26,9500,Villach,Kärnten,+43 4242 2634567,kanzlei@notariat-villach.at,True
+17,NOT-17,Notariat Baden,Hauptplatz 19,2500,Baden,Niederösterreich,+43 2252 8634567,office@notariat-baden.at,True
+18,NOT-18,Notariat Krems,Obere Landstraße 4,3500,Krems,Niederösterreich,+43 2732 8234567,info@notariat-krems.at,True
+19,NOT-19,Notariat Steyr,Stadtplatz 27,4400,Steyr,Oberösterreich,+43 7252 5234567,kanzlei@notariat-steyr.at,True
+20,NOT-20,Notariat Dornbirn,Marktplatz 11,6850,Dornbirn,Vorarlberg,+43 5572 2234567,office@notariat-dornbirn.at,True
+21,NOT-21,Notariat Leoben,Hauptplatz 16,8700,Leoben,Steiermark,+43 3842 4334567,info@notariat-leoben.at,True
+22,NOT-22,Notariat Kufstein,Unterer Stadtplatz 22,6330,Kufstein,Tirol,+43 5372 6234567,kanzlei@notariat-kufstein.at,True
+23,NOT-23,Notariat Amstetten,Hauptplatz 28,3300,Amstetten,Niederösterreich,+43 7472 6534567,office@notariat-amstetten.at,True
+24,NOT-24,Notariat Traun,Hauptplatz 1,4050,Traun,Oberösterreich,+43 7229 7834567,info@notariat-traun.at,True
+25,NOT-25,Notariat Wolfsberg,Hauptplatz 20,9400,Wolfsberg,Kärnten,+43 4352 2534567,kanzlei@notariat-wolfsberg.at,True
+26,NOT-26,Notariat Feldkirch,Neustadt 33,6800,Feldkirch,Vorarlberg,+43 5522 7234567,office@notariat-feldkirch.at,True
+27,NOT-27,Notariat Kapfenberg,Wiener Straße 21,8605,Kapfenberg,Steiermark,+43 3862 2234567,info@notariat-kapfenberg.at,True
+28,NOT-28,Notariat Hallein,Altstadt 17,5400,Hallein,Salzburg,+43 6245 8034567,kanzlei@notariat-hallein.at,True
+29,NOT-29,Notariat Schwaz,Franz-Josef-Straße 14,6130,Schwaz,Tirol,+43 5242 6234567,office@notariat-schwaz.at,True
+30,NOT-30,Notariat Spittal,Hauptplatz 13,9800,Spittal an der Drau,Kärnten,+43 4762 2534567,info@notariat-spittal.at,True

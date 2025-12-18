@@ -1,0 +1,225 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ notarstelle.name }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-building"></i> {{ notarstelle.name }}
+            </h1>
+            <p class="page-subtitle">{{ notarstelle.bezeichnung }}</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'notarstelle_bearbeiten' notarstelle.id %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Bearbeiten
+            </a>
+            <a href="{% url 'notarstelle_loeschen' notarstelle.id %}" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Löschen
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Status Badge -->
+<div style="margin-bottom: var(--spacing-lg);">
+    {% if notarstelle.ist_aktiv %}
+    <span class="badge badge-success" style="font-size: 14px; padding: 8px 16px;">
+        <i class="bi bi-check-circle"></i> Aktiv
+    </span>
+    {% else %}
+    <span class="badge badge-danger" style="font-size: 14px; padding: 8px 16px;">
+        <i class="bi bi-x-circle"></i> Inaktiv
+    </span>
+    {% endif %}
+</div>
+
+<!-- Grunddaten -->
+<div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card-header">
+        <h2 class="card-title">Grunddaten</h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
+            <div>
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Notarnummer</div>
+                    <div style="font-size: 15px; font-weight: 500;">{{ notarstelle.notarnummer }}</div>
+                </div>
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Bezeichnung</div>
+                    <div style="font-size: 15px; font-weight: 500;">{{ notarstelle.bezeichnung }}</div>
+                </div>
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Name</div>
+                    <div style="font-size: 15px; font-weight: 500;">{{ notarstelle.name }}</div>
+                </div>
+            </div>
+            <div>
+                {% if notarstelle.besetzt_seit %}
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Besetzt seit</div>
+                    <div style="font-size: 15px; font-weight: 500;">{{ notarstelle.besetzt_seit|date:"d.m.Y" }}</div>
+                </div>
+                {% endif %}
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Bundesland</div>
+                    <div style="font-size: 15px; font-weight: 500;">{{ notarstelle.bundesland }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Adresse & Kontakt -->
+<div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card-header">
+        <h2 class="card-title">Adresse & Kontakt</h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
+            <div>
+                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Adresse</div>
+                <div style="font-size: 15px;">
+                    {{ notarstelle.strasse }}<br>
+                    {{ notarstelle.plz }} {{ notarstelle.stadt }}
+                </div>
+            </div>
+            <div>
+                {% if notarstelle.telefon %}
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Telefon</div>
+                    <div style="font-size: 15px;">
+                        <i class="bi bi-telephone"></i> {{ notarstelle.telefon }}
+                    </div>
+                </div>
+                {% endif %}
+                {% if notarstelle.email %}
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">E-Mail</div>
+                    <div style="font-size: 15px;">
+                        <i class="bi bi-envelope"></i> <a href="mailto:{{ notarstelle.email }}">{{ notarstelle.email }}</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notiz -->
+{% if notarstelle.notiz %}
+<div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card-header">
+        <h2 class="card-title">Notizen</h2>
+    </div>
+    <div class="card-body">
+        <div style="white-space: pre-wrap; font-size: 15px; line-height: 1.6;">{{ notarstelle.notiz }}</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Zugeordnete Notare -->
+<div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title">Zugeordnete Notare ({{ notare.count }})</h2>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if notare %}
+        <div style="display: grid; gap: var(--spacing-md);">
+            {% for notar in notare %}
+            <div style="padding: var(--spacing-md); background: var(--bg-primary); border-radius: var(--border-radius); border-left: 4px solid var(--primary-color);">
+                <div style="display: flex; align-items: center; gap: var(--spacing-md); justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 600;">
+                            {{ notar.vorname.0 }}{{ notar.nachname.0 }}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 16px;">
+                                {{ notar.get_voller_name }}
+                            </div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-top: 2px;">
+                                <i class="bi bi-hash"></i> {{ notar.notar_id }}
+                                {% if notar.email %}
+                                <span style="margin-left: 12px;"><i class="bi bi-envelope"></i> {{ notar.email }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'notar_detail' notar.notar_id %}" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-eye"></i> Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding: var(--spacing-lg);">
+            <div class="empty-state-icon">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <p class="empty-state-text">Dieser Notarstelle sind keine aktiven Notare zugeordnet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Zugeordnete Notar-Anwärter -->
+<div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title">Zugeordnete Notar-Anwärter ({{ anwaerter.count }})</h2>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if anwaerter %}
+        <div style="display: grid; gap: var(--spacing-md);">
+            {% for anw in anwaerter %}
+            <div style="padding: var(--spacing-md); background: var(--bg-primary); border-radius: var(--border-radius); border-left: 4px solid var(--secondary-blue);">
+                <div style="display: flex; align-items: center; gap: var(--spacing-md); justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary-blue), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 600;">
+                            {{ anw.vorname.0 }}{{ anw.nachname.0 }}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 16px;">
+                                {{ anw.get_voller_name }}
+                            </div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-top: 2px;">
+                                <i class="bi bi-hash"></i> {{ anw.anwaerter_id }}
+                                {% if anw.betreuender_notar %}
+                                <span style="margin-left: 12px;"><i class="bi bi-person"></i> Betreut von: {{ anw.betreuender_notar.get_voller_name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'anwaerter_detail' anw.anwaerter_id %}" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-eye"></i> Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding: var(--spacing-lg);">
+            <div class="empty-state-icon">
+                <i class="bi bi-mortarboard"></i>
+            </div>
+            <p class="empty-state-text">Dieser Notarstelle sind keine aktiven Notar-Anwärter zugeordnet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Zurück Button -->
+<div style="margin-top: var(--spacing-xl);">
+    <a href="{% url 'notarstellen_liste' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Liste
+    </a>
+</div>
+
+{% endblock %}

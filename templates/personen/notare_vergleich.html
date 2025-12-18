@@ -1,0 +1,218 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Notar-Vergleich - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-people"></i> Notar-Vergleich
+            </h1>
+            <p class="page-subtitle">{{ notare.count }} Notare werden verglichen</p>
+        </div>
+        <div class="page-actions">
+            <a href="?{% for notar in notare %}notare={{ notar.notar_id }}&{% endfor %}format=pdf" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf"></i> Als PDF exportieren
+            </a>
+            <a href="{% url 'notare_liste' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Vergleichstabelle -->
+<div class="card">
+    <div class="card-body" style="overflow-x: auto;">
+        <table class="table" style="margin-bottom: 0;">
+            <thead>
+                <tr>
+                    <th style="width: 200px; position: sticky; left: 0; background: var(--bg-primary); z-index: 10;">Eigenschaft</th>
+                    {% for notar in notare %}
+                    <th style="min-width: 250px; text-align: center;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 600;">
+                                {{ notar.vorname.0 }}{{ notar.nachname.0 }}
+                            </div>
+                            <div style="font-weight: 600; font-size: 16px;">
+                                {{ notar.get_voller_name }}
+                            </div>
+                        </div>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Notar-ID -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-hash"></i> Notar-ID
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center; font-family: monospace;">{{ notar.notar_id }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Titel -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-award"></i> Titel
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">{{ notar.titel|default:"—" }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- E-Mail -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-envelope"></i> E-Mail
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center; font-size: 12px; word-break: break-all; max-width: 200px;">
+                        {% if notar.email %}
+                        <a href="mailto:{{ notar.email }}">{{ notar.email }}</a>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Telefon -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-telephone"></i> Telefon
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">{{ notar.telefon|default:"—" }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Notarstelle -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-building"></i> Notarstelle
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">
+                        <a href="{% url 'notarstelle_detail' notar.notarstelle.id %}">{{ notar.notarstelle.name }}</a>
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Ort -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-geo-alt"></i> Ort
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">{{ notar.notarstelle.stadt }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Bestellt am -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-calendar-check"></i> Bestellt am
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">
+                        {% if notar.bestellt_am %}
+                        {{ notar.bestellt_am|date:"d.m.Y" }}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Beginn der Tätigkeit -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-calendar"></i> Beginn der Tätigkeit
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">
+                        {% if notar.beginn_datum %}
+                        {{ notar.beginn_datum|date:"d.m.Y" }}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Ende der Tätigkeit -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-calendar-x"></i> Ende der Tätigkeit
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">
+                        {% if notar.ende_datum %}
+                        <span style="color: var(--danger);">{{ notar.ende_datum|date:"d.m.Y" }}</span>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Status -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-info-circle"></i> Status
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">
+                        {% if notar.ist_aktiv and not notar.ende_datum %}
+                        <span class="badge badge-success">Aktiv</span>
+                        {% else %}
+                        <span class="badge badge-danger">Inaktiv</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- War vorher Anwärter -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-arrow-up-circle"></i> War vorher Anwärter
+                    </td>
+                    {% for notar in notare %}
+                    <td style="text-align: center;">
+                        {% if notar.war_vorher_anwaerter %}
+                        <span class="badge badge-info">Ja</span>
+                        {% else %}
+                        <span style="color: var(--text-secondary);">Nein</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Notizen -->
+<div style="display: grid; grid-template-columns: repeat({{ notare.count }}, 1fr); gap: var(--spacing-lg); margin-top: var(--spacing-lg);">
+    {% for notar in notare %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Notizen: {{ notar.get_voller_name }}</h2>
+        </div>
+        <div class="card-body">
+            {% if notar.notiz %}
+            <div style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">{{ notar.notiz }}</div>
+            {% else %}
+            <div style="color: var(--text-secondary); font-style: italic; font-size: 14px;">Keine Notizen vorhanden</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

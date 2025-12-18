@@ -1,0 +1,119 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}E-Mail-Vorlagen - Notariatskammer{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-envelope"></i> E-Mail-Vorlagen
+            </h1>
+            <p class="page-subtitle">Verwalten Sie Standard-E-Mail-Vorlagen</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'vorlage_erstellen' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Neue Vorlage
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon blue">
+            <i class="bi bi-envelope"></i>
+        </div>
+        <div class="stat-card-label">Gesamt</div>
+        <div class="stat-card-value">{{ stats.total }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon green">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-card-label">Aktiv</div>
+        <div class="stat-card-value">{{ stats.aktiv }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon orange">
+            <i class="bi bi-folder"></i>
+        </div>
+        <div class="stat-card-label">Kategorien</div>
+        <div class="stat-card-value">{{ stats.kategorien }}</div>
+    </div>
+</div>
+
+<!-- Vorlagen nach Kategorie gruppiert -->
+{% regroup vorlagen by get_kategorie_display as vorlagen_kategorien %}
+
+{% for kategorie in vorlagen_kategorien %}
+<div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card-header">
+        <h2 class="card-title">{{ kategorie.grouper }}</h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--spacing-md);">
+            {% for vorlage in kategorie.list %}
+            <div class="card" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
+                <div class="card-body">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-sm);">
+                        <h3 style="font-size: 16px; font-weight: 600; margin: 0;">
+                            {{ vorlage.name }}
+                        </h3>
+                        {% if vorlage.ist_aktiv %}
+                        <span class="badge badge-success">Aktiv</span>
+                        {% else %}
+                        <span class="badge badge-secondary">Inaktiv</span>
+                        {% endif %}
+                    </div>
+
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                        <div style="margin-bottom: 4px;">
+                            <i class="bi bi-envelope"></i> An: {{ vorlage.standard_empfaenger }}
+                        </div>
+                        <div>
+                            <i class="bi bi-chat-left-text"></i> {{ vorlage.betreff }}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'vorlage_detail' vorlage.id %}" class="btn btn-secondary btn-sm">
+                            <i class="bi bi-eye"></i> Details
+                        </a>
+                        <a href="{% url 'vorlage_bearbeiten' vorlage.id %}" class="btn btn-secondary btn-sm">
+                            <i class="bi bi-pencil"></i> Bearbeiten
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="card">
+    <div class="card-body">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-envelope"></i>
+            </div>
+            <h3 class="empty-state-title">Keine E-Mail-Vorlagen vorhanden</h3>
+            <p class="empty-state-text">
+                Erstellen Sie Ihre erste E-Mail-Vorlage, um Standard-E-Mails zu versenden.
+            </p>
+            <a href="{% url 'vorlage_erstellen' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Erste Vorlage erstellen
+            </a>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

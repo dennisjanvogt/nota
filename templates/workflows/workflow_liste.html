@@ -1,0 +1,215 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Workflows - Notariatskammer Verwaltung{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-diagram-3"></i> Workflows
+            </h1>
+            <p class="page-subtitle">Übersicht aller Workflow-Instanzen</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'workflow_erstellen' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Neuer Workflow
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter & Search Card -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Filter & Suche</h2>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label">Suche</label>
+                    <input type="text" name="suche" class="form-control"
+                           placeholder="Name oder Aktenzeichen..." value="{{ suche }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        <option value="">Alle</option>
+                        <option value="entwurf" {% if status_filter == 'entwurf' %}selected{% endif %}>Entwurf</option>
+                        <option value="aktiv" {% if status_filter == 'aktiv' %}selected{% endif %}>Aktiv</option>
+                        <option value="abgeschlossen" {% if status_filter == 'abgeschlossen' %}selected{% endif %}>Abgeschlossen</option>
+                        <option value="abgebrochen" {% if status_filter == 'abgebrochen' %}selected{% endif %}>Abgebrochen</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="bi bi-search"></i>
+                        Filtern
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label>
+                    <a href="{% url 'workflow_liste' %}" class="btn btn-secondary" style="width: 100%;">
+                        <i class="bi bi-x"></i>
+                        Zurücksetzen
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Workflow Table -->
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Typ</th>
+                <th>Status</th>
+                <th>Fortschritt</th>
+                <th>Aktenzeichen</th>
+                <th>Erstellt</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if workflows %}
+                {% for workflow in workflows %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">{{ workflow.name }}</div>
+                        {% if workflow.betroffene_person %}
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                            <i class="bi bi-person"></i>
+                            {{ workflow.betroffene_person.vorname }} {{ workflow.betroffene_person.nachname }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-primary">{{ workflow.workflow_typ.name }}</span>
+                    </td>
+                    <td>
+                        {% if workflow.status == 'entwurf' %}
+                            <span class="badge badge-secondary">{{ workflow.get_status_display }}</span>
+                        {% elif workflow.status == 'aktiv' %}
+                            <span class="badge badge-success">{{ workflow.get_status_display }}</span>
+                        {% elif workflow.status == 'abgeschlossen' %}
+                            <span class="badge badge-success">{{ workflow.get_status_display }}</span>
+                        {% elif workflow.status == 'abgebrochen' %}
+                            <span class="badge badge-danger">{{ workflow.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                            <div class="progress" style="flex: 1;">
+                                <div class="progress-bar" style="width: {{ workflow.fortschritt_prozent }}%;"></div>
+                            </div>
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); min-width: 40px;">
+                                {{ workflow.fortschritt_prozent }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if workflow.aktenzeichen %}
+                            <strong style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
+                                {{ workflow.aktenzeichen.vollstaendige_nummer }}
+                            </strong>
+                        {% else %}
+                            <span style="color: var(--text-secondary);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div>{{ workflow.erstellt_am|date:"d.m.Y H:i" }}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            {{ workflow.erstellt_von.username }}
+                        </div>
+                    </td>
+                    <td>
+                        <a href="{% url 'workflow_detail' workflow.id %}" class="btn btn-secondary btn-sm">
+                            <i class="bi bi-eye"></i>
+                            Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-diagram-3"></i>
+                            </div>
+                            <h3 class="empty-state-title">Keine Workflows gefunden</h3>
+                            <p class="empty-state-text">
+                                {% if status_filter or suche %}
+                                Keine Workflows entsprechen den gewählten Filterkriterien.
+                                {% else %}
+                                Es sind noch keine Workflows im System erfasst.
+                                {% endif %}
+                            </p>
+                            {% if not status_filter and not suche %}
+                            <a href="{% url 'workflow_erstellen' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i>
+                                Ersten Workflow erstellen
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Results Info -->
+{% if workflows %}
+<div class="card" style="margin-top: var(--spacing-lg);">
+    <div class="card-body" style="text-align: center; color: var(--text-secondary); font-size: 14px;">
+        <i class="bi bi-info-circle"></i>
+        {{ workflows.count }} Workflow(s) gefunden
+        {% if status_filter or suche %}
+        <a href="{% url 'workflow_liste' %}" style="margin-left: 12px; color: var(--primary-color);">
+            Alle Filter zurücksetzen
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -8px;
+    }
+    .col-md-2, .col-md-3, .col-md-4 {
+        padding: 8px;
+    }
+    .col-md-2 { flex: 0 0 16.66%; }
+    .col-md-3 { flex: 0 0 25%; }
+    .col-md-4 { flex: 0 0 33.33%; }
+    @media (max-width: 768px) {
+        .col-md-2, .col-md-3, .col-md-4 {
+            flex: 0 0 100%;
+        }
+    }
+    .g-3 {
+        gap: 1rem;
+    }
+</style>
+{% endblock %}

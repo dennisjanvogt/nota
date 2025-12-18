@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Notariatskammer Verwaltung{% endblock %}</title>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Custom Modern Styles -->
+    <link rel="stylesheet" href="{% static 'css/modern-style.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <!-- Logo -->
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">
+                N
+            </div>
+            <div class="sidebar-logo-text">
+                <h1>Notariatskammer</h1>
+                <p>Verwaltung</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <!-- Hauptmenü -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-section-title">Hauptmenü</div>
+                <ul>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'dashboard' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                            <i class="bi bi-house-door"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'meine_aufgaben' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'meine_aufgaben' %}active{% endif %}">
+                            <i class="bi bi-check2-square"></i>
+                            <span>Meine Aufgaben</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Stammdaten -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-section-title">Stammdaten</div>
+                <ul>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'notare_liste' %}" class="sidebar-nav-link {% if 'notare' in request.path %}active{% endif %}">
+                            <i class="bi bi-person-badge"></i>
+                            <span>Notare</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'anwaerter_liste' %}" class="sidebar-nav-link {% if 'anwaerter' in request.path %}active{% endif %}">
+                            <i class="bi bi-person"></i>
+                            <span>Notar-Anwärter</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'notarstellen_liste' %}" class="sidebar-nav-link {% if 'notarstellen' in request.path %}active{% endif %}">
+                            <i class="bi bi-building"></i>
+                            <span>Notarstellen</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Workflows -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-section-title">Workflows</div>
+                <ul>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'workflow_liste' %}" class="sidebar-nav-link {% if 'workflows' in request.path and 'workflow_liste' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="bi bi-diagram-3"></i>
+                            <span>Alle Workflows</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Verwaltung -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-section-title">Verwaltung</div>
+                <ul>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'aktenzeichen_liste' %}" class="sidebar-nav-link {% if 'aktenzeichen' in request.path %}active{% endif %}">
+                            <i class="bi bi-hash"></i>
+                            <span>Aktenzeichen</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'berichte_uebersicht' %}" class="sidebar-nav-link {% if 'berichte' in request.path %}active{% endif %}">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Berichte</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'vorlagen_liste' %}" class="sidebar-nav-link {% if 'emails' in request.path %}active{% endif %}">
+                            <i class="bi bi-envelope"></i>
+                            <span>E-Mail-Vorlagen</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/" class="sidebar-nav-link">
+                            <i class="bi bi-gear"></i>
+                            <span>Admin-Bereich</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- User Menu (at bottom) -->
+        <div class="user-menu">
+            <button class="user-menu-button" onclick="toggleUserMenu()">
+                <div class="user-avatar">
+                    {{ user.first_name.0|default:user.username.0|upper }}
+                </div>
+                <div class="user-info">
+                    <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="user-role">{{ user.get_rolle_display|default:"Benutzer" }}</div>
+                </div>
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <div id="userMenuDropdown" style="display: none; margin-top: 8px;">
+                <a href="/admin/password_change/" class="sidebar-nav-link">
+                    <i class="bi bi-key"></i>
+                    <span>Passwort ändern</span>
+                </a>
+                <a href="{% url 'logout' %}" class="sidebar-nav-link">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Abmelden</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userMenuDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.user-menu');
+            const dropdown = document.getElementById('userMenuDropdown');
+            if (!userMenu.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

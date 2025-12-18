@@ -1,0 +1,263 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Notarstellen - Notariatskammer Verwaltung{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">Notarstellen</h1>
+            <p class="page-subtitle">Übersicht aller Notarstellen</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'notarstelle_erstellen' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Neue Notarstelle
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon blue">
+            <i class="bi bi-building"></i>
+        </div>
+        <div class="stat-card-label">Gesamt</div>
+        <div class="stat-card-value">{{ stats.total }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon green">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-card-label">Aktiv</div>
+        <div class="stat-card-value">{{ stats.aktiv }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon orange">
+            <i class="bi bi-person-check"></i>
+        </div>
+        <div class="stat-card-label">Besetzt</div>
+        <div class="stat-card-value">{{ stats.besetzt }}</div>
+    </div>
+</div>
+
+<!-- Filter & Search Card -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Filter & Suche</h2>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label">Suche</label>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Notarnummer, Name oder Stadt..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        <option value="">Alle</option>
+                        <option value="aktiv" {% if status_filter == 'aktiv' %}selected{% endif %}>Aktiv</option>
+                        <option value="inaktiv" {% if status_filter == 'inaktiv' %}selected{% endif %}>Inaktiv</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">Bundesland</label>
+                    <select name="bundesland" class="form-control">
+                        <option value="">Alle</option>
+                        {% for bundesland in bundeslaender %}
+                        <option value="{{ bundesland }}" {% if bundesland_filter == bundesland %}selected{% endif %}>
+                            {{ bundesland }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="bi bi-search"></i>
+                        Filtern
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Notarstellen Table -->
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Notarnummer</th>
+                <th>Bezeichnung</th>
+                <th>Name</th>
+                <th>Standort</th>
+                <th>Notare</th>
+                <th>Kontakt</th>
+                <th>Status</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if notarstellen %}
+                {% for stelle in notarstellen %}
+                <tr>
+                    <td>
+                        <strong style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
+                            {{ stelle.notarnummer }}
+                        </strong>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500;">{{ stelle.bezeichnung }}</div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: linear-gradient(135deg, var(--secondary-blue), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">{{ stelle.name }}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">
+                                    {{ stelle.bundesland }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div>{{ stelle.stadt }}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            {{ stelle.strasse }}, {{ stelle.plz }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if stelle.anzahl_notare > 0 %}
+                        <span class="badge badge-success">
+                            <i class="bi bi-person-badge"></i> {{ stelle.anzahl_notare }}
+                        </span>
+                        {% else %}
+                        <span class="badge badge-secondary">
+                            <i class="bi bi-dash-circle"></i> Keine
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if stelle.email %}
+                        <div style="font-size: 13px;">
+                            <i class="bi bi-envelope"></i> {{ stelle.email }}
+                        </div>
+                        {% endif %}
+                        {% if stelle.telefon %}
+                        <div style="font-size: 13px; color: var(--text-secondary);">
+                            <i class="bi bi-telephone"></i> {{ stelle.telefon }}
+                        </div>
+                        {% endif %}
+                        {% if not stelle.email and not stelle.telefon %}
+                        <span style="color: var(--text-secondary); font-size: 13px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if stelle.ist_aktiv %}
+                        <span class="badge badge-success">
+                            <i class="bi bi-check-circle"></i> Aktiv
+                        </span>
+                        {% else %}
+                        <span class="badge badge-danger">
+                            <i class="bi bi-x-circle"></i> Inaktiv
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 4px;">
+                            <a href="{% url 'notarstelle_detail' stelle.id %}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'notarstelle_bearbeiten' stelle.id %}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <h3 class="empty-state-title">Keine Notarstellen gefunden</h3>
+                            <p class="empty-state-text">
+                                {% if search or status_filter or bundesland_filter %}
+                                Keine Notarstellen entsprechen den gewählten Filterkriterien.
+                                {% else %}
+                                Es sind noch keine Notarstellen im System erfasst.
+                                {% endif %}
+                            </p>
+                            {% if not search and not status_filter and not bundesland_filter %}
+                            <a href="{% url 'notarstelle_erstellen' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i>
+                                Erste Notarstelle anlegen
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Results Info -->
+{% if notarstellen %}
+<div class="card" style="margin-top: var(--spacing-lg);">
+    <div class="card-body" style="text-align: center; color: var(--text-secondary); font-size: 14px;">
+        <i class="bi bi-info-circle"></i>
+        {{ notarstellen.count }} Notarstelle{{ notarstellen.count|pluralize:"n" }} gefunden
+        {% if search or status_filter or bundesland_filter %}
+        <a href="{% url 'notarstellen_liste' %}" style="margin-left: 12px; color: var(--primary-color);">
+            Alle Filter zurücksetzen
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -8px;
+    }
+    .col-md-2, .col-md-3, .col-md-4 {
+        padding: 8px;
+    }
+    .col-md-2 { flex: 0 0 16.66%; }
+    .col-md-3 { flex: 0 0 25%; }
+    .col-md-4 { flex: 0 0 33.33%; }
+    @media (max-width: 768px) {
+        .col-md-2, .col-md-3, .col-md-4 {
+            flex: 0 0 100%;
+        }
+    }
+    .g-3 {
+        gap: 1rem;
+    }
+</style>
+{% endblock %}

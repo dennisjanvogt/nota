@@ -1,0 +1,235 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}E-Mail senden - {{ vorlage.name }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-send"></i> E-Mail senden
+            </h1>
+            <p class="page-subtitle">{{ vorlage.name }}</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'vorlage_detail' vorlage.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Zurück
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">E-Mail-Details</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Person auswählen -->
+                    <div class="form-group">
+                        <label class="form-label">Person auswählen (optional)</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="id_notar" class="form-label">Notar</label>
+                                <select name="notar_id" id="id_notar" class="form-control person-select">
+                                    <option value="">--- Kein Notar ---</option>
+                                    {% for notar in notare %}
+                                        <option value="{{ notar.id }}"
+                                                data-vorname="{{ notar.vorname }}"
+                                                data-nachname="{{ notar.nachname }}"
+                                                data-titel="{{ notar.titel }}"
+                                                data-email="{{ notar.email }}"
+                                                data-telefon="{{ notar.telefon }}"
+                                                data-notarstelle="{{ notar.notarstelle.name }}">
+                                            {{ notar.titel }} {{ notar.vorname }} {{ notar.nachname }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_anwaerter" class="form-label">Notar-Anwärter</label>
+                                <select name="anwaerter_id" id="id_anwaerter" class="form-control person-select">
+                                    <option value="">--- Kein Anwärter ---</option>
+                                    {% for anwaerter in anwaerter %}
+                                        <option value="{{ anwaerter.id }}"
+                                                data-vorname="{{ anwaerter.vorname }}"
+                                                data-nachname="{{ anwaerter.nachname }}"
+                                                data-titel="{{ anwaerter.titel }}"
+                                                data-email="{{ anwaerter.email }}"
+                                                data-telefon="{{ anwaerter.telefon }}"
+                                                data-notarstelle="{{ anwaerter.notarstelle.name }}">
+                                            {{ anwaerter.titel }} {{ anwaerter.vorname }} {{ anwaerter.nachname }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">
+                            Wählen Sie eine Person aus, um die Platzhalter automatisch zu ersetzen.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.empfaenger.id_for_label }}" class="form-label required">
+                            Empfänger
+                        </label>
+                        {{ form.empfaenger }}
+                        {% if form.empfaenger.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.empfaenger.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.cc.id_for_label }}" class="form-label">
+                            CC (optional)
+                        </label>
+                        {{ form.cc }}
+                        {% if form.cc.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.cc.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.betreff.id_for_label }}" class="form-label required">
+                            Betreff
+                        </label>
+                        {{ form.betreff }}
+                        {% if form.betreff.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.betreff.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.nachricht.id_for_label }}" class="form-label required">
+                            Nachricht
+                        </label>
+                        {{ form.nachricht }}
+                        {% if form.nachricht.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.nachricht.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i>
+                            E-Mail senden
+                        </button>
+                        <a href="{% url 'vorlage_detail' vorlage.id %}" class="btn btn-secondary">
+                            Abbrechen
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Vorlage</h2>
+            </div>
+            <div class="card-body">
+                <div class="detail-item" style="margin-bottom: var(--spacing-sm);">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">{{ vorlage.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Kategorie:</span>
+                    <span class="detail-value">{{ vorlage.get_kategorie_display }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: var(--spacing-md);">
+            <div class="card-header">
+                <h2 class="card-title">Verfügbare Platzhalter</h2>
+            </div>
+            <div class="card-body">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: var(--spacing-xs);"><code>{vorname}</code> - Vorname</li>
+                    <li style="margin-bottom: var(--spacing-xs);"><code>{nachname}</code> - Nachname</li>
+                    <li style="margin-bottom: var(--spacing-xs);"><code>{titel}</code> - Titel</li>
+                    <li style="margin-bottom: var(--spacing-xs);"><code>{email}</code> - E-Mail</li>
+                    <li style="margin-bottom: var(--spacing-xs);"><code>{telefon}</code> - Telefon</li>
+                    <li style="margin-bottom: var(--spacing-xs);"><code>{notarstelle}</code> - Notarstelle</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const notarSelect = document.getElementById('id_notar');
+    const anwaerterSelect = document.getElementById('id_anwaerter');
+    const betreffInput = document.getElementById('{{ form.betreff.id_for_label }}');
+    const nachrichtInput = document.getElementById('{{ form.nachricht.id_for_label }}');
+
+    const originalBetreff = betreffInput.value;
+    const originalNachricht = nachrichtInput.value;
+
+    function replacePlaceholders(text, data) {
+        return text
+            .replace(/{vorname}/g, data.vorname || '')
+            .replace(/{nachname}/g, data.nachname || '')
+            .replace(/{titel}/g, data.titel || '')
+            .replace(/{email}/g, data.email || '')
+            .replace(/{telefon}/g, data.telefon || '')
+            .replace(/{notarstelle}/g, data.notarstelle || '');
+    }
+
+    function updateFields(select) {
+        const option = select.options[select.selectedIndex];
+
+        if (option.value) {
+            // Person ausgewählt - andere Select leeren
+            if (select === notarSelect) {
+                anwaerterSelect.value = '';
+            } else {
+                notarSelect.value = '';
+            }
+
+            const data = {
+                vorname: option.dataset.vorname,
+                nachname: option.dataset.nachname,
+                titel: option.dataset.titel,
+                email: option.dataset.email,
+                telefon: option.dataset.telefon,
+                notarstelle: option.dataset.notarstelle
+            };
+
+            betreffInput.value = replacePlaceholders(originalBetreff, data);
+            nachrichtInput.value = replacePlaceholders(originalNachricht, data);
+        } else {
+            // Keine Person ausgewählt - Original wiederherstellen
+            if (!notarSelect.value && !anwaerterSelect.value) {
+                betreffInput.value = originalBetreff;
+                nachrichtInput.value = originalNachricht;
+            }
+        }
+    }
+
+    notarSelect.addEventListener('change', function() {
+        updateFields(this);
+    });
+
+    anwaerterSelect.addEventListener('change', function() {
+        updateFields(this);
+    });
+});
+</script>
+{% endblock %}

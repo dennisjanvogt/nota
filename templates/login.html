@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anmelden - Notariatskammer Verwaltung</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            max-width: 400px;
+            width: 100%;
+        }
+        .card-header {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="card shadow-lg">
+            <div class="card-header text-center py-4">
+                <h3 class="mb-0">
+                    <i class="bi bi-building"></i> Notariatskammer
+                </h3>
+                <p class="mb-0 mt-2">Verwaltungssystem</p>
+            </div>
+            <div class="card-body p-4">
+                <h5 class="card-title text-center mb-4">Anmelden</h5>
+
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Benutzername oder Passwort falsch. Bitte versuchen Sie es erneut.
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">
+                            <i class="bi bi-person"></i> Benutzername
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="id_username" name="username" required autofocus>
+                    </div>
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label">
+                            <i class="bi bi-lock"></i> Passwort
+                        </label>
+                        <input type="password" class="form-control form-control-lg" id="id_password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-box-arrow-in-right"></i> Anmelden
+                    </button>
+                    <input type="hidden" name="next" value="{% url 'dashboard' %}">
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted">
+                <small>&copy; 2025 Notariatskammer</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

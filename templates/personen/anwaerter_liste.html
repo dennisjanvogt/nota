@@ -1,0 +1,358 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Notar-Anwärter - Notariatskammer Verwaltung{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">Notar-Anwärter</h1>
+            <p class="page-subtitle">Übersicht aller registrierten Notar-Anwärter</p>
+        </div>
+        <div class="page-actions">
+            <button type="button" id="vergleichenBtn" class="btn btn-secondary" style="display: none;" onclick="anwaerterVergleichen()">
+                <i class="bi bi-people"></i>
+                <span id="vergleichenText">Vergleichen (0)</span>
+            </button>
+            <a href="{% url 'anwaerter_erstellen' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Neuer Anwärter
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon blue">
+            <i class="bi bi-person-plus"></i>
+        </div>
+        <div class="stat-card-label">Gesamt</div>
+        <div class="stat-card-value">{{ stats.total }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon green">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-card-label">Aktiv</div>
+        <div class="stat-card-value">{{ stats.aktiv }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon orange">
+            <i class="bi bi-calendar-event"></i>
+        </div>
+        <div class="stat-card-label">Bestellung geplant</div>
+        <div class="stat-card-value">{{ stats.mit_planung }}</div>
+    </div>
+</div>
+
+<!-- Filter & Search Card -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Filter & Suche</h2>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label">Suche</label>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Name, ID oder E-Mail..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        <option value="">Alle</option>
+                        <option value="aktiv" {% if status_filter == 'aktiv' %}selected{% endif %}>Aktiv</option>
+                        <option value="inaktiv" {% if status_filter == 'inaktiv' %}selected{% endif %}>Inaktiv</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">Notarstelle</label>
+                    <select name="notarstelle" class="form-control">
+                        <option value="">Alle</option>
+                        {% for notarstelle in notarstellen %}
+                        <option value="{{ notarstelle.id }}" {% if notarstelle_filter == notarstelle.id|stringformat:"s" %}selected{% endif %}>
+                            {{ notarstelle.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="bi bi-search"></i>
+                        Filtern
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Anwärter Table -->
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 40px;">
+                    <input type="checkbox" id="selectAll" onchange="toggleAllAnwaerter(this)" style="cursor: pointer;">
+                </th>
+                <th>Anwärter-ID</th>
+                <th>Name</th>
+                <th>Notarstelle</th>
+                <th>Betreuender Notar</th>
+                <th>Kontakt</th>
+                <th>Zugelassen am</th>
+                <th>Status</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if anwaerter %}
+                {% for anw in anwaerter %}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="anwaerter-checkbox" data-anwaerter-id="{{ anw.anwaerter_id }}" onchange="updateVergleichenButton()" style="cursor: pointer;">
+                    </td>
+                    <td>
+                        <strong>{{ anw.anwaerter_id }}</strong>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                {{ anw.vorname.0 }}{{ anw.nachname.0 }}
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">
+                                    {% if anw.titel %}{{ anw.titel }} {% endif %}{{ anw.vorname }} {{ anw.nachname }}
+                                </div>
+                                {% if anw.geplante_bestellung %}
+                                <div style="font-size: 12px; color: var(--warning);">
+                                    <i class="bi bi-calendar-event"></i> Bestellung geplant: {{ anw.geplante_bestellung|date:"d.m.Y" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div>{{ anw.notarstelle.name }}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            {{ anw.notarstelle.stadt }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if anw.betreuender_notar %}
+                        <div style="font-size: 13px;">
+                            {{ anw.betreuender_notar.vorname }} {{ anw.betreuender_notar.nachname }}
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            {{ anw.betreuender_notar.notar_id }}
+                        </div>
+                        {% else %}
+                        <span style="color: var(--text-secondary); font-size: 13px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 13px;">
+                            <i class="bi bi-envelope"></i> {{ anw.email }}
+                        </div>
+                        {% if anw.telefon %}
+                        <div style="font-size: 13px; color: var(--text-secondary);">
+                            <i class="bi bi-telephone"></i> {{ anw.telefon }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ anw.zugelassen_am|date:"d.m.Y" }}</td>
+                    <td>
+                        {% if anw.ist_aktiv and not anw.ende_datum %}
+                        <span class="badge badge-success">
+                            <i class="bi bi-check-circle"></i> Aktiv
+                        </span>
+                        {% else %}
+                        <span class="badge badge-danger">
+                            <i class="bi bi-x-circle"></i> Inaktiv
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 4px;">
+                            <a href="{% url 'anwaerter_detail' anw.anwaerter_id %}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'anwaerter_bearbeiten' anw.anwaerter_id %}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="9">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-person-plus"></i>
+                            </div>
+                            <h3 class="empty-state-title">Keine Notar-Anwärter gefunden</h3>
+                            <p class="empty-state-text">
+                                {% if search or status_filter or notarstelle_filter %}
+                                Keine Anwärter entsprechen den gewählten Filterkriterien.
+                                {% else %}
+                                Es sind noch keine Notar-Anwärter im System erfasst.
+                                {% endif %}
+                            </p>
+                            {% if not search and not status_filter and not notarstelle_filter %}
+                            <a href="{% url 'anwaerter_erstellen' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i>
+                                Ersten Anwärter anlegen
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Results Info -->
+{% if anwaerter %}
+<div class="card" style="margin-top: var(--spacing-lg);">
+    <div class="card-body" style="text-align: center; color: var(--text-secondary); font-size: 14px;">
+        <i class="bi bi-info-circle"></i>
+        {{ anwaerter.count }} Anwärter gefunden
+        {% if search or status_filter or notarstelle_filter %}
+        <a href="{% url 'anwaerter_liste' %}" style="margin-left: 12px; color: var(--primary-color);">
+            Alle Filter zurücksetzen
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateVergleichenButton() {
+    const checkboxes = document.querySelectorAll('.anwaerter-checkbox:checked');
+    const count = checkboxes.length;
+    const btn = document.getElementById('vergleichenBtn');
+    const text = document.getElementById('vergleichenText');
+
+    if (count > 0 && count <= 3) {
+        btn.style.display = 'inline-flex';
+        text.textContent = `Vergleichen (${count})`;
+
+        if (count === 3) {
+            // Maximal 3 erreicht - andere Checkboxen deaktivieren
+            document.querySelectorAll('.anwaerter-checkbox:not(:checked)').forEach(cb => {
+                cb.disabled = true;
+            });
+        } else {
+            // Alle Checkboxen wieder aktivieren
+            document.querySelectorAll('.anwaerter-checkbox').forEach(cb => {
+                cb.disabled = false;
+            });
+        }
+    } else if (count > 3) {
+        // Mehr als 3 - letzte Checkbox abwählen
+        const lastChecked = Array.from(checkboxes).pop();
+        lastChecked.checked = false;
+        updateVergleichenButton();
+    } else {
+        btn.style.display = 'none';
+        document.querySelectorAll('.anwaerter-checkbox').forEach(cb => {
+            cb.disabled = false;
+        });
+    }
+
+    // Select All Checkbox updaten
+    const allCheckboxes = document.querySelectorAll('.anwaerter-checkbox');
+    const selectAll = document.getElementById('selectAll');
+    if (allCheckboxes.length > 0) {
+        selectAll.checked = count === allCheckboxes.length;
+        selectAll.indeterminate = count > 0 && count < allCheckboxes.length;
+    }
+}
+
+function toggleAllAnwaerter(checkbox) {
+    const allCheckboxes = document.querySelectorAll('.anwaerter-checkbox');
+    const maxSelectable = Math.min(allCheckboxes.length, 3);
+
+    if (checkbox.checked) {
+        // Nur die ersten 3 auswählen
+        allCheckboxes.forEach((cb, index) => {
+            cb.checked = index < maxSelectable;
+        });
+    } else {
+        // Alle abwählen
+        allCheckboxes.forEach(cb => {
+            cb.checked = false;
+        });
+    }
+
+    updateVergleichenButton();
+}
+
+function anwaerterVergleichen() {
+    const checkboxes = document.querySelectorAll('.anwaerter-checkbox:checked');
+    const anwaerterIds = Array.from(checkboxes).map(cb => cb.dataset.anwaerterId);
+
+    if (anwaerterIds.length < 2) {
+        alert('Bitte wählen Sie mindestens 2 Anwärter zum Vergleichen aus.');
+        return;
+    }
+
+    if (anwaerterIds.length > 3) {
+        alert('Sie können maximal 3 Anwärter gleichzeitig vergleichen.');
+        return;
+    }
+
+    // URL mit Anwärter-IDs erstellen
+    const params = anwaerterIds.map(id => `anwaerter=${id}`).join('&');
+    window.location.href = `{% url 'anwaerter_vergleichen' %}?${params}`;
+}
+
+// Initial update
+document.addEventListener('DOMContentLoaded', function() {
+    updateVergleichenButton();
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -8px;
+    }
+    .col-md-2, .col-md-3, .col-md-4 {
+        padding: 8px;
+    }
+    .col-md-2 { flex: 0 0 16.66%; }
+    .col-md-3 { flex: 0 0 25%; }
+    .col-md-4 { flex: 0 0 33.33%; }
+    @media (max-width: 768px) {
+        .col-md-2, .col-md-3, .col-md-4 {
+            flex: 0 0 100%;
+        }
+    }
+    .g-3 {
+        gap: 1rem;
+    }
+</style>
+{% endblock %}

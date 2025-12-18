@@ -1,0 +1,94 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Workflow abbrechen - {{ workflow.name }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-x-circle"></i> Workflow abbrechen
+            </h1>
+            <p class="page-subtitle">{{ workflow.name }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Centered Form Card -->
+<div style="max-width: 700px; margin: 0 auto;">
+    <div class="card" style="border: 2px solid var(--danger);">
+        <div class="card-body">
+            <!-- Warning Alert -->
+            <div class="alert alert-warning" style="margin-bottom: var(--spacing-lg);">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Achtung!</strong> Sie sind dabei, den folgenden Workflow abzubrechen:
+            </div>
+
+            <!-- Workflow Info -->
+            <div style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color);">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--spacing-xs);">
+                    {{ workflow.name }}
+                </h3>
+                <div style="font-size: 14px; color: var(--text-secondary);">
+                    <i class="bi bi-diagram-3"></i> {{ workflow.workflow_typ.name }}
+                    {% if workflow.aktenzeichen %}
+                    | <strong style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
+                        {{ workflow.aktenzeichen.vollstaendige_nummer }}
+                    </strong>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Workflow Stats -->
+            <div class="alert alert-info" style="margin-bottom: var(--spacing-lg);">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md); font-size: 14px;">
+                    <div>
+                        <strong>Status:</strong><br>
+                        {{ workflow.get_status_display }}
+                    </div>
+                    <div>
+                        <strong>Fortschritt:</strong><br>
+                        {{ workflow.fortschritt_prozent }}%
+                    </div>
+                    <div>
+                        <strong>Erstellt am:</strong><br>
+                        {{ workflow.erstellt_am|date:"d.m.Y H:i" }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">Grund für den Abbruch</label>
+                    <textarea name="grund" class="form-control" rows="4"
+                              placeholder="Bitte geben Sie den Grund für den Abbruch an..." required></textarea>
+                    <small style="display: block; margin-top: 6px; font-size: 13px; color: var(--text-secondary);">
+                        Dieser Grund wird im Workflow gespeichert.
+                    </small>
+                </div>
+
+                <!-- Final Warning -->
+                <div class="alert alert-danger" style="margin-bottom: var(--spacing-lg);">
+                    <i class="bi bi-info-circle"></i>
+                    Nach dem Abbruch kann der Workflow nicht mehr fortgesetzt werden.
+                    Alle laufenden Schritte werden als fehlgeschlagen markiert.
+                </div>
+
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md);">
+                    <a href="{% url 'workflow_detail' workflow.id %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Zurück
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle"></i> Workflow abbrechen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

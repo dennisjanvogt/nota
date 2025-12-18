@@ -1,0 +1,21 @@
+anwaerter_id,vorname,nachname,titel,email,telefon,notarstelle_nr,betreuender_notar_id,zugelassen_am,beginn_datum,geplante_bestellung,ist_aktiv
+ANW-001,Lisa,Schöller,Mag.,lisa.schoeller@notariat-wien1.at,+43 1 5123456-30,1,NOT-001,2022-09-01,2022-09-01,2025-09-01,True
+ANW-002,Dominik,Aigner,Mag.,dominik.aigner@notariat-graz.at,+43 316 8234567-30,4,NOT-004,2023-03-15,2023-03-15,2026-03-15,True
+ANW-003,Nina,Pammer,Mag.,nina.pammer@notariat-linz.at,+43 732 7734567-30,5,NOT-005,2022-11-10,2022-11-10,2025-11-10,True
+ANW-004,Florian,Riedl,Mag.,florian.riedl@notariat-salzburg.at,+43 662 8434567-30,6,NOT-006,2023-06-20,2023-06-20,2026-06-20,True
+ANW-005,Sarah,Pointner,Mag.,sarah.pointner@notariat-innsbruck.at,+43 512 5834567-30,7,NOT-007,2023-01-12,2023-01-12,2026-01-12,True
+ANW-006,Lukas,Grabner,Mag.,lukas.grabner@notariat-klagenfurt.at,+43 463 5134567-30,8,NOT-008,2022-07-25,2022-07-25,2025-07-25,True
+ANW-007,Anna,Stadler,Mag.,anna.stadler@notariat-graben.at,+43 1 5334567-30,2,NOT-002,2023-04-18,2023-04-18,2026-04-18,True
+ANW-008,David,Leitner,Mag.,david.leitner@notariat-stpoelten.at,+43 2742 3534567-30,10,NOT-010,2022-10-05,2022-10-05,2025-10-05,True
+ANW-009,Sophie,Plank,Mag.,sophie.plank@notariat-wels.at,+43 7242 4534567-30,15,NOT-015,2023-02-28,2023-02-28,2026-02-28,True
+ANW-010,Patrick,Lechner,Mag.,patrick.lechner@notariat-villach.at,+43 4242 2634567-30,16,NOT-016,2023-08-14,2023-08-14,2026-08-14,True
+ANW-011,Laura,Holzer,Mag.,laura.holzer@notariat-bregenz.at,+43 5574 4234567-30,9,NOT-009,2022-12-01,2022-12-01,2025-12-01,True
+ANW-012,Simon,Mayr,Mag.,simon.mayr@notariat-eisenstadt.at,+43 2682 6334567-30,11,NOT-011,2023-05-22,2023-05-22,2026-05-22,True
+ANW-013,Jennifer,Haider,Mag.,jennifer.haider@notariat-opernring.at,+43 1 5876543-30,12,NOT-012,2022-08-17,2022-08-17,2025-08-17,True
+ANW-014,Maximilian,Rauch,Mag.,maximilian.rauch@notariat-kohlmarkt.at,+43 1 5987654-30,13,NOT-013,2023-11-09,2023-11-09,2026-11-09,True
+ANW-015,Melanie,Ortner,Mag.,melanie.ortner@notariat-wneustadt.at,+43 2622 2234567-30,14,NOT-014,2023-07-03,2023-07-03,2026-07-03,True
+ANW-016,Daniel,Wallner,Mag.,daniel.wallner@notariat-baden.at,+43 2252 8634567-30,17,NOT-017,2022-09-26,2022-09-26,2025-09-26,True
+ANW-017,Christina,Moser,Mag.,christina.moser@notariat-krems.at,+43 2732 8234567-30,18,NOT-018,2023-03-08,2023-03-08,2026-03-08,True
+ANW-018,Philipp,Kirchner,Mag.,philipp.kirchner@notariat-steyr.at,+43 7252 5234567-30,19,NOT-019,2023-10-11,2023-10-11,2026-10-11,True
+ANW-019,Kathrin,Mitterer,Mag.,kathrin.mitterer@notariat-dornbirn.at,+43 5572 2234567-30,20,NOT-020,2022-11-23,2022-11-23,2025-11-23,True
+ANW-020,Marco,Decker,Mag.,marco.decker@notariat-leoben.at,+43 3842 4334567-30,21,NOT-021,2023-06-07,2023-06-07,2026-06-07,True

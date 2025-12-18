@@ -1,0 +1,63 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Schritt abschließen - {{ schritt.workflow_schritt.name }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-check-circle"></i> Schritt abschließen
+            </h1>
+            <p class="page-subtitle">{{ schritt.workflow_schritt.name }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Centered Form Card -->
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-body">
+            <div style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color);">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--spacing-xs);">
+                    {{ schritt.workflow_schritt.name }}
+                </h3>
+                <div style="font-size: 14px; color: var(--text-secondary);">
+                    <i class="bi bi-diagram-3"></i> {{ schritt.workflow_instanz.name }}
+                </div>
+            </div>
+
+            {% if schritt.workflow_schritt.beschreibung %}
+            <div class="alert alert-info" style="margin-bottom: var(--spacing-lg);">
+                <strong>Beschreibung:</strong><br>
+                {{ schritt.workflow_schritt.beschreibung }}
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">Notizen zum Abschluss (optional)</label>
+                    <textarea name="notizen" class="form-control" rows="5"
+                              placeholder="Hier können Sie Notizen zum Abschluss dieses Schritts hinzufügen..."></textarea>
+                    <small style="display: block; margin-top: 6px; font-size: 13px; color: var(--text-secondary);">
+                        Diese Notizen werden beim Schritt gespeichert und sind für andere Benutzer sichtbar.
+                    </small>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md);">
+                    <a href="{% url 'workflow_detail' schritt.workflow_instanz.id %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Zurück
+                    </a>
+                    <button type="submit" class="btn btn-success" style="padding: 12px 32px; font-size: 16px;">
+                        <i class="bi bi-check-circle"></i> Schritt abschließen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-building"></i> {{ title }}
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Grunddaten -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Grunddaten
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.notarnummer.label }}</label>
+                        {{ form.notarnummer }}
+                        {% if form.notarnummer.help_text %}
+                        <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                            {{ form.notarnummer.help_text }}
+                        </small>
+                        {% endif %}
+                        {% if form.notarnummer.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.notarnummer.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ form.bezeichnung.label }}</label>
+                        {{ form.bezeichnung }}
+                        {% if form.bezeichnung.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.bezeichnung.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ form.name.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Adresse -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Adresse
+                </h3>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                    <label class="form-label">{{ form.strasse.label }}</label>
+                    {{ form.strasse }}
+                    {% if form.strasse.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ form.strasse.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.plz.label }}</label>
+                        {{ form.plz }}
+                        {% if form.plz.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.plz.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ form.stadt.label }}</label>
+                        {{ form.stadt }}
+                        {% if form.stadt.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.stadt.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">{{ form.bundesland.label }}</label>
+                    {{ form.bundesland }}
+                    {% if form.bundesland.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ form.bundesland.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Kontakt -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Kontakt
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.telefon.label }}</label>
+                        {{ form.telefon }}
+                        {% if form.telefon.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.telefon.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.email.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Status & Zusatzinformationen -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Status & Zusatzinformationen
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
+                    <div class="form-group">
+                        <div class="form-check" style="display: flex; align-items: center; gap: 8px;">
+                            {{ form.ist_aktiv }}
+                            <label class="form-label" style="margin: 0;">{{ form.ist_aktiv.label }}</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ form.besetzt_seit.label }}</label>
+                        {{ form.besetzt_seit }}
+                        {% if form.besetzt_seit.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.besetzt_seit.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">{{ form.notiz.label }}</label>
+                    {{ form.notiz }}
+                    {% if form.notiz.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ form.notiz.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+                    <a href="{% url 'notarstellen_liste' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Zurück
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> {{ submit_text }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

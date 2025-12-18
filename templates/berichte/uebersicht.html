@@ -1,0 +1,111 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Berichte & Exports - Notariatskammer{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-file-earmark-bar-graph"></i> Berichte & Exports
+            </h1>
+            <p class="page-subtitle">Exportieren Sie Daten in verschiedenen Formaten</p>
+        </div>
+    </div>
+</div>
+
+<!-- Info Card -->
+<div class="card" style="margin-bottom: var(--spacing-lg); border-left: 4px solid var(--secondary-blue);">
+    <div class="card-body">
+        <div style="display: flex; align-items: start; gap: var(--spacing-md);">
+            <div style="color: var(--secondary-blue); font-size: 24px;">
+                <i class="bi bi-info-circle"></i>
+            </div>
+            <div>
+                <div style="font-weight: 600; font-size: 15px; margin-bottom: 8px;">Verfügbare Export-Formate</div>
+                <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+                    <div style="margin-bottom: 4px;">
+                        <strong>CSV:</strong> Für einfache Datenverarbeitung in Excel oder anderen Tools (Semikolon-getrennt, UTF-8)
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <strong>Excel:</strong> Formatierte Excel-Datei mit Kopfzeilen und Auto-Breite (XLSX-Format)
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <strong>PDF:</strong> Druckbare PDF-Datei im Querformat mit Tabellen-Layout
+                    </div>
+                </div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-secondary);">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Alle Exporte enthalten die aktuellen Daten zum Zeitpunkt des Exports. Änderungen nach dem Export sind nicht enthalten.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Berichte-Karten -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--spacing-lg);">
+    {% for bericht in berichte %}
+    <div class="card" style="display: flex; flex-direction: column;">
+        <div class="card-header" style="background: linear-gradient(135deg, var(--primary-color), #7BA8C4); color: white;">
+            <h2 class="card-title" style="color: white; margin: 0;">
+                <i class="bi bi-file-earmark-text"></i> {{ bericht.titel }}
+            </h2>
+        </div>
+        <div class="card-body" style="flex: 1;">
+            <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;">
+                {{ bericht.beschreibung }}
+            </p>
+        </div>
+        <div style="padding: var(--spacing-md); background: var(--bg-primary); border-top: 1px solid var(--border-color);">
+            <a href="{% url bericht.filter_url %}" class="btn btn-primary" style="width: 100%; text-align: center;">
+                <i class="bi bi-funnel"></i> Filtern & Exportieren
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-body">
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-file-earmark-bar-graph"></i>
+                </div>
+                <h3 class="empty-state-title">Keine Berichte verfügbar</h3>
+                <p class="empty-state-text">
+                    Es sind noch keine Berichte konfiguriert.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .btn-success {
+        background: #34C759;
+        color: white;
+        border: none;
+    }
+    .btn-success:hover {
+        background: #2eb84e;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+    }
+
+    .btn-danger {
+        background: #FF3B30;
+        color: white;
+        border: none;
+    }
+    .btn-danger:hover {
+        background: #e6342a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+    }
+</style>
+{% endblock %}

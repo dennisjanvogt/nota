@@ -1,0 +1,277 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ workflow.name }} - Workflow Details{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-diagram-3"></i> {{ workflow.name }}
+            </h1>
+            <p class="page-subtitle">
+                {{ workflow.workflow_typ.name }}
+                {% if workflow.aktenzeichen %}
+                | <strong style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
+                    {{ workflow.aktenzeichen.vollstaendige_nummer }}
+                </strong>
+                {% endif %}
+            </p>
+        </div>
+        <div class="page-actions">
+            {% if workflow.status == 'aktiv' %}
+            <a href="{% url 'workflow_abbrechen' workflow.id %}" class="btn btn-danger">
+                <i class="bi bi-x-circle"></i>
+                Workflow abbrechen
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Layout -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+    <!-- Main Column -->
+    <div>
+        <!-- Status und Fortschritt Card -->
+        <div class="card" style="margin-bottom: var(--spacing-lg);">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-info-circle"></i> Status und Fortschritt
+                </h2>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
+                    <!-- Left Info -->
+                    <div>
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Status:</strong>
+                            {% if workflow.status == 'entwurf' %}
+                                <span class="badge badge-secondary">{{ workflow.get_status_display }}</span>
+                            {% elif workflow.status == 'aktiv' %}
+                                <span class="badge badge-success">{{ workflow.get_status_display }}</span>
+                            {% elif workflow.status == 'abgeschlossen' %}
+                                <span class="badge badge-success">{{ workflow.get_status_display }}</span>
+                            {% elif workflow.status == 'abgebrochen' %}
+                                <span class="badge badge-danger">{{ workflow.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt von:</strong>
+                            <div>{{ workflow.erstellt_von.get_full_name|default:workflow.erstellt_von.username }}</div>
+                        </div>
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt am:</strong>
+                            <div>{{ workflow.erstellt_am|date:"d.m.Y H:i" }}</div>
+                        </div>
+                        {% if workflow.gestartet_am %}
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Gestartet am:</strong>
+                            <div>{{ workflow.gestartet_am|date:"d.m.Y H:i" }}</div>
+                        </div>
+                        {% endif %}
+                        {% if workflow.faellig_am %}
+                        <div>
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Fällig am:</strong>
+                            <div>{{ workflow.faellig_am|date:"d.m.Y" }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right Progress -->
+                    <div>
+                        <strong style="display: block; margin-bottom: var(--spacing-sm); color: var(--text-secondary); font-size: 13px;">Fortschritt:</strong>
+                        <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
+                            <div class="progress" style="flex: 1; height: 30px;">
+                                <div class="progress-bar" style="width: {{ workflow.fortschritt_prozent }}%;"></div>
+                            </div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); min-width: 50px;">
+                                {{ workflow.fortschritt_prozent }}%
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">
+                            {{ statistik.abgeschlossen }} von {{ statistik.gesamt_schritte }} Schritten abgeschlossen
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflow-Schritte Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-list-check"></i> Workflow-Schritte
+                </h2>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% for schritt in schritte %}
+                <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--border-color);">
+                    <div style="display: grid; grid-template-columns: auto 1fr auto; gap: var(--spacing-lg); align-items: start;">
+                        <!-- Schritt-Nummer -->
+                        <div style="text-align: center;">
+                            <span class="badge badge-secondary" style="font-size: 16px; padding: 8px 12px; min-width: 40px;">
+                                {{ schritt.workflow_schritt.reihenfolge }}
+                            </span>
+                        </div>
+
+                        <!-- Schritt-Info -->
+                        <div>
+                            <h4 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--text-primary);">
+                                {{ schritt.workflow_schritt.name }}
+                            </h4>
+                            {% if schritt.workflow_schritt.beschreibung %}
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--spacing-sm);">
+                                {{ schritt.workflow_schritt.beschreibung|truncatewords:15 }}
+                            </div>
+                            {% endif %}
+                            <div style="display: flex; gap: var(--spacing-md); align-items: center; font-size: 13px;">
+                                <!-- Status Badge -->
+                                <div>
+                                    {% if schritt.status == 'ausstehend' %}
+                                        <span class="badge badge-secondary">{{ schritt.get_status_display }}</span>
+                                    {% elif schritt.status == 'in_bearbeitung' %}
+                                        <span class="badge badge-warning">{{ schritt.get_status_display }}</span>
+                                    {% elif schritt.status == 'abgeschlossen' %}
+                                        <span class="badge badge-success">{{ schritt.get_status_display }}</span>
+                                    {% elif schritt.status == 'uebersprungen' %}
+                                        <span class="badge badge-primary">{{ schritt.get_status_display }}</span>
+                                    {% elif schritt.status == 'fehlgeschlagen' %}
+                                        <span class="badge badge-danger">{{ schritt.get_status_display }}</span>
+                                    {% endif %}
+                                </div>
+                                <!-- Zugewiesen an -->
+                                <div style="color: var(--text-secondary);">
+                                    {% if schritt.zugewiesen_an %}
+                                        <i class="bi bi-person"></i> {{ schritt.zugewiesen_an.get_full_name|default:schritt.zugewiesen_an.username }}
+                                    {% else %}
+                                        <i class="bi bi-person-x"></i> Nicht zugewiesen
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if schritt.notizen %}
+                            <div style="margin-top: var(--spacing-sm); padding: var(--spacing-sm); background: var(--bg-primary); border-radius: var(--border-radius); font-size: 13px; color: var(--text-secondary);">
+                                <strong>Notizen:</strong> {{ schritt.notizen }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Aktionen -->
+                        <div>
+                            {% if schritt.status == 'in_bearbeitung' %}
+                                <a href="{% url 'schritt_abschliessen' schritt.id %}" class="btn btn-success btn-sm">
+                                    <i class="bi bi-check"></i> Abschließen
+                                </a>
+                            {% elif schritt.status == 'ausstehend' %}
+                                <a href="{% url 'schritt_zuweisen' schritt.id %}" class="btn btn-secondary btn-sm">
+                                    <i class="bi bi-person-plus"></i> Zuweisen
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Column -->
+    <div>
+        <!-- Betroffene Person -->
+        {% if workflow.betroffene_person %}
+        <div class="card" style="margin-bottom: var(--spacing-lg);">
+            <div class="card-header">
+                <h3 class="card-title" style="font-size: 16px;">
+                    <i class="bi bi-person"></i> Betroffene Person
+                </h3>
+            </div>
+            <div class="card-body">
+                <div style="margin-bottom: var(--spacing-sm);">
+                    <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Name:</strong>
+                    <div style="font-weight: 500;">
+                        {{ workflow.betroffene_person.vorname }} {{ workflow.betroffene_person.nachname }}
+                    </div>
+                </div>
+                <div>
+                    <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">ID:</strong>
+                    <div style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
+                        {{ workflow.betroffene_person.anwaerter_id }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Kommentare Card -->
+        <div class="card" style="margin-bottom: var(--spacing-lg);">
+            <div class="card-header">
+                <h3 class="card-title" style="font-size: 16px;">
+                    <i class="bi bi-chat-left-text"></i> Kommentare
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if kommentare %}
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        {% for kommentar in kommentare %}
+                        <div style="padding-bottom: var(--spacing-md); margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color);">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">
+                                <i class="bi bi-person-circle"></i>
+                                {{ kommentar.benutzer.get_full_name|default:kommentar.benutzer.username }}
+                                - {{ kommentar.erstellt_am|date:"d.m.Y H:i" }}
+                            </div>
+                            <div style="font-size: 14px;">{{ kommentar.kommentar }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
+                        Noch keine Kommentare
+                    </div>
+                {% endif %}
+
+                <!-- Kommentar hinzufügen -->
+                <form method="post" action="{% url 'kommentar_hinzufuegen' workflow.id %}">
+                    {% csrf_token %}
+                    <div class="form-group" style="margin-bottom: var(--spacing-sm);">
+                        <textarea name="kommentar" class="form-control" rows="3"
+                                  placeholder="Kommentar hinzufügen..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="bi bi-chat"></i> Kommentar hinzufügen
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notizen -->
+        {% if workflow.notizen %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title" style="font-size: 16px;">
+                    <i class="bi bi-sticky"></i> Notizen
+                </h3>
+            </div>
+            <div class="card-body">
+                <p style="margin: 0; font-size: 14px;">{{ workflow.notizen }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 1024px) {
+        div[style*="grid-template-columns: 2fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+        div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

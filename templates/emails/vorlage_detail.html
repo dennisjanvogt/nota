@@ -1,0 +1,123 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ vorlage.name }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-envelope"></i> {{ vorlage.name }}
+            </h1>
+            <p class="page-subtitle">{{ vorlage.get_kategorie_display }}</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'email_vorbereiten' vorlage.id %}" class="btn btn-primary">
+                <i class="bi bi-send"></i>
+                E-Mail senden
+            </a>
+            <a href="{% url 'vorlage_bearbeiten' vorlage.id %}" class="btn btn-secondary">
+                <i class="bi bi-pencil"></i>
+                Bearbeiten
+            </a>
+            <a href="{% url 'vorlagen_liste' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Zurück
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Vorlagen-Details</h2>
+    </div>
+    <div class="card-body">
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Name:</span>
+                <span class="detail-value">{{ vorlage.name }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Kategorie:</span>
+                <span class="detail-value">{{ vorlage.get_kategorie_display }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value">
+                    {% if vorlage.ist_aktiv %}
+                        <span class="badge badge-success">Aktiv</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Inaktiv</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Betreff:</span>
+                <span class="detail-value">{{ vorlage.betreff }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Standard-Empfänger:</span>
+                <span class="detail-value">{{ vorlage.standard_empfaenger }}</span>
+            </div>
+
+            {% if vorlage.cc_empfaenger %}
+            <div class="detail-item">
+                <span class="detail-label">CC-Empfänger:</span>
+                <span class="detail-value">{{ vorlage.cc_empfaenger }}</span>
+            </div>
+            {% endif %}
+
+            <div class="detail-item" style="grid-column: 1 / -1;">
+                <span class="detail-label">Nachricht:</span>
+                <div class="detail-value" style="white-space: pre-wrap; background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--border-radius); margin-top: var(--spacing-xs);">{{ vorlage.nachricht }}</div>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Erstellt am:</span>
+                <span class="detail-value">{{ vorlage.erstellt_am|date:"d.m.Y H:i" }} Uhr</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Zuletzt aktualisiert:</span>
+                <span class="detail-value">{{ vorlage.aktualisiert_am|date:"d.m.Y H:i" }} Uhr</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if gesendete_emails %}
+<div class="card" style="margin-top: var(--spacing-lg);">
+    <div class="card-header">
+        <h2 class="card-title">Gesendete E-Mails ({{ gesendete_emails|length }})</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Gesendet am</th>
+                        <th>Empfänger</th>
+                        <th>Gesendet von</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for email in gesendete_emails %}
+                    <tr>
+                        <td>{{ email.gesendet_am|date:"d.m.Y H:i" }} Uhr</td>
+                        <td>{{ email.empfaenger }}</td>
+                        <td>{{ email.gesendet_von.get_full_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

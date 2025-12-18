@@ -1,0 +1,234 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Anwärter-Vergleich - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-people"></i> Anwärter-Vergleich
+            </h1>
+            <p class="page-subtitle">{{ anwaerter.count }} Anwärter werden verglichen</p>
+        </div>
+        <div class="page-actions">
+            <a href="?{% for anw in anwaerter %}anwaerter={{ anw.anwaerter_id }}&{% endfor %}format=pdf" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf"></i> Als PDF exportieren
+            </a>
+            <a href="{% url 'anwaerter_liste' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Vergleichstabelle -->
+<div class="card">
+    <div class="card-body" style="overflow-x: auto;">
+        <table class="table" style="margin-bottom: 0;">
+            <thead>
+                <tr>
+                    <th style="width: 200px; position: sticky; left: 0; background: var(--bg-primary); z-index: 10;">Eigenschaft</th>
+                    {% for anw in anwaerter %}
+                    <th style="min-width: 250px; text-align: center;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 600;">
+                                {{ anw.vorname.0 }}{{ anw.nachname.0 }}
+                            </div>
+                            <div style="font-weight: 600; font-size: 16px;">
+                                {{ anw.get_voller_name }}
+                            </div>
+                        </div>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Anwärter-ID -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-hash"></i> Anwärter-ID
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center; font-family: monospace;">{{ anw.anwaerter_id }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Titel -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-award"></i> Titel
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">{{ anw.titel|default:"—" }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- E-Mail -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-envelope"></i> E-Mail
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center; font-size: 12px; word-break: break-all; max-width: 200px;">
+                        {% if anw.email %}
+                        <a href="mailto:{{ anw.email }}">{{ anw.email }}</a>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Telefon -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-telephone"></i> Telefon
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">{{ anw.telefon|default:"—" }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Notarstelle -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-building"></i> Notarstelle
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">
+                        <a href="{% url 'notarstelle_detail' anw.notarstelle.id %}">{{ anw.notarstelle.name }}</a>
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Ort -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-geo-alt"></i> Ort
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">{{ anw.notarstelle.stadt }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Betreuender Notar -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-person-badge"></i> Betreuender Notar
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">
+                        {% if anw.betreuender_notar %}
+                        <a href="{% url 'notar_detail' anw.betreuender_notar.notar_id %}">{{ anw.betreuender_notar.get_voller_name }}</a>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Zugelassen am -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-calendar-check"></i> Zugelassen am
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">
+                        {% if anw.zugelassen_am %}
+                        {{ anw.zugelassen_am|date:"d.m.Y" }}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Beginn der Tätigkeit -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-calendar"></i> Beginn der Tätigkeit
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">
+                        {% if anw.beginn_datum %}
+                        {{ anw.beginn_datum|date:"d.m.Y" }}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Ende der Tätigkeit -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-calendar-x"></i> Ende der Tätigkeit
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">
+                        {% if anw.ende_datum %}
+                        <span style="color: var(--danger);">{{ anw.ende_datum|date:"d.m.Y" }}</span>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Geplante Bestellung -->
+                <tr>
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-calendar-event"></i> Geplante Bestellung
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">
+                        {% if anw.geplante_bestellung %}
+                        <span style="color: var(--warning); font-weight: 500;">{{ anw.geplante_bestellung|date:"d.m.Y" }}</span>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Status -->
+                <tr style="background: var(--bg-secondary);">
+                    <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
+                        <i class="bi bi-info-circle"></i> Status
+                    </td>
+                    {% for anw in anwaerter %}
+                    <td style="text-align: center;">
+                        {% if anw.ist_aktiv and not anw.ende_datum %}
+                        <span class="badge badge-success">Aktiv</span>
+                        {% else %}
+                        <span class="badge badge-danger">Inaktiv</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Notizen -->
+<div style="display: grid; grid-template-columns: repeat({{ anwaerter.count }}, 1fr); gap: var(--spacing-lg); margin-top: var(--spacing-lg);">
+    {% for anw in anwaerter %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Notizen: {{ anw.get_voller_name }}</h2>
+        </div>
+        <div class="card-body">
+            {% if anw.notiz %}
+            <div style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">{{ anw.notiz }}</div>
+            {% else %}
+            <div style="color: var(--text-secondary); font-style: italic; font-size: 14px;">Keine Notizen vorhanden</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

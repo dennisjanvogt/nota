@@ -1,0 +1,164 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ titel }} - Filter & Export{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-funnel"></i> {{ titel }} - Filter & Export
+            </h1>
+            <p class="page-subtitle">Wählen Sie Filter aus und exportieren Sie die Daten</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'berichte_uebersicht' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Zurück zur Übersicht
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Filteroptionen</h2>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            {% for field in form %}
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ field.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            <div class="col-12" style="margin-top: var(--spacing-lg);">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i>
+                    Filter anwenden
+                </button>
+                <a href="?" class="btn btn-secondary" style="margin-left: 8px;">
+                    <i class="bi bi-x-circle"></i>
+                    Filter zurücksetzen
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Ergebnis-Info Card -->
+<div class="card" style="margin-top: var(--spacing-lg);">
+    <div class="card-body">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">
+                    Gefundene Einträge
+                </div>
+                <div style="font-size: 32px; font-weight: 600; color: var(--primary-color);">
+                    {{ anzahl }}
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                {% if anzahl > 0 %}
+                <a href="{% url export_url_name %}?{{ request.GET.urlencode }}&format=csv" class="btn btn-secondary">
+                    <i class="bi bi-filetype-csv"></i>
+                    Als CSV exportieren
+                </a>
+                <a href="{% url export_url_name %}?{{ request.GET.urlencode }}&format=excel" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel"></i>
+                    Als Excel exportieren
+                </a>
+                <a href="{% url export_url_name %}?{{ request.GET.urlencode }}&format=pdf" class="btn btn-danger">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    Als PDF exportieren
+                </a>
+                {% else %}
+                <div style="color: var(--text-secondary); font-size: 14px;">
+                    <i class="bi bi-info-circle"></i>
+                    Keine Daten zum Exportieren vorhanden
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vorschau (optional) -->
+{% if anzahl > 0 and anzahl <= 10 %}
+<div class="card" style="margin-top: var(--spacing-lg);">
+    <div class="card-header">
+        <h2 class="card-title">Vorschau der gefilterten Daten</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table class="table">
+                <tbody>
+                    {% for item in queryset %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -8px;
+    }
+    .col-md-4, .col-12 {
+        padding: 8px;
+    }
+    .col-md-4 { flex: 0 0 33.33%; }
+    .col-12 { flex: 0 0 100%; }
+    @media (max-width: 768px) {
+        .col-md-4 {
+            flex: 0 0 100%;
+        }
+    }
+    .g-3 {
+        gap: 1rem;
+    }
+
+    .btn-success {
+        background: #34C759;
+        color: white;
+        border: none;
+    }
+    .btn-success:hover {
+        background: #2eb84e;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+    }
+
+    .btn-danger {
+        background: #FF3B30;
+        color: white;
+        border: none;
+    }
+    .btn-danger:hover {
+        background: #e6342a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+    }
+</style>
+{% endblock %}
