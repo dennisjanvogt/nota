@@ -13,11 +13,6 @@
             </h1>
             <p class="page-subtitle">
                 {{ workflow.workflow_typ.name }}
-                {% if workflow.aktenzeichen %}
-                | <strong style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
-                    {{ workflow.aktenzeichen.vollstaendige_nummer }}
-                </strong>
-                {% endif %}
             </p>
         </div>
         <div class="page-actions">

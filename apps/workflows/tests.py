@@ -1,7 +1,7 @@
 """
 Tests für Workflow-System.
 
-Umfassende Tests für Models, Zustandsmaschine und Service.
+Vereinfachte Tests für Models und Service.
 """
 from django.test import TestCase
 from django.utils import timezone
@@ -10,12 +10,9 @@ from django.contrib.auth import get_user_model
 from .models import (
     WorkflowTyp,
     WorkflowSchritt,
-    WorkflowSchrittUebergang,
     WorkflowInstanz,
-    WorkflowSchrittInstanz,
-    WorkflowKommentar
+    WorkflowSchrittInstanz
 )
-from .zustandsmaschine import WorkflowZustandsmaschine
 from .services import WorkflowService
 from apps.personen.models import NotarAnwaerter, Notar
 from apps.notarstellen.models import Notarstelle

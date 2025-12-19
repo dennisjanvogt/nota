@@ -93,12 +93,6 @@
                 <div class="sidebar-nav-section-title">Verwaltung</div>
                 <ul>
                     <li class="sidebar-nav-item">
-                        <a href="{% url 'aktenzeichen_liste' %}" class="sidebar-nav-link {% if 'aktenzeichen' in request.path %}active{% endif %}">
-                            <i class="bi bi-hash"></i>
-                            <span>Aktenzeichen</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-nav-item">
                         <a href="{% url 'berichte_uebersicht' %}" class="sidebar-nav-link {% if 'berichte' in request.path %}active{% endif %}">
                             <i class="bi bi-file-earmark-text"></i>
                             <span>Berichte</span>

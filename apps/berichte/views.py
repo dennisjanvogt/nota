@@ -7,14 +7,12 @@ from django.db.models import Q
 from apps.personen.models import Notar, NotarAnwaerter
 from apps.notarstellen.models import Notarstelle
 from apps.workflows.models import WorkflowInstanz
-from apps.aktenzeichen.models import Aktenzeichen
 from .exporters import export_data
 from .forms import (
     NotareFilterForm,
     AnwaerterFilterForm,
     NotarstellenFilterForm,
-    WorkflowsFilterForm,
-    AktenzeichenFilterForm
+    WorkflowsFilterForm
 )
 
 
@@ -48,12 +46,6 @@ def berichte_uebersicht_view(request):
                 'beschreibung': 'Liste aller Workflow-Instanzen mit Status',
                 'filter_url': 'filter_workflows',
                 'export_url': 'export_workflows',
-            },
-            {
-                'titel': 'Aktenzeichen',
-                'beschreibung': 'Liste aller generierten Aktenzeichen',
-                'filter_url': 'filter_aktenzeichen',
-                'export_url': 'export_aktenzeichen',
             },
         ]
     }
@@ -371,48 +363,6 @@ def export_workflows_view(request):
 
 
 @login_required
-def export_aktenzeichen_view(request):
-    """Exportiert Aktenzeichen-Liste mit Filtern."""
-    format_typ = request.GET.get('format', 'csv')
-
-    # Basis-Queryset
-    queryset = Aktenzeichen.objects.select_related('sequenz').order_by('-erstellt_am')
-
-    # Filter anwenden
-    form = AktenzeichenFilterForm(request.GET)
-    if form.is_valid():
-        if form.cleaned_data.get('search'):
-            search = form.cleaned_data['search']
-            queryset = queryset.filter(
-                Q(vollstaendige_nummer__icontains=search) |
-                Q(beschreibung__icontains=search)
-            )
-
-        if form.cleaned_data.get('kategorie'):
-            queryset = queryset.filter(kategorie=form.cleaned_data['kategorie'])
-
-        if form.cleaned_data.get('jahr'):
-            queryset = queryset.filter(jahr=form.cleaned_data['jahr'])
-
-        if form.cleaned_data.get('erstellt_von'):
-            queryset = queryset.filter(erstellt_am__gte=form.cleaned_data['erstellt_von'])
-
-        if form.cleaned_data.get('erstellt_bis'):
-            queryset = queryset.filter(erstellt_am__lte=form.cleaned_data['erstellt_bis'])
-
-    spalten = [
-        ('vollstaendige_nummer', 'Aktenzeichen'),
-        ('sequenz__praefix', 'Präfix'),
-        ('jahr', 'Jahr'),
-        ('laufnummer', 'Laufnummer'),
-        ('kategorie', 'Kategorie'),
-        ('beschreibung', 'Beschreibung'),
-        ('erstellt_am', 'Erstellt am'),
-    ]
-
-    return export_data(queryset, spalten, format_typ, titel='Aktenzeichen')
-
-@login_required
 def notarstellen_filter_view(request):
     """Filter-Seite für Notarstellen-Export."""
     form = NotarstellenFilterForm(request.GET or None)
@@ -488,44 +438,5 @@ def workflows_filter_view(request):
         'anzahl': queryset.count(),
         'titel': 'Workflows',
         'export_url_name': 'export_workflows',
-    }
-    return render(request, 'berichte/filter.html', context)
-
-
-@login_required
-def aktenzeichen_filter_view(request):
-    """Filter-Seite für Aktenzeichen-Export."""
-    form = AktenzeichenFilterForm(request.GET or None)
-
-    # Basis-Queryset
-    queryset = Aktenzeichen.objects.select_related('sequenz').order_by('-erstellt_am')
-
-    # Filter anwenden
-    if form.is_valid():
-        if form.cleaned_data.get('search'):
-            search = form.cleaned_data['search']
-            queryset = queryset.filter(
-                Q(vollstaendige_nummer__icontains=search) |
-                Q(beschreibung__icontains=search)
-            )
-
-        if form.cleaned_data.get('kategorie'):
-            queryset = queryset.filter(kategorie=form.cleaned_data['kategorie'])
-
-        if form.cleaned_data.get('jahr'):
-            queryset = queryset.filter(jahr=form.cleaned_data['jahr'])
-
-        if form.cleaned_data.get('erstellt_von'):
-            queryset = queryset.filter(erstellt_am__gte=form.cleaned_data['erstellt_von'])
-
-        if form.cleaned_data.get('erstellt_bis'):
-            queryset = queryset.filter(erstellt_am__lte=form.cleaned_data['erstellt_bis'])
-
-    context = {
-        'form': form,
-        'queryset': queryset,
-        'anzahl': queryset.count(),
-        'titel': 'Aktenzeichen',
-        'export_url_name': 'export_aktenzeichen',
     }
     return render(request, 'berichte/filter.html', context)

@@ -195,57 +195,6 @@
     </div>
 </div>
 
-<!-- Letzte Aktenzeichen -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">
-            <i class="bi bi-file-text"></i> Letzte Aktenzeichen
-        </h2>
-    </div>
-    <div class="card-body" style="padding: 0;">
-        {% if letzte_aktenzeichen %}
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Aktenzeichen</th>
-                            <th>Kategorie</th>
-                            <th>Beschreibung</th>
-                            <th>Erstellt am</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for az in letzte_aktenzeichen %}
-                        <tr>
-                            <td>
-                                <strong style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
-                                    {{ az.vollstaendige_nummer }}
-                                </strong>
-                            </td>
-                            <td>
-                                <span class="badge badge-primary">{{ az.kategorie }}</span>
-                            </td>
-                            <td>{{ az.beschreibung|truncatewords:10|default:"—" }}</td>
-                            <td style="color: var(--text-secondary); font-size: 14px;">
-                                {{ az.erstellt_am|date:"d.m.Y H:i" }}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="bi bi-file-text"></i>
-                </div>
-                <h3 class="empty-state-title">Noch keine Aktenzeichen</h3>
-                <p class="empty-state-text">Aktenzeichen werden automatisch bei Workflow-Erstellung generiert.</p>
-            </div>
-        {% endif %}
-    </div>
-</div>
-
 {% endblock %}
 
 {% block extra_css %}

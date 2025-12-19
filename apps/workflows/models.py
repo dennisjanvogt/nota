@@ -33,16 +33,6 @@ class WorkflowTyp(ZeitstempelModel):
         verbose_name='Ist aktiv',
         help_text='Kann dieser Workflow-Typ für neue Instanzen verwendet werden?'
     )
-    erlaube_parallele_schritte = models.BooleanField(
-        default=False,
-        verbose_name='Erlaube parallele Schritte',
-        help_text='Können mehrere Schritte gleichzeitig aktiv sein?'
-    )
-    erfordert_sequentielle_abarbeitung = models.BooleanField(
-        default=True,
-        verbose_name='Erfordert sequentielle Abarbeitung',
-        help_text='Müssen Schritte in fester Reihenfolge abgearbeitet werden?'
-    )
 
     class Meta:
         verbose_name = 'Workflow-Typ'
@@ -64,12 +54,6 @@ class WorkflowSchritt(ZeitstempelModel):
     Beispiel: "Antrag prüfen", "Dokumente anfordern", "Präsidium vorlegen"
     """
 
-    ROLLEN_CHOICES = [
-        ('sachbearbeiter', 'Sachbearbeiter'),
-        ('leitung', 'Leitung'),
-        ('admin', 'Administrator'),
-    ]
-
     workflow_typ = models.ForeignKey(
         WorkflowTyp,
         on_delete=models.CASCADE,
@@ -90,19 +74,6 @@ class WorkflowSchritt(ZeitstempelModel):
         verbose_name='Reihenfolge',
         help_text='Position in der Schritt-Sequenz'
     )
-    geschaetzte_dauer_tage = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        verbose_name='Geschätzte Dauer (Tage)',
-        help_text='Wie lange dauert dieser Schritt üblicherweise?'
-    )
-    standard_zustaendige_rolle = models.CharField(
-        max_length=20,
-        choices=ROLLEN_CHOICES,
-        default='sachbearbeiter',
-        verbose_name='Standard-zuständige Rolle',
-        help_text='Welche Rolle ist üblicherweise für diesen Schritt zuständig?'
-    )
     ist_optional = models.BooleanField(
         default=False,
         verbose_name='Ist optional',
@@ -119,48 +90,6 @@ class WorkflowSchritt(ZeitstempelModel):
         return f"{self.workflow_typ.name} - Schritt {self.reihenfolge}: {self.name}"
 
 
-class WorkflowSchrittUebergang(ZeitstempelModel):
-    """
-    Definiert erlaubte Übergänge zwischen Workflow-Schritten.
-
-    Optional - wenn keine Übergänge definiert sind, wird die Reihenfolge verwendet.
-    """
-
-    von_schritt = models.ForeignKey(
-        WorkflowSchritt,
-        on_delete=models.CASCADE,
-        related_name='uebergaenge_von',
-        verbose_name='Von Schritt'
-    )
-    zu_schritt = models.ForeignKey(
-        WorkflowSchritt,
-        on_delete=models.CASCADE,
-        related_name='uebergaenge_zu',
-        verbose_name='Zu Schritt'
-    )
-    bedingung = models.CharField(
-        max_length=200,
-        blank=True,
-        verbose_name='Bedingung',
-        help_text='Optionale Bedingung für diesen Übergang'
-    )
-
-    class Meta:
-        verbose_name = 'Workflow-Schritt-Übergang'
-        verbose_name_plural = 'Workflow-Schritt-Übergänge'
-        unique_together = [['von_schritt', 'zu_schritt']]
-
-    def __str__(self):
-        return f"{self.von_schritt.name} → {self.zu_schritt.name}"
-
-    def clean(self):
-        """Validierung: Übergänge müssen innerhalb desselben Workflow-Typs sein."""
-        super().clean()
-        if self.von_schritt.workflow_typ != self.zu_schritt.workflow_typ:
-            raise ValidationError(
-                'Übergänge müssen innerhalb desselben Workflow-Typs sein!'
-            )
-
 
 class WorkflowInstanz(ZeitstempelModel):
     """
@@ -172,8 +101,7 @@ class WorkflowInstanz(ZeitstempelModel):
     STATUS_CHOICES = [
         ('entwurf', 'Entwurf'),
         ('aktiv', 'Aktiv'),
-        ('abgeschlossen', 'Abgeschlossen'),
-        ('abgebrochen', 'Abgebrochen'),
+        ('archiviert', 'Archiviert'),
     ]
 
     workflow_typ = models.ForeignKey(
@@ -199,29 +127,10 @@ class WorkflowInstanz(ZeitstempelModel):
         related_name='erstellte_workflows',
         verbose_name='Erstellt von'
     )
-    gestartet_am = models.DateTimeField(
+    archiviert_am = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name='Gestartet am'
-    )
-    abgeschlossen_am = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name='Abgeschlossen am'
-    )
-    faellig_am = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name='Fällig am',
-        help_text='Bis wann sollte dieser Workflow abgeschlossen sein?'
-    )
-    aktenzeichen = models.OneToOneField(
-        'aktenzeichen.Aktenzeichen',
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name='workflow',
-        verbose_name='Aktenzeichen'
+        verbose_name='Archiviert am'
     )
     betroffene_person = models.ForeignKey(
         NotarAnwaerter,
@@ -251,13 +160,13 @@ class WorkflowInstanz(ZeitstempelModel):
         if alle_schritte == 0:
             return 0
         abgeschlossene_schritte = self.schritt_instanzen.filter(
-            status='abgeschlossen'
+            status='completed'
         ).count()
         return int((abgeschlossene_schritte / alle_schritte) * 100)
 
     def aktuelle_schritte(self):
-        """Liefert alle aktuell aktiven Schritte."""
-        return self.schritt_instanzen.filter(status='in_bearbeitung')
+        """Liefert alle aktuell offenen Schritte."""
+        return self.schritt_instanzen.filter(status='pending')
 
 
 class WorkflowSchrittInstanz(ZeitstempelModel):
@@ -266,11 +175,8 @@ class WorkflowSchrittInstanz(ZeitstempelModel):
     """
 
     STATUS_CHOICES = [
-        ('ausstehend', 'Ausstehend'),
-        ('in_bearbeitung', 'In Bearbeitung'),
-        ('abgeschlossen', 'Abgeschlossen'),
-        ('uebersprungen', 'Übersprungen'),
-        ('fehlgeschlagen', 'Fehlgeschlagen'),
+        ('pending', 'Ausstehend'),
+        ('completed', 'Abgeschlossen'),
     ]
 
     workflow_instanz = models.ForeignKey(
@@ -288,31 +194,8 @@ class WorkflowSchrittInstanz(ZeitstempelModel):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='ausstehend',
+        default='pending',
         verbose_name='Status'
-    )
-    zugewiesen_an = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='zugewiesene_schritte',
-        verbose_name='Zugewiesen an'
-    )
-    gestartet_am = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name='Gestartet am'
-    )
-    abgeschlossen_am = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name='Abgeschlossen am'
-    )
-    faellig_am = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name='Fällig am'
     )
     notizen = models.TextField(
         blank=True,
@@ -329,149 +212,5 @@ class WorkflowSchrittInstanz(ZeitstempelModel):
         return f"{self.workflow_instanz.name} - {self.workflow_schritt.name} ({self.get_status_display()})"
 
 
-class WorkflowKommentar(ZeitstempelModel):
-    """
-    Kommentare zu Workflows und Workflow-Schritten.
-    """
-
-    workflow_instanz = models.ForeignKey(
-        WorkflowInstanz,
-        on_delete=models.CASCADE,
-        related_name='kommentare',
-        verbose_name='Workflow-Instanz'
-    )
-    schritt_instanz = models.ForeignKey(
-        WorkflowSchrittInstanz,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='kommentare',
-        verbose_name='Schritt-Instanz',
-        help_text='Optional: Bezieht sich der Kommentar auf einen bestimmten Schritt?'
-    )
-    benutzer = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name='workflow_kommentare',
-        verbose_name='Benutzer'
-    )
-    kommentar = models.TextField(
-        verbose_name='Kommentar'
-    )
-
-    class Meta:
-        verbose_name = 'Workflow-Kommentar'
-        verbose_name_plural = 'Workflow-Kommentare'
-        ordering = ['-erstellt_am']
-
-    def __str__(self):
-        return f"Kommentar von {self.benutzer.username} am {self.erstellt_am.strftime('%d.%m.%Y %H:%M')}"
 
 
-class WorkflowBewerber(ZeitstempelModel):
-    """
-    Verknüpfung zwischen Workflow (Besetzungsverfahren) und Bewerbern.
-    Speichert Status, Ranking und Bewerbungsunterlagen.
-    """
-
-    STATUS_CHOICES = [
-        ('beworben', 'Hat sich beworben'),
-        ('ausgewaehlt', 'Für Verfahren ausgewählt'),
-        ('platz_1', '1. Platz (wird bestellt)'),
-        ('platz_2', '2. Platz'),
-        ('platz_3', '3. Platz'),
-        ('abgelehnt', 'Abgelehnt'),
-    ]
-
-    workflow_instanz = models.ForeignKey(
-        WorkflowInstanz,
-        on_delete=models.CASCADE,
-        related_name='bewerber',
-        verbose_name='Workflow-Instanz'
-    )
-    anwaerter = models.ForeignKey(
-        NotarAnwaerter,
-        on_delete=models.PROTECT,
-        related_name='bewerbungen',
-        verbose_name='Notar-Anwärter'
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='beworben',
-        verbose_name='Status'
-    )
-    ranking = models.IntegerField(
-        null=True,
-        blank=True,
-        verbose_name='Ranking',
-        help_text='1 = Bester, 2 = Zweiter, 3 = Dritter'
-    )
-    bewerbung_datei = models.FileField(
-        upload_to='bewerbungen/%Y/%m/',
-        null=True,
-        blank=True,
-        verbose_name='Bewerbungsunterlagen'
-    )
-    notizen = models.TextField(
-        blank=True,
-        verbose_name='Notizen'
-    )
-
-    class Meta:
-        verbose_name = 'Workflow-Bewerber'
-        verbose_name_plural = 'Workflow-Bewerber'
-        ordering = ['ranking', 'anwaerter__nachname']
-        unique_together = [['workflow_instanz', 'anwaerter']]
-
-    def __str__(self):
-        return f"{self.anwaerter.get_full_name()} - {self.get_status_display()}"
-
-
-class WorkflowDokument(ZeitstempelModel):
-    """
-    Dokumente die zu einem Workflow oder Workflow-Schritt gehören.
-    Z.B. Bewerbungen, Präsentationen, Beschlüsse, etc.
-    """
-
-    workflow_instanz = models.ForeignKey(
-        WorkflowInstanz,
-        on_delete=models.CASCADE,
-        related_name='dokumente',
-        verbose_name='Workflow-Instanz'
-    )
-    schritt_instanz = models.ForeignKey(
-        WorkflowSchrittInstanz,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='dokumente',
-        verbose_name='Schritt-Instanz',
-        help_text='Optional: Zu welchem Schritt gehört das Dokument?'
-    )
-    titel = models.CharField(
-        max_length=200,
-        verbose_name='Titel'
-    )
-    beschreibung = models.TextField(
-        blank=True,
-        verbose_name='Beschreibung'
-    )
-    datei = models.FileField(
-        upload_to='workflow_dokumente/%Y/%m/',
-        verbose_name='Datei'
-    )
-    hochgeladen_von = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name='hochgeladene_workflow_dokumente',
-        verbose_name='Hochgeladen von'
-    )
-
-    class Meta:
-        verbose_name = 'Workflow-Dokument'
-        verbose_name_plural = 'Workflow-Dokumente'
-        ordering = ['-erstellt_am']
-
-    def __str__(self):
-        return f"{self.titel} ({self.workflow_instanz.name})"

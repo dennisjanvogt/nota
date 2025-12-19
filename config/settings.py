@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     'apps.notarstellen',
     'apps.personen',
     'apps.workflows',
-    'apps.aktenzeichen',
     'apps.berichte',
     'apps.emails',
 ]

@@ -34,9 +34,6 @@ urlpatterns = [
     # Notarstellen
     path('notarstellen/', include('apps.notarstellen.urls')),
 
-    # Aktenzeichen
-    path('aktenzeichen/', include('apps.aktenzeichen.urls')),
-
     # Berichte & Exports
     path('berichte/', include('apps.berichte.urls')),
 

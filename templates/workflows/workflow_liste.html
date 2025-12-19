@@ -79,7 +79,6 @@
                 <th>Typ</th>
                 <th>Status</th>
                 <th>Fortschritt</th>
-                <th>Aktenzeichen</th>
                 <th>Erstellt</th>
                 <th>Aktionen</th>
             </tr>
@@ -120,15 +119,6 @@
                                 {{ workflow.fortschritt_prozent }}%
                             </div>
                         </div>
-                    </td>
-                    <td>
-                        {% if workflow.aktenzeichen %}
-                            <strong style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
-                                {{ workflow.aktenzeichen.vollstaendige_nummer }}
-                            </strong>
-                        {% else %}
-                            <span style="color: var(--text-secondary);">—</span>
-                        {% endif %}
                     </td>
                     <td>
                         <div>{{ workflow.erstellt_am|date:"d.m.Y H:i" }}</div>

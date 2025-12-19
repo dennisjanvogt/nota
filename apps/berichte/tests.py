@@ -5,7 +5,6 @@ from django.utils import timezone
 from apps.notarstellen.models import Notarstelle
 from apps.personen.models import Notar, NotarAnwaerter
 from apps.workflows.models import WorkflowTyp, WorkflowSchritt, WorkflowInstanz
-from apps.aktenzeichen.models import Aktenzeichen, Nummernsequenz
 from apps.berichte.exporters import CSVExporter, ExcelExporter, PDFExporter
 import csv
 import io
