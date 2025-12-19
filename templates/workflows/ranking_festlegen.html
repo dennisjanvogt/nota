@@ -1,0 +1,107 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}Ranking festlegen - {{ workflow.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-trophy"></i> Ranking festlegen
+            </h1>
+            <p class="page-subtitle">Kammer-Sitzung - {{ workflow.name }}</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'workflow_detail' workflow.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Ordnen Sie die Bewerber den Plätzen zu</h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            {% for bewerber_obj in bewerber %}
+            <div class="card" style="margin-bottom: var(--spacing-md); background: var(--bg-primary);">
+                <div class="card-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 16px;">
+                                {{ bewerber_obj.anwaerter.titel }} {{ bewerber_obj.anwaerter.vorname }} {{ bewerber_obj.anwaerter.nachname }}
+                            </div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                                {{ bewerber_obj.anwaerter.anwaerter_id }} | {{ bewerber_obj.anwaerter.email }}
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <span style="font-weight: 600;">Platz:</span>
+                                <select name="platz_{{ loop.index }}" class="form-control" style="width: auto;" required>
+                                    <option value="">---</option>
+                                    <option value="{{ bewerber_obj.anwaerter.id }}__1">1. Platz (Gold)</option>
+                                    <option value="{{ bewerber_obj.anwaerter.id }}__2">2. Platz (Silber)</option>
+                                    <option value="{{ bewerber_obj.anwaerter.id }}__3">3. Platz (Bronze)</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div style="margin-top: var(--spacing-lg);">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md);">
+                    <div>
+                        <label class="form-label">1. Platz (wird bestellt)</label>
+                        <select name="platz_1" class="form-control" required>
+                            <option value="">Wählen Sie einen Bewerber...</option>
+                            {% for bewerber_obj in bewerber %}
+                            <option value="{{ bewerber_obj.anwaerter.id }}">
+                                {{ bewerber_obj.anwaerter.get_full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">2. Platz</label>
+                        <select name="platz_2" class="form-control" required>
+                            <option value="">Wählen Sie einen Bewerber...</option>
+                            {% for bewerber_obj in bewerber %}
+                            <option value="{{ bewerber_obj.anwaerter.id }}">
+                                {{ bewerber_obj.anwaerter.get_full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">3. Platz</label>
+                        <select name="platz_3" class="form-control" required>
+                            <option value="">Wählen Sie einen Bewerber...</option>
+                            {% for bewerber_obj in bewerber %}
+                            <option value="{{ bewerber_obj.anwaerter.id }}">
+                                {{ bewerber_obj.anwaerter.get_full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions" style="margin-top: var(--spacing-lg);">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-trophy"></i> Ranking festlegen
+                </button>
+                <a href="{% url 'workflow_detail' workflow.id %}" class="btn btn-secondary">
+                    Abbrechen
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

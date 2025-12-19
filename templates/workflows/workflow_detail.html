@@ -159,8 +159,29 @@
                         </div>
 
                         <!-- Aktionen -->
-                        <div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
                             {% if schritt.status == 'in_bearbeitung' %}
+                                <!-- Besetzungsverfahren-spezifische Aktionen -->
+                                {% if workflow.workflow_typ.name == 'Besetzungsverfahren' %}
+                                    {% if schritt.workflow_schritt.reihenfolge == 2 %}
+                                        <a href="{% url 'bewerber_auswaehlen' workflow.id %}" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-people"></i> Bewerber auswählen
+                                        </a>
+                                    {% elif schritt.workflow_schritt.reihenfolge == 3 %}
+                                        <a href="/personen/anwaerter/vergleichen/" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-compare"></i> Vergleich öffnen
+                                        </a>
+                                    {% elif schritt.workflow_schritt.reihenfolge == 8 %}
+                                        <a href="{% url 'ranking_festlegen' workflow.id %}" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-trophy"></i> Ranking festlegen
+                                        </a>
+                                    {% elif schritt.workflow_schritt.reihenfolge == 10 %}
+                                        <a href="{% url 'bestellung_durchfuehren' workflow.id %}" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-award"></i> Bestellung durchführen
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+
                                 <a href="{% url 'schritt_abschliessen' schritt.id %}" class="btn btn-success btn-sm">
                                     <i class="bi bi-check"></i> Abschließen
                                 </a>

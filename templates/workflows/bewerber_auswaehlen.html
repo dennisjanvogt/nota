@@ -1,0 +1,109 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}Bewerber auswählen - {{ workflow.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-people"></i> Bewerber auswählen
+            </h1>
+            <p class="page-subtitle">{{ workflow.name }}</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'workflow_detail' workflow.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Wählen Sie genau 3 Bewerber aus</h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div style="margin-bottom: var(--spacing-lg);">
+                <div id="selected-count" style="font-weight: 600; color: var(--primary-color);">
+                    0 von 3 Bewerbern ausgewählt
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--spacing-md);">
+                {% for anw in anwaerter %}
+                <label class="card" style="cursor: pointer; margin: 0; transition: all 0.2s;"
+                       onclick="this.querySelector('input').checked = !this.querySelector('input').checked; updateCount();">
+                    <div class="card-body">
+                        <div style="display: flex; align-items: start; gap: var(--spacing-sm);">
+                            <input type="checkbox"
+                                   name="anwaerter_ids"
+                                   value="{{ anw.id }}"
+                                   {% if anw.id in ausgewaehlte_bewerber %}checked{% endif %}
+                                   class="bewerber-checkbox"
+                                   onclick="event.stopPropagation(); updateCount();">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 4px;">
+                                    {{ anw.titel }} {{ anw.vorname }} {{ anw.nachname }}
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">
+                                    <div>{{ anw.anwaerter_id }}</div>
+                                    <div>{{ anw.email }}</div>
+                                    {% if anw.notarstelle %}
+                                        <div>{{ anw.notarstelle.name }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <div class="form-actions" style="margin-top: var(--spacing-lg);">
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <i class="bi bi-check-lg"></i> 3 Bewerber auswählen
+                </button>
+                <a href="{% url 'workflow_detail' workflow.id %}" class="btn btn-secondary">
+                    Abbrechen
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function updateCount() {
+    const checked = document.querySelectorAll('.bewerber-checkbox:checked').length;
+    const countDiv = document.getElementById('selected-count');
+    const submitBtn = document.getElementById('submit-btn');
+
+    countDiv.textContent = `${checked} von 3 Bewerbern ausgewählt`;
+
+    if (checked === 3) {
+        countDiv.style.color = 'var(--success-color)';
+        submitBtn.disabled = false;
+    } else {
+        countDiv.style.color = checked > 3 ? 'var(--danger-color)' : 'var(--primary-color)';
+        submitBtn.disabled = checked !== 3;
+    }
+
+    // Max 3 Checkboxen
+    if (checked >= 3) {
+        document.querySelectorAll('.bewerber-checkbox:not(:checked)').forEach(cb => {
+            cb.disabled = true;
+            cb.parentElement.parentElement.parentElement.style.opacity = '0.5';
+        });
+    } else {
+        document.querySelectorAll('.bewerber-checkbox').forEach(cb => {
+            cb.disabled = false;
+            cb.parentElement.parentElement.parentElement.style.opacity = '1';
+        });
+    }
+}
+updateCount();
+</script>
+{% endblock %}

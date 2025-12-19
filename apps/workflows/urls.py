@@ -26,4 +26,9 @@ urlpatterns = [
     path('workflows/<int:workflow_id>/starten/', views.workflow_starten_view, name='workflow_starten'),
     path('workflows/<int:workflow_id>/kommentar/', views.kommentar_hinzufuegen_view, name='kommentar_hinzufuegen'),
     path('workflows/<int:workflow_id>/abbrechen/', views.workflow_abbrechen_view, name='workflow_abbrechen'),
+
+    # Besetzungsverfahren-spezifische Aktionen
+    path('workflows/<int:workflow_id>/bewerber-auswaehlen/', views.bewerber_auswaehlen_view, name='bewerber_auswaehlen'),
+    path('workflows/<int:workflow_id>/ranking-festlegen/', views.ranking_festlegen_view, name='ranking_festlegen'),
+    path('workflows/<int:workflow_id>/bestellung-durchfuehren/', views.bestellung_durchfuehren_view, name='bestellung_durchfuehren'),
 ]
