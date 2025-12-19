@@ -60,15 +60,18 @@ class WorkflowService:
         workflow_instanz.save()
 
     @staticmethod
-    def schritt_abhaken(schritt_instanz):
+    def schritt_abschliessen(schritt_instanz, notizen=''):
         """
         Markiert einen Schritt als 'completed'.
         Prüft automatisch, ob alle Schritte abgeschlossen sind und archiviert ggf. den Workflow.
 
         Args:
             schritt_instanz: Die Schritt-Instanz
+            notizen: Optionale Notizen zum Abschluss
         """
         schritt_instanz.status = 'completed'
+        if notizen:
+            schritt_instanz.notizen = notizen
         schritt_instanz.save()
 
         # Prüfen ob alle Schritte completed sind
@@ -98,6 +101,28 @@ class WorkflowService:
         """
         return WorkflowInstanz.objects.filter(
             status='aktiv'
+        ).select_related(
+            'workflow_typ',
+            'erstellt_von',
+            'betroffene_person'
+        ).order_by('-erstellt_am')
+
+    @staticmethod
+    def workflow_suchen(suchbegriff):
+        """
+        Sucht Workflows nach Name oder Workflow-Typ.
+
+        Args:
+            suchbegriff: Suchbegriff für die Suche
+
+        Returns:
+            QuerySet: Gefilterte Workflow-Instanzen
+        """
+        from django.db.models import Q
+        return WorkflowInstanz.objects.filter(
+            Q(name__icontains=suchbegriff) |
+            Q(workflow_typ__name__icontains=suchbegriff) |
+            Q(notizen__icontains=suchbegriff)
         ).select_related(
             'workflow_typ',
             'erstellt_von',

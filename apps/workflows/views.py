@@ -110,21 +110,6 @@ def workflow_detail_view(request, workflow_id):
 
 
 @login_required
-def meine_aufgaben_view(request):
-    """
-    Zeigt alle mir zugewiesenen Aufgaben (Workflow-Schritte).
-    """
-    benutzer = request.user
-    aufgaben = WorkflowService.meine_aufgaben_holen(benutzer)
-
-    context = {
-        'aufgaben': aufgaben,
-    }
-
-    return render(request, 'workflows/meine_aufgaben.html', context)
-
-
-@login_required
 def schritt_abschliessen_view(request, schritt_id):
     """
     Schließt einen Workflow-Schritt ab.
@@ -152,60 +137,30 @@ def schritt_abschliessen_view(request, schritt_id):
     return render(request, 'workflows/schritt_abschliessen.html', context)
 
 
-@login_required
-def schritt_zuweisen_view(request, schritt_id):
-    """
-    Weist einen Schritt einem Benutzer zu.
-    """
-    schritt = get_object_or_404(WorkflowSchrittInstanz, id=schritt_id)
-
-    if request.method == 'POST':
-        benutzer_id = request.POST.get('benutzer_id')
-        if benutzer_id:
-            from django.contrib.auth import get_user_model
-            KammerBenutzer = get_user_model()
-            benutzer = get_object_or_404(KammerBenutzer, id=benutzer_id)
-
-            try:
-                WorkflowService.schritt_zuweisen(schritt, benutzer)
-                messages.success(
-                    request,
-                    f'Schritt wurde {benutzer.get_full_name() or benutzer.username} zugewiesen.'
-                )
-            except Exception as e:
-                messages.error(request, f'Fehler bei der Zuweisung: {str(e)}')
-
-        return redirect('workflow_detail', workflow_id=schritt.workflow_instanz.id)
-
-    # Hole alle Benutzer für Zuweisung
-    from django.contrib.auth import get_user_model
-    KammerBenutzer = get_user_model()
-    benutzer = KammerBenutzer.objects.filter(is_active=True).order_by('username')
-
-    context = {
-        'schritt': schritt,
-        'benutzer': benutzer,
-    }
-
-    return render(request, 'workflows/schritt_zuweisen.html', context)
-
-
 # ===== CRUD Views für Workflow-Instanzen =====
 
 @login_required
 def workflow_erstellen_view(request):
-    """Erstellen einer neuen Workflow-Instanz."""
+    """Erstellen einer neuen Workflow-Instanz aus einem Template."""
     if request.method == 'POST':
         form = WorkflowInstanzForm(request.POST)
         if form.is_valid():
-            workflow = form.save(commit=False)
-            workflow.erstellt_von = request.user
-            workflow.status = 'entwurf'
-            workflow.save()
+            # Nutze den WorkflowService um Workflow + Schritte zu erstellen
+            workflow = WorkflowService.workflow_erstellen(
+                workflow_typ=form.cleaned_data['workflow_typ'],
+                name=form.cleaned_data['name'],
+                erstellt_von=request.user,
+                betroffene_person=form.cleaned_data.get('betroffene_person')
+            )
+
+            # Notizen hinzufügen falls vorhanden
+            if form.cleaned_data.get('notizen'):
+                workflow.notizen = form.cleaned_data['notizen']
+                workflow.save()
 
             messages.success(
                 request,
-                f'Workflow "{workflow.name}" wurde erfolgreich erstellt.'
+                f'Workflow "{workflow.name}" wurde aus Template "{workflow.workflow_typ.name}" erstellt.'
             )
             return redirect('workflow_detail', workflow_id=workflow.id)
     else:
@@ -213,7 +168,7 @@ def workflow_erstellen_view(request):
 
     context = {
         'form': form,
-        'title': 'Neuer Workflow',
+        'title': 'Neuer Workflow aus Template',
         'submit_text': 'Erstellen',
     }
     return render(request, 'workflows/workflow_form.html', context)
@@ -291,232 +246,3 @@ def workflow_starten_view(request, workflow_id):
     }
 
     return render(request, 'workflows/workflow_starten.html', context)
-
-
-# ============================================
-# Besetzungsverfahren-spezifische Views
-# ============================================
-
-@login_required
-def bewerber_auswaehlen_view(request, workflow_id):
-    """
-    Schritt 2: Bewerber auswählen.
-    Aus allen Anwärtern werden 3 für das Verfahren ausgewählt.
-    """
-    from .models import WorkflowBewerber
-
-    workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
-
-    # Prüfen ob Workflow Besetzungsverfahren ist
-    if workflow.workflow_typ.name != 'Besetzungsverfahren':
-        messages.error(request, 'Diese Aktion ist nur für Besetzungsverfahren verfügbar.')
-        return redirect('workflow_detail', workflow_id=workflow_id)
-
-    if request.method == 'POST':
-        # Ausgewählte Anwärter IDs aus POST
-        ausgewaehlte_ids = request.POST.getlist('anwaerter_ids')
-
-        if len(ausgewaehlte_ids) != 3:
-            messages.error(request, 'Bitte wählen Sie genau 3 Bewerber aus.')
-        else:
-            # Bestehende Bewerber auf "abgelehnt" setzen, die nicht ausgewählt wurden
-            WorkflowBewerber.objects.filter(
-                workflow_instanz=workflow
-            ).exclude(
-                anwaerter_id__in=ausgewaehlte_ids
-            ).update(status='abgelehnt')
-
-            # Ausgewählte Bewerber erstellen oder aktualisieren
-            for anwaerter_id in ausgewaehlte_ids:
-                anwaerter = get_object_or_404(NotarAnwaerter, id=anwaerter_id)
-                WorkflowBewerber.objects.update_or_create(
-                    workflow_instanz=workflow,
-                    anwaerter=anwaerter,
-                    defaults={'status': 'ausgewaehlt'}
-                )
-
-            messages.success(request, f'3 Bewerber wurden erfolgreich ausgewählt.')
-
-            # Schritt 2 abschließen
-            schritt = workflow.schritt_instanzen.filter(
-                workflow_schritt__reihenfolge=2
-            ).first()
-            if schritt and schritt.status == 'in_bearbeitung':
-                WorkflowService.schritt_abschliessen(
-                    schritt,
-                    request.user,
-                    notizen=f"3 Bewerber ausgewählt: {', '.join([NotarAnwaerter.objects.get(id=id).get_full_name() for id in ausgewaehlte_ids])}"
-                )
-
-            return redirect('workflow_detail', workflow_id=workflow_id)
-
-    # Alle aktiven Anwärter
-    anwaerter = NotarAnwaerter.objects.filter(ist_aktiv=True).order_by('nachname', 'vorname')
-
-    # Bereits ausgewählte Bewerber
-    ausgewaehlte_bewerber = WorkflowBewerber.objects.filter(
-        workflow_instanz=workflow,
-        status='ausgewaehlt'
-    ).values_list('anwaerter_id', flat=True)
-
-    context = {
-        'workflow': workflow,
-        'anwaerter': anwaerter,
-        'ausgewaehlte_bewerber': list(ausgewaehlte_bewerber),
-    }
-    return render(request, 'workflows/bewerber_auswaehlen.html', context)
-
-
-@login_required
-def ranking_festlegen_view(request, workflow_id):
-    """
-    Schritt 8: Ranking nach Kammer-Sitzung festlegen.
-    Die 3 ausgewählten Bewerber werden auf Platz 1, 2, 3 gesetzt.
-    """
-    from .models import WorkflowBewerber
-
-    workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
-
-    if workflow.workflow_typ.name != 'Besetzungsverfahren':
-        messages.error(request, 'Diese Aktion ist nur für Besetzungsverfahren verfügbar.')
-        return redirect('workflow_detail', workflow_id=workflow_id)
-
-    # Die 3 ausgewählten Bewerber
-    bewerber = WorkflowBewerber.objects.filter(
-        workflow_instanz=workflow,
-        status='ausgewaehlt'
-    ).select_related('anwaerter')
-
-    if bewerber.count() != 3:
-        messages.error(request, 'Es müssen genau 3 Bewerber ausgewählt sein.')
-        return redirect('workflow_detail', workflow_id=workflow_id)
-
-    if request.method == 'POST':
-        platz_1_id = request.POST.get('platz_1')
-        platz_2_id = request.POST.get('platz_2')
-        platz_3_id = request.POST.get('platz_3')
-
-        if not all([platz_1_id, platz_2_id, platz_3_id]):
-            messages.error(request, 'Bitte ordnen Sie alle 3 Bewerber einem Platz zu.')
-        elif len(set([platz_1_id, platz_2_id, platz_3_id])) != 3:
-            messages.error(request, 'Jeder Bewerber darf nur einen Platz belegen.')
-        else:
-            # Ranking zuweisen
-            for bewerber_obj in bewerber:
-                if str(bewerber_obj.anwaerter.id) == platz_1_id:
-                    bewerber_obj.status = 'platz_1'
-                    bewerber_obj.ranking = 1
-                elif str(bewerber_obj.anwaerter.id) == platz_2_id:
-                    bewerber_obj.status = 'platz_2'
-                    bewerber_obj.ranking = 2
-                elif str(bewerber_obj.anwaerter.id) == platz_3_id:
-                    bewerber_obj.status = 'platz_3'
-                    bewerber_obj.ranking = 3
-                bewerber_obj.save()
-
-            messages.success(request, 'Ranking wurde erfolgreich festgelegt.')
-
-            # Schritt 8 abschließen
-            schritt = workflow.schritt_instanzen.filter(
-                workflow_schritt__reihenfolge=8
-            ).first()
-            if schritt and schritt.status == 'in_bearbeitung':
-                erstplatzierter = NotarAnwaerter.objects.get(id=platz_1_id)
-                WorkflowService.schritt_abschliessen(
-                    schritt,
-                    request.user,
-                    notizen=f"Ranking festgelegt. 1. Platz: {erstplatzierter.get_full_name()}"
-                )
-
-            return redirect('workflow_detail', workflow_id=workflow_id)
-
-    context = {
-        'workflow': workflow,
-        'bewerber': bewerber,
-    }
-    return render(request, 'workflows/ranking_festlegen.html', context)
-
-
-@login_required
-def bestellung_durchfuehren_view(request, workflow_id):
-    """
-    Schritt 10: Bestellung durchführen.
-    Der Erstplatzierte wird zum Notar befördert.
-    """
-    from .models import WorkflowBewerber
-    from apps.personen.services import anwaerter_zu_notar_befoerdern
-
-    workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
-
-    if workflow.workflow_typ.name != 'Besetzungsverfahren':
-        messages.error(request, 'Diese Aktion ist nur für Besetzungsverfahren verfügbar.')
-        return redirect('workflow_detail', workflow_id=workflow_id)
-
-    # Erstplatzierter holen
-    erstplatzierter_bewerber = WorkflowBewerber.objects.filter(
-        workflow_instanz=workflow,
-        status='platz_1'
-    ).select_related('anwaerter').first()
-
-    if not erstplatzierter_bewerber:
-        messages.error(request, 'Es wurde kein Erstplatzierter festgelegt.')
-        return redirect('workflow_detail', workflow_id=workflow_id)
-
-    anwaerter = erstplatzierter_bewerber.anwaerter
-
-    if request.method == 'POST':
-        notarstelle_id = request.POST.get('notarstelle')
-        bestellt_am = request.POST.get('bestellt_am')
-
-        if not notarstelle_id:
-            messages.error(request, 'Bitte wählen Sie eine Notarstelle aus.')
-        else:
-            notarstelle = get_object_or_404(Notarstelle, id=notarstelle_id)
-
-            try:
-                # Anwärter zu Notar befördern
-                from datetime import datetime
-                bestellt_am_date = datetime.strptime(bestellt_am, '%Y-%m-%d').date() if bestellt_am else None
-
-                notar = anwaerter_zu_notar_befoerdern(
-                    anwaerter=anwaerter,
-                    notarstelle=notarstelle,
-                    bestellt_am=bestellt_am_date,
-                    erstellt_von=request.user
-                )
-
-                messages.success(
-                    request,
-                    f'{anwaerter.get_full_name()} wurde erfolgreich zum Notar bestellt! (Notar-ID: {notar.notar_id})'
-                )
-
-                # Schritt 10 abschließen
-                schritt = workflow.schritt_instanzen.filter(
-                    workflow_schritt__reihenfolge=10
-                ).first()
-                if schritt and schritt.status == 'in_bearbeitung':
-                    WorkflowService.schritt_abschliessen(
-                        schritt,
-                        request.user,
-                        notizen=f"Bestellung durchgeführt. {anwaerter.get_full_name()} → Notar {notar.notar_id}"
-                    )
-
-                # Workflow abschließen
-                workflow.status = 'abgeschlossen'
-                workflow.abgeschlossen_am = timezone.now()
-                workflow.save()
-
-                return redirect('workflow_detail', workflow_id=workflow_id)
-
-            except Exception as e:
-                messages.error(request, f'Fehler bei der Bestellung: {str(e)}')
-
-    # Alle Notarstellen
-    notarstellen = Notarstelle.objects.filter(ist_aktiv=True).order_by('bezeichnung')
-
-    context = {
-        'workflow': workflow,
-        'anwaerter': anwaerter,
-        'notarstellen': notarstellen,
-    }
-    return render(request, 'workflows/bestellung_durchfuehren.html', context)

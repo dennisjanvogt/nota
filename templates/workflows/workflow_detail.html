@@ -39,32 +39,18 @@
                                 <span class="badge badge-secondary">{{ workflow.get_status_display }}</span>
                             {% elif workflow.status == 'aktiv' %}
                                 <span class="badge badge-success">{{ workflow.get_status_display }}</span>
-                            {% elif workflow.status == 'abgeschlossen' %}
-                                <span class="badge badge-success">{{ workflow.get_status_display }}</span>
-                            {% elif workflow.status == 'abgebrochen' %}
-                                <span class="badge badge-danger">{{ workflow.get_status_display }}</span>
+                            {% elif workflow.status == 'archiviert' %}
+                                <span class="badge badge-primary">{{ workflow.get_status_display }}</span>
                             {% endif %}
                         </div>
                         <div style="margin-bottom: var(--spacing-md);">
                             <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt von:</strong>
                             <div>{{ workflow.erstellt_von.get_full_name|default:workflow.erstellt_von.username }}</div>
                         </div>
-                        <div style="margin-bottom: var(--spacing-md);">
+                        <div>
                             <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt am:</strong>
                             <div>{{ workflow.erstellt_am|date:"d.m.Y H:i" }}</div>
                         </div>
-                        {% if workflow.gestartet_am %}
-                        <div style="margin-bottom: var(--spacing-md);">
-                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Gestartet am:</strong>
-                            <div>{{ workflow.gestartet_am|date:"d.m.Y H:i" }}</div>
-                        </div>
-                        {% endif %}
-                        {% if workflow.faellig_am %}
-                        <div>
-                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Fällig am:</strong>
-                            <div>{{ workflow.faellig_am|date:"d.m.Y" }}</div>
-                        </div>
-                        {% endif %}
                     </div>
 
                     <!-- Right Progress -->
@@ -79,7 +65,7 @@
                             </div>
                         </div>
                         <div style="font-size: 14px; color: var(--text-secondary);">
-                            {{ statistik.abgeschlossen }} von {{ statistik.gesamt_schritte }} Schritten abgeschlossen
+                            {{ schritte|length }} Schritte gesamt
                         </div>
                     </div>
                 </div>
@@ -117,24 +103,10 @@
                             <div style="display: flex; gap: var(--spacing-md); align-items: center; font-size: 13px;">
                                 <!-- Status Badge -->
                                 <div>
-                                    {% if schritt.status == 'ausstehend' %}
+                                    {% if schritt.status == 'pending' %}
                                         <span class="badge badge-secondary">{{ schritt.get_status_display }}</span>
-                                    {% elif schritt.status == 'in_bearbeitung' %}
-                                        <span class="badge badge-warning">{{ schritt.get_status_display }}</span>
-                                    {% elif schritt.status == 'abgeschlossen' %}
+                                    {% elif schritt.status == 'completed' %}
                                         <span class="badge badge-success">{{ schritt.get_status_display }}</span>
-                                    {% elif schritt.status == 'uebersprungen' %}
-                                        <span class="badge badge-primary">{{ schritt.get_status_display }}</span>
-                                    {% elif schritt.status == 'fehlgeschlagen' %}
-                                        <span class="badge badge-danger">{{ schritt.get_status_display }}</span>
-                                    {% endif %}
-                                </div>
-                                <!-- Zugewiesen an -->
-                                <div style="color: var(--text-secondary);">
-                                    {% if schritt.zugewiesen_an %}
-                                        <i class="bi bi-person"></i> {{ schritt.zugewiesen_an.get_full_name|default:schritt.zugewiesen_an.username }}
-                                    {% else %}
-                                        <i class="bi bi-person-x"></i> Nicht zugewiesen
                                     {% endif %}
                                 </div>
                             </div>
@@ -147,35 +119,14 @@
 
                         <!-- Aktionen -->
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            {% if schritt.status == 'in_bearbeitung' %}
-                                <!-- Besetzungsverfahren-spezifische Aktionen -->
-                                {% if workflow.workflow_typ.name == 'Besetzungsverfahren' %}
-                                    {% if schritt.workflow_schritt.reihenfolge == 2 %}
-                                        <a href="{% url 'bewerber_auswaehlen' workflow.id %}" class="btn btn-primary btn-sm">
-                                            <i class="bi bi-people"></i> Bewerber auswählen
-                                        </a>
-                                    {% elif schritt.workflow_schritt.reihenfolge == 3 %}
-                                        <a href="/personen/anwaerter/vergleichen/" class="btn btn-primary btn-sm">
-                                            <i class="bi bi-compare"></i> Vergleich öffnen
-                                        </a>
-                                    {% elif schritt.workflow_schritt.reihenfolge == 8 %}
-                                        <a href="{% url 'ranking_festlegen' workflow.id %}" class="btn btn-primary btn-sm">
-                                            <i class="bi bi-trophy"></i> Ranking festlegen
-                                        </a>
-                                    {% elif schritt.workflow_schritt.reihenfolge == 10 %}
-                                        <a href="{% url 'bestellung_durchfuehren' workflow.id %}" class="btn btn-primary btn-sm">
-                                            <i class="bi bi-award"></i> Bestellung durchführen
-                                        </a>
-                                    {% endif %}
-                                {% endif %}
-
+                            {% if schritt.status == 'pending' %}
                                 <a href="{% url 'schritt_abschliessen' schritt.id %}" class="btn btn-success btn-sm">
-                                    <i class="bi bi-check"></i> Abschließen
+                                    <i class="bi bi-check"></i> Abhaken
                                 </a>
-                            {% elif schritt.status == 'ausstehend' %}
-                                <a href="{% url 'schritt_zuweisen' schritt.id %}" class="btn btn-secondary btn-sm">
-                                    <i class="bi bi-person-plus"></i> Zuweisen
-                                </a>
+                            {% elif schritt.status == 'completed' %}
+                                <span class="badge badge-success">
+                                    <i class="bi bi-check-circle"></i> Erledigt
+                                </span>
                             {% endif %}
                         </div>
                     </div>
