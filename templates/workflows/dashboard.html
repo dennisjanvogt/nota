@@ -71,64 +71,8 @@
     </div>
 </div>
 
-<!-- Zwei-Spalten-Layout -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
-    <!-- Meine Aufgaben -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">
-                <i class="bi bi-check2-square"></i> Meine Aufgaben
-            </h2>
-            {% if meine_aufgaben %}
-            <span class="badge badge-primary">{{ meine_aufgaben|length }}</span>
-            {% endif %}
-        </div>
-        <div class="card-body" style="padding: 0;">
-            {% if meine_aufgaben %}
-                {% for aufgabe in meine_aufgaben %}
-                <a href="{% url 'workflow_detail' aufgabe.workflow_instanz.id %}"
-                   style="display: block; padding: var(--spacing-lg); border-bottom: 1px solid var(--border-color); text-decoration: none; color: inherit; transition: background 0.2s;"
-                   onmouseover="this.style.background='var(--bg-primary)'"
-                   onmouseout="this.style.background='transparent'">
-                    <div style="display: flex; justify-content: space-between; align-items-start; margin-bottom: var(--spacing-sm);">
-                        <div style="font-weight: 600; color: var(--text-primary);">
-                            {{ aufgabe.workflow_schritt.name }}
-                        </div>
-                        <span class="badge badge-warning">
-                            Schritt {{ aufgabe.workflow_schritt.reihenfolge }}
-                        </span>
-                    </div>
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--spacing-xs);">
-                        <i class="bi bi-diagram-3"></i> {{ aufgabe.workflow_instanz.name }}
-                    </div>
-                    <div style="font-size: 13px; color: var(--text-secondary);">
-                        {{ aufgabe.workflow_instanz.workflow_typ.name }}
-                        {% if aufgabe.faellig_am %}
-                        <span style="margin-left: 12px; color: var(--danger);">
-                            <i class="bi bi-calendar-event"></i> Fällig: {{ aufgabe.faellig_am|date:"d.m.Y" }}
-                        </span>
-                        {% endif %}
-                    </div>
-                </a>
-                {% endfor %}
-                <div style="padding: var(--spacing-lg); text-align: center;">
-                    <a href="{% url 'meine_aufgaben' %}" class="btn btn-secondary">
-                        Alle Aufgaben anzeigen
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
-            {% else %}
-                <div class="empty-state" style="padding: var(--spacing-2xl);">
-                    <div class="empty-state-icon">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                    <h3 class="empty-state-title">Keine offenen Aufgaben</h3>
-                    <p class="empty-state-text">Großartig! Sie haben alle Ihre Aufgaben erledigt.</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
+<!-- Offene Workflows -->
+<div style="margin-bottom: var(--spacing-xl);">
     <!-- Offene Workflows -->
     <div class="card">
         <div class="card-header">
@@ -156,11 +100,6 @@
                     </div>
                     <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--spacing-sm);">
                         <i class="bi bi-diagram-3"></i> {{ workflow.workflow_typ.name }}
-                        {% if workflow.aktenzeichen %}
-                        <span style="margin-left: 12px;">
-                            <i class="bi bi-file-text"></i> {{ workflow.aktenzeichen.vollstaendige_nummer }}
-                        </span>
-                        {% endif %}
                     </div>
                     <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                         <div class="progress" style="flex: 1;">
