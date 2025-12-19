@@ -29,14 +29,8 @@ def dashboard_view(request):
         'workflows_gesamt': WorkflowInstanz.objects.count(),
     }
 
-    # Meine Aufgaben (zugewiesene Schritte)
-    meine_aufgaben = WorkflowService.meine_aufgaben_holen(benutzer)[:5]
-
     # Offene Workflows (neueste 10)
     offene_workflows = WorkflowService.offene_workflows_holen()[:10]
-
-    # Letzte Aktenzeichen
-    letzte_aktenzeichen = Aktenzeichen.objects.all().order_by('-erstellt_am')[:5]
 
     # Workflows nach Status
     workflows_nach_status = WorkflowInstanz.objects.values('status').annotate(
@@ -45,9 +39,7 @@ def dashboard_view(request):
 
     context = {
         'statistiken': statistiken,
-        'meine_aufgaben': meine_aufgaben,
         'offene_workflows': offene_workflows,
-        'letzte_aktenzeichen': letzte_aktenzeichen,
         'workflows_nach_status': workflows_nach_status,
     }
 
@@ -62,7 +54,6 @@ def workflow_liste_view(request):
     workflows = WorkflowInstanz.objects.select_related(
         'workflow_typ',
         'erstellt_von',
-        'aktenzeichen',
         'betroffene_person'
     ).order_by('-erstellt_am')
 
@@ -100,7 +91,6 @@ def workflow_detail_view(request, workflow_id):
         WorkflowInstanz.objects.select_related(
             'workflow_typ',
             'erstellt_von',
-            'aktenzeichen',
             'betroffene_person'
         ),
         id=workflow_id
@@ -108,21 +98,12 @@ def workflow_detail_view(request, workflow_id):
 
     # Schritte mit Status
     schritte = workflow.schritt_instanzen.select_related(
-        'workflow_schritt',
-        'zugewiesen_an'
+        'workflow_schritt'
     ).order_by('workflow_schritt__reihenfolge')
-
-    # Kommentare
-    kommentare = workflow.kommentare.select_related('benutzer').order_by('-erstellt_am')
-
-    # Statistik
-    statistik = WorkflowService.statistik_holen(workflow)
 
     context = {
         'workflow': workflow,
         'schritte': schritte,
-        'kommentare': kommentare,
-        'statistik': statistik,
     }
 
     return render(request, 'workflows/workflow_detail.html', context)

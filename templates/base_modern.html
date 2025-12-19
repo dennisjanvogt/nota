@@ -42,9 +42,9 @@
                         </a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="{% url 'meine_aufgaben' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'meine_aufgaben' %}active{% endif %}">
-                            <i class="bi bi-check2-square"></i>
-                            <span>Meine Aufgaben</span>
+                        <a href="{% url 'workflow_liste' %}" class="sidebar-nav-link {% if 'workflow' in request.path %}active{% endif %}">
+                            <i class="bi bi-list-check"></i>
+                            <span>Workflows</span>
                         </a>
                     </li>
                 </ul>
