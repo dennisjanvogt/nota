@@ -115,11 +115,15 @@
 
                 <div id="schritte-formset">
                     {% for schritt_form in formset %}
-                    <div class="schritt-form" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--card-background);">
+                    <div class="schritt-form" draggable="true" data-index="{{ forloop.counter0 }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--card-background); cursor: move;">
                         {{ schritt_form.id }}
+                        {{ schritt_form.reihenfolge }}
 
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                            <strong style="color: var(--text-primary);">Schritt {% if schritt_form.instance.pk %}{{ schritt_form.instance.reihenfolge }}{% else %}{{ forloop.counter }}{% endif %}</strong>
+                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <i class="bi bi-grip-vertical" style="color: var(--text-muted); font-size: 18px; cursor: grab;"></i>
+                                <strong style="color: var(--text-primary);" class="schritt-nummer">Schritt {{ forloop.counter }}</strong>
+                            </div>
                             <div>
                                 {% if formset.can_delete %}
                                 <label style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--danger-color); cursor: pointer;">
@@ -132,26 +136,14 @@
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-sm);">
-                            <div class="form-group">
-                                <label class="form-label">{{ schritt_form.name.label }} *</label>
-                                {{ schritt_form.name }}
-                                {% if schritt_form.name.errors %}
-                                <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
-                                    {{ schritt_form.name.errors }}
-                                </div>
-                                {% endif %}
+                        <div class="form-group" style="margin-bottom: var(--spacing-sm);">
+                            <label class="form-label">{{ schritt_form.name.label }} *</label>
+                            {{ schritt_form.name }}
+                            {% if schritt_form.name.errors %}
+                            <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                                {{ schritt_form.name.errors }}
                             </div>
-
-                            <div class="form-group">
-                                <label class="form-label">{{ schritt_form.reihenfolge.label }} *</label>
-                                {{ schritt_form.reihenfolge }}
-                                {% if schritt_form.reihenfolge.errors %}
-                                <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
-                                    {{ schritt_form.reihenfolge.errors }}
-                                </div>
-                                {% endif %}
-                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="form-group" style="margin-bottom: var(--spacing-sm);">
@@ -207,5 +199,111 @@
         cursor: pointer;
         margin: 0;
     }
+    .schritt-form.dragging {
+        opacity: 0.5;
+        border: 2px dashed var(--primary-color) !important;
+    }
+    .schritt-form.drag-over {
+        border-top: 3px solid var(--primary-color) !important;
+    }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formset = document.getElementById('schritte-formset');
+    const schrittForms = formset.querySelectorAll('.schritt-form');
+    let draggedElement = null;
+
+    // Drag & Drop Event Handlers
+    schrittForms.forEach(form => {
+        form.addEventListener('dragstart', handleDragStart);
+        form.addEventListener('dragend', handleDragEnd);
+        form.addEventListener('dragover', handleDragOver);
+        form.addEventListener('drop', handleDrop);
+        form.addEventListener('dragleave', handleDragLeave);
+    });
+
+    function handleDragStart(e) {
+        draggedElement = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+
+        // Entferne alle drag-over Klassen
+        schrittForms.forEach(form => {
+            form.classList.remove('drag-over');
+        });
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+
+        if (draggedElement !== this) {
+            // Bestimme ob wir vor oder nach dem Element einfügen
+            const rect = this.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+
+            if (e.clientY < midpoint) {
+                // Einfügen vor diesem Element
+                formset.insertBefore(draggedElement, this);
+            } else {
+                // Einfügen nach diesem Element
+                formset.insertBefore(draggedElement, this.nextSibling);
+            }
+
+            updateReihenfolge();
+        }
+
+        return false;
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+
+    function updateReihenfolge() {
+        const forms = formset.querySelectorAll('.schritt-form');
+        forms.forEach((form, index) => {
+            // Update die sichtbare Schritt-Nummer
+            const schrittNummer = form.querySelector('.schritt-nummer');
+            if (schrittNummer) {
+                schrittNummer.textContent = `Schritt ${index + 1}`;
+            }
+
+            // Update das versteckte reihenfolge-Feld
+            const reihenfolgeInput = form.querySelector('input[name$="-reihenfolge"]');
+            if (reihenfolgeInput) {
+                reihenfolgeInput.value = index + 1;
+            }
+
+            // Update data-index
+            form.setAttribute('data-index', index);
+        });
+    }
+
+    // Initiale Reihenfolge setzen beim Laden
+    updateReihenfolge();
+
+    // Vor dem Submit nochmal updaten
+    document.getElementById('templateForm').addEventListener('submit', function(e) {
+        updateReihenfolge();
+    });
+});
+</script>
 {% endblock %}

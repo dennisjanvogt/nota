@@ -105,10 +105,7 @@ class WorkflowSchrittForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'Was muss in diesem Schritt gemacht werden?'
             }),
-            'reihenfolge': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '1'
-            }),
+            'reihenfolge': forms.HiddenInput(),  # Wird automatisch durch Drag & Drop gesetzt
             'ist_optional': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
