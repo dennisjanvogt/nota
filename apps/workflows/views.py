@@ -190,60 +190,6 @@ def schritt_zuweisen_view(request, schritt_id):
     return render(request, 'workflows/schritt_zuweisen.html', context)
 
 
-@login_required
-def kommentar_hinzufuegen_view(request, workflow_id):
-    """
-    Fügt einen Kommentar zu einem Workflow hinzu.
-    """
-    workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
-
-    if request.method == 'POST':
-        kommentar_text = request.POST.get('kommentar', '')
-        schritt_id = request.POST.get('schritt_id')
-
-        if kommentar_text:
-            schritt_instanz = None
-            if schritt_id:
-                schritt_instanz = get_object_or_404(WorkflowSchrittInstanz, id=schritt_id)
-
-            WorkflowService.kommentar_hinzufuegen(
-                workflow_instanz=workflow,
-                benutzer=request.user,
-                kommentar=kommentar_text,
-                schritt_instanz=schritt_instanz
-            )
-            messages.success(request, 'Kommentar wurde hinzugefügt.')
-        else:
-            messages.error(request, 'Kommentar darf nicht leer sein.')
-
-    return redirect('workflow_detail', workflow_id=workflow_id)
-
-
-@login_required
-def workflow_abbrechen_view(request, workflow_id):
-    """
-    Bricht einen Workflow ab.
-    """
-    workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
-
-    if request.method == 'POST':
-        grund = request.POST.get('grund', '')
-
-        try:
-            WorkflowService.workflow_abbrechen(workflow, grund)
-            messages.success(request, f'Workflow "{workflow.name}" wurde abgebrochen.')
-        except Exception as e:
-            messages.error(request, f'Fehler beim Abbrechen: {str(e)}')
-
-        return redirect('workflow_detail', workflow_id=workflow_id)
-
-    context = {
-        'workflow': workflow,
-    }
-
-    return render(request, 'workflows/workflow_abbrechen.html', context)
-
-
 # ===== CRUD Views für Workflow-Instanzen =====
 
 @login_required

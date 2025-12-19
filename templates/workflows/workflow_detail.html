@@ -15,14 +15,6 @@
                 {{ workflow.workflow_typ.name }}
             </p>
         </div>
-        <div class="page-actions">
-            {% if workflow.status == 'aktiv' %}
-            <a href="{% url 'workflow_abbrechen' workflow.id %}" class="btn btn-danger">
-                <i class="bi bi-x-circle"></i>
-                Workflow abbrechen
-            </a>
-            {% endif %}
-        </div>
     </div>
 </div>
 
@@ -219,47 +211,6 @@
             </div>
         </div>
         {% endif %}
-
-        <!-- Kommentare Card -->
-        <div class="card" style="margin-bottom: var(--spacing-lg);">
-            <div class="card-header">
-                <h3 class="card-title" style="font-size: 16px;">
-                    <i class="bi bi-chat-left-text"></i> Kommentare
-                </h3>
-            </div>
-            <div class="card-body">
-                {% if kommentare %}
-                    <div style="margin-bottom: var(--spacing-lg);">
-                        {% for kommentar in kommentare %}
-                        <div style="padding-bottom: var(--spacing-md); margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color);">
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">
-                                <i class="bi bi-person-circle"></i>
-                                {{ kommentar.benutzer.get_full_name|default:kommentar.benutzer.username }}
-                                - {{ kommentar.erstellt_am|date:"d.m.Y H:i" }}
-                            </div>
-                            <div style="font-size: 14px;">{{ kommentar.kommentar }}</div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
-                        Noch keine Kommentare
-                    </div>
-                {% endif %}
-
-                <!-- Kommentar hinzufügen -->
-                <form method="post" action="{% url 'kommentar_hinzufuegen' workflow.id %}">
-                    {% csrf_token %}
-                    <div class="form-group" style="margin-bottom: var(--spacing-sm);">
-                        <textarea name="kommentar" class="form-control" rows="3"
-                                  placeholder="Kommentar hinzufügen..." required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        <i class="bi bi-chat"></i> Kommentar hinzufügen
-                    </button>
-                </form>
-            </div>
-        </div>
 
         <!-- Notizen -->
         {% if workflow.notizen %}
