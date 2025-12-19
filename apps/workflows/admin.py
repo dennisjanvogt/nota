@@ -27,19 +27,20 @@ class WorkflowTypAdmin(admin.ModelAdmin):
 
     list_display = [
         'name',
+        'kuerzel',
         'schritte_anzahl',
         'instanzen_anzahl',
         'ist_aktiv',
         'erstellt_am'
     ]
     list_filter = ['ist_aktiv']
-    search_fields = ['name', 'beschreibung']
+    search_fields = ['name', 'beschreibung', 'kuerzel']
     readonly_fields = ['erstellt_am', 'aktualisiert_am']
     inlines = [WorkflowSchrittInline]
 
     fieldsets = (
         ('Basis-Informationen', {
-            'fields': ('name', 'beschreibung', 'ist_aktiv')
+            'fields': ('name', 'kuerzel', 'beschreibung', 'ist_aktiv')
         }),
         ('Zeitstempel', {
             'fields': ('erstellt_am', 'aktualisiert_am'),
@@ -106,6 +107,7 @@ class WorkflowInstanzAdmin(admin.ModelAdmin):
     """Admin für Workflow-Instanzen."""
 
     list_display = [
+        'kennung',
         'name',
         'workflow_typ',
         'status_display',
@@ -115,15 +117,20 @@ class WorkflowInstanzAdmin(admin.ModelAdmin):
         'erstellt_am'
     ]
     list_filter = ['status', 'workflow_typ', 'erstellt_am']
-    search_fields = ['name',
+    search_fields = ['name', 'kennung',
                      'betroffene_person__vorname', 'betroffene_person__nachname']
-    readonly_fields = ['erstellt_am', 'aktualisiert_am', 'archiviert_am', 'fortschritt_anzeige']
+    readonly_fields = ['kennung', 'jahr', 'laufende_nummer', 'erstellt_am', 'aktualisiert_am', 'archiviert_am', 'fortschritt_anzeige']
     date_hierarchy = 'erstellt_am'
     inlines = [WorkflowSchrittInstanzInline]
 
     fieldsets = (
         ('Workflow-Informationen', {
             'fields': ('workflow_typ', 'name', 'status', 'fortschritt_anzeige')
+        }),
+        ('Kennungssystem', {
+            'fields': ('kennung', 'jahr', 'laufende_nummer'),
+            'classes': ('collapse',),
+            'description': 'Automatisch generierte Kennung'
         }),
         ('Zuordnungen', {
             'fields': ('erstellt_von', 'betroffene_person')

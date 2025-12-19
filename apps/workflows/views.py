@@ -6,9 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
-from .models import WorkflowInstanz, WorkflowSchrittInstanz
+from .models import WorkflowInstanz, WorkflowSchrittInstanz, WorkflowTyp, WorkflowSchritt
 from .services import WorkflowService
-from .forms import WorkflowInstanzForm
+from .forms import WorkflowInstanzForm, WorkflowTypForm, WorkflowSchrittFormSet
 from apps.personen.models import Notar, NotarAnwaerter
 from apps.notarstellen.models import Notarstelle
 
@@ -246,3 +246,159 @@ def workflow_starten_view(request, workflow_id):
     }
 
     return render(request, 'workflows/workflow_starten.html', context)
+
+
+# ===== TEMPLATE-VERWALTUNG VIEWS =====
+
+@login_required
+def workflow_template_liste_view(request):
+    """Liste aller Workflow-Templates (WorkflowTypen)."""
+    templates = WorkflowTyp.objects.annotate(
+        anzahl_schritte=Count('schritte'),
+        anzahl_instanzen=Count('instanzen')
+    ).order_by('name')
+
+    # Filter nach Status (aktiv/inaktiv)
+    status_filter = request.GET.get('status')
+    if status_filter == 'aktiv':
+        templates = templates.filter(ist_aktiv=True)
+    elif status_filter == 'inaktiv':
+        templates = templates.filter(ist_aktiv=False)
+
+    context = {
+        'templates': templates,
+        'status_filter': status_filter,
+    }
+
+    return render(request, 'workflows/template_liste.html', context)
+
+
+@login_required
+def workflow_template_detail_view(request, template_id):
+    """Detail-Ansicht eines Workflow-Templates mit allen Schritten."""
+    template = get_object_or_404(
+        WorkflowTyp.objects.annotate(
+            anzahl_instanzen=Count('instanzen')
+        ),
+        id=template_id
+    )
+
+    # Schritte des Templates
+    schritte = template.schritte.order_by('reihenfolge')
+
+    # Letzte Instanzen (max 5)
+    letzte_instanzen = template.instanzen.order_by('-erstellt_am')[:5]
+
+    context = {
+        'template': template,
+        'schritte': schritte,
+        'letzte_instanzen': letzte_instanzen,
+    }
+
+    return render(request, 'workflows/template_detail.html', context)
+
+
+@login_required
+def workflow_template_erstellen_view(request):
+    """Erstellen eines neuen Workflow-Templates mit Schritten."""
+    if request.method == 'POST':
+        form = WorkflowTypForm(request.POST)
+        formset = WorkflowSchrittFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            # Template speichern
+            template = form.save()
+
+            # Schritte speichern
+            formset.instance = template
+            formset.save()
+
+            messages.success(
+                request,
+                f'Template "{template.name}" mit {template.schritte.count()} Schritten wurde erstellt.'
+            )
+            return redirect('workflow_template_detail', template_id=template.id)
+    else:
+        form = WorkflowTypForm()
+        formset = WorkflowSchrittFormSet()
+
+    context = {
+        'form': form,
+        'formset': formset,
+        'title': 'Neues Workflow-Template',
+        'submit_text': 'Template erstellen',
+    }
+
+    return render(request, 'workflows/template_form.html', context)
+
+
+@login_required
+def workflow_template_bearbeiten_view(request, template_id):
+    """Bearbeiten eines Workflow-Templates mit Schritten."""
+    template = get_object_or_404(WorkflowTyp, id=template_id)
+
+    if request.method == 'POST':
+        form = WorkflowTypForm(request.POST, instance=template)
+        formset = WorkflowSchrittFormSet(request.POST, instance=template)
+
+        if form.is_valid() and formset.is_valid():
+            template = form.save()
+            formset.save()
+
+            messages.success(
+                request,
+                f'Template "{template.name}" wurde erfolgreich aktualisiert.'
+            )
+            return redirect('workflow_template_detail', template_id=template.id)
+    else:
+        form = WorkflowTypForm(instance=template)
+        formset = WorkflowSchrittFormSet(instance=template)
+
+    context = {
+        'form': form,
+        'formset': formset,
+        'template': template,
+        'title': f'Template bearbeiten: {template.name}',
+        'submit_text': 'Änderungen speichern',
+    }
+
+    return render(request, 'workflows/template_form.html', context)
+
+
+@login_required
+def workflow_template_loeschen_view(request, template_id):
+    """Löschen eines Workflow-Templates (nur wenn keine Instanzen existieren)."""
+    template = get_object_or_404(
+        WorkflowTyp.objects.annotate(
+            anzahl_instanzen=Count('instanzen')
+        ),
+        id=template_id
+    )
+
+    # Prüfen ob Instanzen existieren
+    if template.anzahl_instanzen > 0:
+        messages.error(
+            request,
+            f'Template "{template.name}" kann nicht gelöscht werden, '
+            f'da {template.anzahl_instanzen} Workflow-Instanz(en) darauf basieren.'
+        )
+        return redirect('workflow_template_detail', template_id=template_id)
+
+    if request.method == 'POST':
+        name = template.name
+        try:
+            template.delete()
+            messages.success(request, f'Template "{name}" wurde gelöscht.')
+            return redirect('workflow_template_liste')
+        except Exception as e:
+            messages.error(
+                request,
+                f'Fehler beim Löschen: {str(e)}'
+            )
+            return redirect('workflow_template_detail', template_id=template_id)
+
+    context = {
+        'template': template,
+    }
+
+    return render(request, 'workflows/template_loeschen.html', context)

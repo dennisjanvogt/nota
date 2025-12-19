@@ -33,6 +33,14 @@ class WorkflowTyp(ZeitstempelModel):
         verbose_name='Ist aktiv',
         help_text='Kann dieser Workflow-Typ für neue Instanzen verwendet werden?'
     )
+    kuerzel = models.CharField(
+        max_length=10,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name='Kürzel',
+        help_text='Kürzel für Kennung (z.B. BES, BP, NOT)'
+    )
 
     class Meta:
         verbose_name = 'Workflow-Typ'
@@ -146,10 +154,70 @@ class WorkflowInstanz(ZeitstempelModel):
         verbose_name='Notizen'
     )
 
+    # Kennungssystem
+    kennung = models.CharField(
+        max_length=50,
+        unique=True,
+        blank=True,
+        verbose_name='Kennung',
+        help_text='Eindeutige Kennung (z.B. 2025-BES-001)'
+    )
+    jahr = models.PositiveIntegerField(
+        default=2025,
+        verbose_name='Jahr',
+        help_text='Jahr für Kennungssystem'
+    )
+    laufende_nummer = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Laufende Nummer',
+        help_text='Laufende Nummer innerhalb Jahr und Typ'
+    )
+
     class Meta:
         verbose_name = 'Workflow-Instanz'
         verbose_name_plural = 'Workflow-Instanzen'
         ordering = ['-erstellt_am']
+
+    def save(self, *args, **kwargs):
+        """Generiert automatisch Kennung beim ersten Speichern."""
+        if not self.kennung and self.workflow_typ_id:
+            self.kennung = self._generiere_kennung()
+        super().save(*args, **kwargs)
+
+    def _generiere_kennung(self):
+        """
+        Generiert eindeutige Kennung: JAHR-KUERZEL-NUMMER (z.B. 2025-BES-001).
+
+        Die Kennung besteht aus:
+        - Jahr (aktuelles Jahr)
+        - Kürzel des Workflow-Typs
+        - Laufende Nummer (automatisch hochgezählt für Jahr + Typ)
+        """
+        from django.utils import timezone
+        from django.db.models import Max
+
+        # Aktuelles Jahr setzen
+        self.jahr = timezone.now().year
+
+        # Kürzel vom WorkflowTyp holen
+        kuerzel = self.workflow_typ.kuerzel
+        if not kuerzel:
+            raise ValidationError(
+                f"WorkflowTyp '{self.workflow_typ.name}' hat kein Kürzel. "
+                "Bitte zuerst ein Kürzel vergeben."
+            )
+
+        # Höchste laufende Nummer für dieses Jahr + Typ ermitteln
+        letzte_nummer = WorkflowInstanz.objects.filter(
+            workflow_typ=self.workflow_typ,
+            jahr=self.jahr
+        ).aggregate(max_nummer=Max('laufende_nummer'))['max_nummer'] or 0
+
+        # Neue Nummer generieren
+        self.laufende_nummer = letzte_nummer + 1
+
+        # Kennung zusammensetzen (z.B. 2025-BES-001)
+        return f"{self.jahr}-{kuerzel}-{self.laufende_nummer:03d}"
 
     def __str__(self):
         return f"{self.name} ({self.get_status_display()})"

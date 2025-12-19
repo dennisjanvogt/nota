@@ -1,0 +1,182 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Workflow-Templates - Notariatskammer Verwaltung{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-collection"></i> Workflow-Templates
+            </h1>
+            <p class="page-subtitle">Verwaltung von Workflow-Vorlagen</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'workflow_template_erstellen' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Neues Template
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Filter</h2>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control" onchange="this.form.submit()">
+                        <option value="">Alle</option>
+                        <option value="aktiv" {% if status_filter == 'aktiv' %}selected{% endif %}>Aktiv</option>
+                        <option value="inaktiv" {% if status_filter == 'inaktiv' %}selected{% endif %}>Inaktiv</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label>
+                    <a href="{% url 'workflow_template_liste' %}" class="btn btn-secondary" style="width: 100%;">
+                        <i class="bi bi-x"></i>
+                        Zurücksetzen
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Templates Table -->
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Kürzel</th>
+                <th>Anzahl Schritte</th>
+                <th>Anzahl Instanzen</th>
+                <th>Status</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if templates %}
+                {% for template in templates %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">{{ template.name }}</div>
+                        {% if template.beschreibung %}
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                            {{ template.beschreibung|truncatewords:10 }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if template.kuerzel %}
+                        <code style="font-size: 13px; font-weight: 600; color: var(--primary-color);">
+                            {{ template.kuerzel }}
+                        </code>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-style: italic;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-primary">{{ template.anzahl_schritte }} Schritt{{ template.anzahl_schritte|pluralize:"e" }}</span>
+                    </td>
+                    <td>
+                        {{ template.anzahl_instanzen }}
+                    </td>
+                    <td>
+                        {% if template.ist_aktiv %}
+                            <span class="badge badge-success">Aktiv</span>
+                        {% else %}
+                            <span class="badge badge-secondary">Inaktiv</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{% url 'workflow_template_detail' template.id %}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-eye"></i>
+                                Details
+                            </a>
+                            <a href="{% url 'workflow_template_bearbeiten' template.id %}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                                Bearbeiten
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-collection"></i>
+                            </div>
+                            <h3 class="empty-state-title">Keine Templates gefunden</h3>
+                            <p class="empty-state-text">
+                                {% if status_filter %}
+                                Keine Templates entsprechen den gewählten Filterkriterien.
+                                {% else %}
+                                Es sind noch keine Workflow-Templates im System erfasst.
+                                {% endif %}
+                            </p>
+                            {% if not status_filter %}
+                            <a href="{% url 'workflow_template_erstellen' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i>
+                                Erstes Template erstellen
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Results Info -->
+{% if templates %}
+<div class="card" style="margin-top: var(--spacing-lg);">
+    <div class="card-body" style="text-align: center; color: var(--text-secondary); font-size: 14px;">
+        <i class="bi bi-info-circle"></i>
+        {{ templates.count }} Template(s) gefunden
+        {% if status_filter %}
+        <a href="{% url 'workflow_template_liste' %}" style="margin-left: 12px; color: var(--primary-color);">
+            Alle Filter zurücksetzen
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -8px;
+    }
+    .col-md-6 {
+        padding: 8px;
+        flex: 0 0 50%;
+    }
+    @media (max-width: 768px) {
+        .col-md-6 {
+            flex: 0 0 100%;
+        }
+    }
+    .g-3 {
+        gap: 1rem;
+    }
+</style>
+{% endblock %}

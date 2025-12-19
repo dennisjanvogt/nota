@@ -1,0 +1,211 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-collection"></i> {{ title }}
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div style="max-width: 900px; margin: 0 auto;">
+    <!-- Info Card -->
+    <div class="card" style="margin-bottom: var(--spacing-lg); border-left: 4px solid var(--secondary-blue);">
+        <div class="card-body">
+            <div style="display: flex; align-items: start; gap: var(--spacing-md);">
+                <div style="color: var(--secondary-blue); font-size: 24px;">
+                    <i class="bi bi-info-circle"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">Workflow-Template</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+                        Ein Template definiert die Struktur und Schritte eines Workflows. Sie können aus diesem Template beliebig viele Workflow-Instanzen erstellen.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card">
+        <div class="card-body">
+            <form method="post" id="templateForm">
+                {% csrf_token %}
+
+                <!-- Basis-Informationen -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Basis-Informationen
+                </h3>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                    <label class="form-label">{{ form.name.label }} *</label>
+                    {{ form.name }}
+                    {% if form.name.help_text %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        {{ form.name.help_text }}
+                    </small>
+                    {% endif %}
+                    {% if form.name.errors %}
+                    <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                        {{ form.name.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                    <label class="form-label">{{ form.kuerzel.label }} *</label>
+                    {{ form.kuerzel }}
+                    {% if form.kuerzel.help_text %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        {{ form.kuerzel.help_text }}
+                    </small>
+                    {% endif %}
+                    {% if form.kuerzel.errors %}
+                    <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                        {{ form.kuerzel.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                    <label class="form-label">{{ form.beschreibung.label }}</label>
+                    {{ form.beschreibung }}
+                    {% if form.beschreibung.help_text %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        {{ form.beschreibung.help_text }}
+                    </small>
+                    {% endif %}
+                    {% if form.beschreibung.errors %}
+                    <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                        {{ form.beschreibung.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <div class="form-check">
+                        {{ form.ist_aktiv }}
+                        <label class="form-check-label" for="{{ form.ist_aktiv.id_for_label }}">
+                            {{ form.ist_aktiv.label }}
+                        </label>
+                    </div>
+                    {% if form.ist_aktiv.help_text %}
+                    <small style="display: block; margin-top: 4px; margin-left: 24px; font-size: 13px; color: var(--text-secondary);">
+                        {{ form.ist_aktiv.help_text }}
+                    </small>
+                    {% endif %}
+                </div>
+
+                <!-- Workflow-Schritte -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <i class="bi bi-list-check"></i> Workflow-Schritte
+                </h3>
+
+                <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm); background: var(--background-hover); border-radius: var(--border-radius); font-size: 13px; color: var(--text-secondary);">
+                    <i class="bi bi-info-circle"></i> Definieren Sie die einzelnen Schritte des Workflows. Die Reihenfolge bestimmt die Abarbeitungsreihenfolge.
+                </div>
+
+                {{ formset.management_form }}
+
+                <div id="schritte-formset">
+                    {% for schritt_form in formset %}
+                    <div class="schritt-form" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--card-background);">
+                        {{ schritt_form.id }}
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+                            <strong style="color: var(--text-primary);">Schritt {% if schritt_form.instance.pk %}{{ schritt_form.instance.reihenfolge }}{% else %}{{ forloop.counter }}{% endif %}</strong>
+                            <div>
+                                {% if formset.can_delete %}
+                                <label style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--danger-color); cursor: pointer;">
+                                    {{ schritt_form.DELETE }}
+                                    {% if schritt_form.instance.pk %}
+                                    Löschen
+                                    {% endif %}
+                                </label>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-sm);">
+                            <div class="form-group">
+                                <label class="form-label">{{ schritt_form.name.label }} *</label>
+                                {{ schritt_form.name }}
+                                {% if schritt_form.name.errors %}
+                                <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                                    {{ schritt_form.name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">{{ schritt_form.reihenfolge.label }} *</label>
+                                {{ schritt_form.reihenfolge }}
+                                {% if schritt_form.reihenfolge.errors %}
+                                <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                                    {{ schritt_form.reihenfolge.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: var(--spacing-sm);">
+                            <label class="form-label">{{ schritt_form.beschreibung.label }}</label>
+                            {{ schritt_form.beschreibung }}
+                            {% if schritt_form.beschreibung.errors %}
+                            <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                                {{ schritt_form.beschreibung.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                {{ schritt_form.ist_optional }}
+                                <label class="form-check-label" for="{{ schritt_form.ist_optional.id_for_label }}">
+                                    {{ schritt_form.ist_optional.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Buttons -->
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+                    <a href="{% if template %}{% url 'workflow_template_detail' template.id %}{% else %}{% url 'workflow_template_liste' %}{% endif %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Abbrechen
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> {{ submit_text }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .form-check input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .form-check-label {
+        cursor: pointer;
+        margin: 0;
+    }
+</style>
+{% endblock %}

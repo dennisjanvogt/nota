@@ -20,4 +20,11 @@ urlpatterns = [
 
     # Workflow-Aktionen
     path('workflows/<int:workflow_id>/starten/', views.workflow_starten_view, name='workflow_starten'),
+
+    # Template-Verwaltung
+    path('templates/', views.workflow_template_liste_view, name='workflow_template_liste'),
+    path('templates/neu/', views.workflow_template_erstellen_view, name='workflow_template_erstellen'),
+    path('templates/<int:template_id>/', views.workflow_template_detail_view, name='workflow_template_detail'),
+    path('templates/<int:template_id>/bearbeiten/', views.workflow_template_bearbeiten_view, name='workflow_template_bearbeiten'),
+    path('templates/<int:template_id>/loeschen/', views.workflow_template_loeschen_view, name='workflow_template_loeschen'),
 ]

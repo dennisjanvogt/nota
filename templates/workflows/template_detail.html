@@ -1,0 +1,233 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ template.name }} - Template Details{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-collection"></i> {{ template.name }}
+            </h1>
+            <p class="page-subtitle">
+                Workflow-Template
+                {% if template.kuerzel %}
+                    | Kürzel: <code style="font-size: 14px;">{{ template.kuerzel }}</code>
+                {% endif %}
+            </p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'workflow_template_bearbeiten' template.id %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i>
+                Bearbeiten
+            </a>
+            <a href="{% url 'workflow_erstellen' %}?typ={{ template.id }}" class="btn btn-success">
+                <i class="bi bi-play-circle"></i>
+                Workflow starten
+            </a>
+            <a href="{% url 'workflow_template_liste' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Zurück
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Layout -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+    <!-- Main Column -->
+    <div>
+        <!-- Template-Info Card -->
+        <div class="card" style="margin-bottom: var(--spacing-lg);">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-info-circle"></i> Template-Informationen
+                </h2>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
+                    <!-- Left Info -->
+                    <div>
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Name:</strong>
+                            <div>{{ template.name }}</div>
+                        </div>
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Kürzel:</strong>
+                            <div>
+                                {% if template.kuerzel %}
+                                    <code style="font-size: 14px; font-weight: 600;">{{ template.kuerzel }}</code>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-style: italic;">Nicht gesetzt</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Info -->
+                    <div>
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Status:</strong>
+                            {% if template.ist_aktiv %}
+                                <span class="badge badge-success">Aktiv</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Inaktiv</span>
+                            {% endif %}
+                        </div>
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Anzahl Schritte:</strong>
+                            <div>{{ schritte|length }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if template.beschreibung %}
+                <div style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--border-color);">
+                    <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Beschreibung:</strong>
+                    <div style="color: var(--text-primary);">{{ template.beschreibung }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Schritte Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-list-check"></i> Workflow-Schritte
+                </h2>
+            </div>
+            <div class="card-body">
+                {% if schritte %}
+                    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                        {% for schritt in schritte %}
+                        <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--card-background);">
+                            <div style="display: flex; align-items: start; gap: var(--spacing-md);">
+                                <!-- Nummer -->
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0;">
+                                    {{ schritt.reihenfolge }}
+                                </div>
+
+                                <!-- Inhalt -->
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">
+                                        {{ schritt.name }}
+                                        {% if schritt.ist_optional %}
+                                            <span class="badge badge-secondary" style="margin-left: 8px; font-size: 11px;">Optional</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if schritt.beschreibung %}
+                                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                                        {{ schritt.beschreibung }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <h3 class="empty-state-title">Keine Schritte definiert</h3>
+                        <p class="empty-state-text">
+                            Dieses Template hat noch keine Workflow-Schritte.
+                        </p>
+                        <a href="{% url 'workflow_template_bearbeiten' template.id %}" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i>
+                            Template bearbeiten
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Column -->
+    <div>
+        <!-- Statistiken Card -->
+        <div class="card" style="margin-bottom: var(--spacing-lg);">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-bar-chart"></i> Statistiken
+                </h3>
+            </div>
+            <div class="card-body">
+                <div style="text-align: center; margin-bottom: var(--spacing-lg);">
+                    <div style="font-size: 36px; font-weight: 700; color: var(--primary-color);">
+                        {{ template.anzahl_instanzen }}
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">
+                        Workflow-Instanzen
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <div style="font-size: 36px; font-weight: 700; color: var(--success-color);">
+                        {{ schritte|length }}
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">
+                        Definierte Schritte
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Letzte Instanzen Card -->
+        {% if letzte_instanzen %}
+        <div class="card" style="margin-bottom: var(--spacing-lg);">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-clock-history"></i> Letzte Workflows
+                </h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    {% for instanz in letzte_instanzen %}
+                    <a href="{% url 'workflow_detail' instanz.id %}" style="padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--border-radius); text-decoration: none; color: var(--text-primary); transition: all 0.2s;">
+                        <div style="font-weight: 500; font-size: 14px;">{{ instanz.name }}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                            {{ instanz.erstellt_am|date:"d.m.Y" }}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Danger Zone Card -->
+        <div class="card" style="border-color: var(--danger-color);">
+            <div class="card-header" style="background: rgba(220, 53, 69, 0.1);">
+                <h3 class="card-title" style="color: var(--danger-color);">
+                    <i class="bi bi-exclamation-triangle"></i> Danger Zone
+                </h3>
+            </div>
+            <div class="card-body">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                    Löschen Sie dieses Template dauerhaft. Diese Aktion kann nicht rückgängig gemacht werden.
+                </p>
+                <a href="{% url 'workflow_template_loeschen' template.id %}" class="btn btn-danger" style="width: 100%;">
+                    <i class="bi bi-trash"></i>
+                    Template löschen
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 992px) {
+        div[style*="grid-template-columns: 2fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

@@ -2,7 +2,8 @@
 Forms für Workflow-Verwaltung.
 """
 from django import forms
-from .models import WorkflowInstanz, WorkflowSchrittInstanz, WorkflowTyp
+from django.forms import inlineformset_factory
+from .models import WorkflowInstanz, WorkflowSchrittInstanz, WorkflowTyp, WorkflowSchritt
 from apps.personen.models import NotarAnwaerter
 
 
@@ -53,5 +54,76 @@ class WorkflowSchrittAbschlussForm(forms.Form):
             'placeholder': 'Optionale Notizen zum Abschluss...'
         })
     )
+
+
+# ===== TEMPLATE-VERWALTUNG FORMS =====
+
+class WorkflowTypForm(forms.ModelForm):
+    """Form für Erstellen und Bearbeiten von Workflow-Templates."""
+
+    class Meta:
+        model = WorkflowTyp
+        fields = ['name', 'kuerzel', 'beschreibung', 'ist_aktiv']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'z.B. Bestellungsprozess'
+            }),
+            'kuerzel': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'z.B. BP',
+                'maxlength': '10'
+            }),
+            'beschreibung': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Detaillierte Beschreibung des Workflow-Typs...'
+            }),
+            'ist_aktiv': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+        help_texts = {
+            'kuerzel': 'Kürzel für Kennung (z.B. BES, BP, NOT)',
+            'ist_aktiv': 'Kann dieser Workflow-Typ für neue Instanzen verwendet werden?',
+        }
+
+
+class WorkflowSchrittForm(forms.ModelForm):
+    """Form für einzelne Workflow-Schritte."""
+
+    class Meta:
+        model = WorkflowSchritt
+        fields = ['name', 'beschreibung', 'reihenfolge', 'ist_optional']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'z.B. Antrag prüfen'
+            }),
+            'beschreibung': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Was muss in diesem Schritt gemacht werden?'
+            }),
+            'reihenfolge': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1'
+            }),
+            'ist_optional': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+
+
+# Formset für Workflow-Schritte
+WorkflowSchrittFormSet = inlineformset_factory(
+    WorkflowTyp,
+    WorkflowSchritt,
+    form=WorkflowSchrittForm,
+    extra=1,  # Eine leere Form zum Hinzufügen
+    can_delete=True,
+    min_num=1,  # Mindestens ein Schritt erforderlich
+    validate_min=True,
+)
 
 

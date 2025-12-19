@@ -1,0 +1,112 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Template löschen - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-trash"></i> Template löschen
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card" style="border: 2px solid var(--danger-color);">
+        <div class="card-body">
+            <div class="alert alert-warning" style="margin-bottom: var(--spacing-lg);">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Achtung!</strong> Diese Aktion kann nicht rückgängig gemacht werden.
+            </div>
+
+            <p style="margin-bottom: var(--spacing-md); font-size: 15px;">
+                Möchten Sie das folgende Workflow-Template wirklich löschen?
+            </p>
+
+            <div style="padding: var(--spacing-lg); background: var(--bg-primary); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg); border-left: 4px solid var(--danger-color);">
+                <div style="display: flex; align-items: start; gap: var(--spacing-md);">
+                    <div style="width: 48px; height: 48px; border-radius: 8px; background: linear-gradient(135deg, var(--primary-color), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0;">
+                        <i class="bi bi-collection"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">
+                            {{ template.name }}
+                        </div>
+                        {% if template.kuerzel %}
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 2px;">
+                            <i class="bi bi-tag"></i> Kürzel: <code>{{ template.kuerzel }}</code>
+                        </div>
+                        {% endif %}
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 2px;">
+                            <i class="bi bi-list-check"></i> {{ template.schritte.count }} Schritt{{ template.schritte.count|pluralize:"e" }}
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">
+                            <i class="bi bi-info-circle"></i> Status: {% if template.ist_aktiv %}<span class="badge badge-success">Aktiv</span>{% else %}<span class="badge badge-secondary">Inaktiv</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if template.anzahl_instanzen > 0 %}
+            <div class="alert alert-danger" style="margin-bottom: var(--spacing-lg);">
+                <i class="bi bi-x-circle"></i>
+                <strong>Löschen nicht möglich!</strong> Dieses Template hat {{ template.anzahl_instanzen }} bestehende Workflow-Instanz{{ template.anzahl_instanzen|pluralize:"en" }}.
+                Löschen Sie zuerst alle zugehörigen Workflows oder verwenden Sie ein anderes Template.
+            </div>
+            <div style="text-align: center;">
+                <a href="{% url 'workflow_template_detail' template.id %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> Zurück zum Template
+                </a>
+            </div>
+            {% else %}
+            <div class="alert alert-danger" style="margin-bottom: var(--spacing-lg);">
+                <i class="bi bi-info-circle"></i>
+                <strong>Hinweis:</strong> Alle zugehörigen Workflow-Schritte werden ebenfalls gelöscht.
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md);">
+                    <a href="{% url 'workflow_template_detail' template.id %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Abbrechen
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Endgültig löschen
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .alert {
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius);
+        border: 1px solid;
+        display: flex;
+        align-items: start;
+        gap: var(--spacing-sm);
+    }
+    .alert i {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .alert-warning {
+        background: #fff3cd;
+        border-color: #ffecb5;
+        color: #856404;
+    }
+    .alert-danger {
+        background: #f8d7da;
+        border-color: #f5c2c7;
+        color: #842029;
+    }
+</style>
+{% endblock %}

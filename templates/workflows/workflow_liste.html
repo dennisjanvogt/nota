@@ -74,6 +74,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th>Kennung</th>
                 <th>Name</th>
                 <th>Typ</th>
                 <th>Status</th>
@@ -86,6 +87,15 @@
             {% if workflows %}
                 {% for workflow in workflows %}
                 <tr>
+                    <td>
+                        {% if workflow.kennung %}
+                        <code style="font-size: 13px; font-weight: 600; color: var(--primary-color);">
+                            {{ workflow.kennung }}
+                        </code>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-style: italic;">-</span>
+                        {% endif %}
+                    </td>
                     <td>
                         <div style="font-weight: 500;">{{ workflow.name }}</div>
                         {% if workflow.betroffene_person %}
@@ -133,7 +143,7 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="empty-state">
                             <div class="empty-state-icon">
                                 <i class="bi bi-diagram-3"></i>
