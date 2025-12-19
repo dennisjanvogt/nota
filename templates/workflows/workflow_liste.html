@@ -33,7 +33,7 @@
                 <div class="form-group">
                     <label class="form-label">Suche</label>
                     <input type="text" name="suche" class="form-control"
-                           placeholder="Name oder Aktenzeichen..." value="{{ suche }}">
+                           placeholder="Name oder Typ..." value="{{ suche }}">
                 </div>
             </div>
             <div class="col-md-3">
@@ -43,8 +43,7 @@
                         <option value="">Alle</option>
                         <option value="entwurf" {% if status_filter == 'entwurf' %}selected{% endif %}>Entwurf</option>
                         <option value="aktiv" {% if status_filter == 'aktiv' %}selected{% endif %}>Aktiv</option>
-                        <option value="abgeschlossen" {% if status_filter == 'abgeschlossen' %}selected{% endif %}>Abgeschlossen</option>
-                        <option value="abgebrochen" {% if status_filter == 'abgebrochen' %}selected{% endif %}>Abgebrochen</option>
+                        <option value="archiviert" {% if status_filter == 'archiviert' %}selected{% endif %}>Archiviert</option>
                     </select>
                 </div>
             </div>
@@ -104,10 +103,8 @@
                             <span class="badge badge-secondary">{{ workflow.get_status_display }}</span>
                         {% elif workflow.status == 'aktiv' %}
                             <span class="badge badge-success">{{ workflow.get_status_display }}</span>
-                        {% elif workflow.status == 'abgeschlossen' %}
-                            <span class="badge badge-success">{{ workflow.get_status_display }}</span>
-                        {% elif workflow.status == 'abgebrochen' %}
-                            <span class="badge badge-danger">{{ workflow.get_status_display }}</span>
+                        {% elif workflow.status == 'archiviert' %}
+                            <span class="badge badge-primary">{{ workflow.get_status_display }}</span>
                         {% endif %}
                     </td>
                     <td>
