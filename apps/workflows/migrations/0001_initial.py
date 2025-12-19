@@ -64,7 +64,6 @@ class Migration(migrations.Migration):
                 ('abgeschlossen_am', models.DateTimeField(blank=True, null=True, verbose_name='Abgeschlossen am')),
                 ('faellig_am', models.DateField(blank=True, help_text='Bis wann sollte dieser Workflow abgeschlossen sein?', null=True, verbose_name='Fällig am')),
                 ('notizen', models.TextField(blank=True, verbose_name='Notizen')),
-                ('aktenzeichen', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='workflow', to='aktenzeichen.aktenzeichen', verbose_name='Aktenzeichen')),
                 ('betroffene_person', models.ForeignKey(blank=True, help_text='Notar-Anwärter, der betroffen ist (z.B. bei Bestellungsprozess)', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='workflows', to='personen.notaranwaerter', verbose_name='Betroffene Person')),
                 ('erstellt_von', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='erstellte_workflows', to=settings.AUTH_USER_MODEL, verbose_name='Erstellt von')),
                 ('workflow_typ', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='instanzen', to='workflows.workflowtyp', verbose_name='Workflow-Typ')),

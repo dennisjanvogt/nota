@@ -154,6 +154,7 @@ class WorkflowInstanz(ZeitstempelModel):
     def __str__(self):
         return f"{self.name} ({self.get_status_display()})"
 
+    @property
     def fortschritt_prozent(self):
         """Berechnet den Fortschritt in Prozent."""
         alle_schritte = self.schritt_instanzen.count()

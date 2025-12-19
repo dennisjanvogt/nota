@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workflows', '0003_remove_aktenzeichen_fk'),
+        ('workflows', '0002_workflowdokument_workflowbewerber'),
     ]
 
     operations = [
