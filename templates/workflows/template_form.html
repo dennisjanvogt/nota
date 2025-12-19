@@ -103,27 +103,30 @@
                 </div>
 
                 <!-- Workflow-Schritte -->
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                    <i class="bi bi-list-check"></i> Workflow-Schritte
-                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                    <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm); flex: 1;">
+                        <i class="bi bi-list-check"></i> Workflow-Schritte
+                    </h3>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="openReorderModal()" style="margin-left: var(--spacing-md);">
+                        <i class="bi bi-arrow-down-up"></i>
+                        Reihenfolge ändern
+                    </button>
+                </div>
 
                 <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm); background: var(--background-hover); border-radius: var(--border-radius); font-size: 13px; color: var(--text-secondary);">
-                    <i class="bi bi-info-circle"></i> Definieren Sie die einzelnen Schritte des Workflows. Die Reihenfolge bestimmt die Abarbeitungsreihenfolge.
+                    <i class="bi bi-info-circle"></i> Definieren Sie die einzelnen Schritte des Workflows. Klicken Sie auf "Reihenfolge ändern" um die Schritte neu zu sortieren.
                 </div>
 
                 {{ formset.management_form }}
 
                 <div id="schritte-formset">
                     {% for schritt_form in formset %}
-                    <div class="schritt-form" draggable="true" data-index="{{ forloop.counter0 }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--card-background); cursor: move;">
+                    <div class="schritt-form" data-index="{{ forloop.counter0 }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--card-background);">
                         {{ schritt_form.id }}
                         {{ schritt_form.reihenfolge }}
 
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                <i class="bi bi-grip-vertical" style="color: var(--text-muted); font-size: 18px; cursor: grab;"></i>
-                                <strong style="color: var(--text-primary);" class="schritt-nummer">Schritt {{ forloop.counter }}</strong>
-                            </div>
+                            <strong style="color: var(--text-primary);" class="schritt-nummer">Schritt {{ forloop.counter }}</strong>
                             <div>
                                 {% if formset.can_delete %}
                                 <label style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--danger-color); cursor: pointer;">
@@ -181,6 +184,37 @@
         </div>
     </div>
 </div>
+
+<!-- Reorder Modal -->
+<div id="reorderModal" class="modal-overlay" onclick="closeReorderModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;">
+                <i class="bi bi-arrow-down-up"></i> Schritte neu anordnen
+            </h3>
+            <button type="button" class="modal-close" onclick="closeReorderModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: var(--spacing-lg);">
+                Ziehen Sie die Schritte, um die Reihenfolge zu ändern
+            </p>
+            <div id="sortable-list">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeReorderModal()">
+                Abbrechen
+            </button>
+            <button type="button" class="btn btn-primary" onclick="applyReorder()">
+                <i class="bi bi-check"></i> Übernehmen
+            </button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_css %}
@@ -199,110 +233,301 @@
         cursor: pointer;
         margin: 0;
     }
-    .schritt-form.dragging {
-        opacity: 0.5;
-        border: 2px dashed var(--primary-color) !important;
+
+    /* Modal Styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.2s ease-out;
     }
-    .schritt-form.drag-over {
-        border-top: 3px solid var(--primary-color) !important;
+    .modal-overlay.show {
+        display: flex;
+    }
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease-out;
+    }
+    .modal-header {
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 4px 8px;
+        transition: color 0.2s;
+    }
+    .modal-close:hover {
+        color: var(--text-primary);
+    }
+    .modal-body {
+        padding: var(--spacing-lg);
+        overflow-y: auto;
+        flex: 1;
+    }
+    .modal-footer {
+        padding: var(--spacing-lg);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+    }
+
+    /* Sortable List Styles */
+    .sortable-item {
+        padding: var(--spacing-md);
+        background: var(--card-background);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: var(--spacing-sm);
+        cursor: move;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+    .sortable-item:hover {
+        background: var(--background-hover);
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .sortable-item.dragging {
+        opacity: 0.4;
+        transform: scale(0.95);
+    }
+    .sortable-item.drag-over {
+        border-top: 3px solid var(--primary-color);
+        margin-top: 8px;
+    }
+    .sortable-handle {
+        color: var(--text-muted);
+        font-size: 20px;
+        cursor: grab;
+    }
+    .sortable-handle:active {
+        cursor: grabbing;
+    }
+    .sortable-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .sortable-title {
+        flex: 1;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const formset = document.getElementById('schritte-formset');
-    const schrittForms = formset.querySelectorAll('.schritt-form');
-    let draggedElement = null;
+let draggedElement = null;
+let currentOrder = [];
 
-    // Drag & Drop Event Handlers
-    schrittForms.forEach(form => {
-        form.addEventListener('dragstart', handleDragStart);
-        form.addEventListener('dragend', handleDragEnd);
-        form.addEventListener('dragover', handleDragOver);
-        form.addEventListener('drop', handleDrop);
-        form.addEventListener('dragleave', handleDragLeave);
+// Modal Functions
+function openReorderModal() {
+    const modal = document.getElementById('reorderModal');
+    const sortableList = document.getElementById('sortable-list');
+
+    // Sammle alle Schritte
+    const forms = document.querySelectorAll('.schritt-form');
+    sortableList.innerHTML = '';
+
+    forms.forEach((form, index) => {
+        const nameInput = form.querySelector('input[name$="-name"]');
+        const title = nameInput ? nameInput.value : `Schritt ${index + 1}`;
+
+        const item = document.createElement('div');
+        item.className = 'sortable-item';
+        item.draggable = true;
+        item.dataset.index = index;
+        item.innerHTML = `
+            <i class="bi bi-grip-vertical sortable-handle"></i>
+            <div class="sortable-number">${index + 1}</div>
+            <div class="sortable-title">${title || `Schritt ${index + 1}`}</div>
+        `;
+
+        // Drag & Drop Events
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragleave', handleDragLeave);
+
+        sortableList.appendChild(item);
     });
 
-    function handleDragStart(e) {
-        draggedElement = this;
-        this.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', this.innerHTML);
-    }
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
 
-    function handleDragEnd(e) {
-        this.classList.remove('dragging');
+function closeReorderModal(event) {
+    if (event && event.target !== event.currentTarget) return;
 
-        // Entferne alle drag-over Klassen
-        schrittForms.forEach(form => {
-            form.classList.remove('drag-over');
-        });
-    }
+    const modal = document.getElementById('reorderModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+}
 
-    function handleDragOver(e) {
-        if (e.preventDefault) {
-            e.preventDefault();
+function applyReorder() {
+    const sortableList = document.getElementById('sortable-list');
+    const items = sortableList.querySelectorAll('.sortable-item');
+    const newOrder = Array.from(items).map(item => parseInt(item.dataset.index));
+
+    // Reorder the forms in the DOM
+    const formset = document.getElementById('schritte-formset');
+    const forms = Array.from(formset.querySelectorAll('.schritt-form'));
+
+    // Clear formset
+    formset.innerHTML = '';
+
+    // Re-append in new order
+    newOrder.forEach(oldIndex => {
+        formset.appendChild(forms[oldIndex]);
+    });
+
+    // Update reihenfolge fields and numbers
+    updateReihenfolge();
+
+    closeReorderModal();
+}
+
+// Drag & Drop Handlers for Modal
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    const items = document.querySelectorAll('.sortable-item');
+    items.forEach(item => item.classList.remove('drag-over'));
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDrop(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (draggedElement !== this) {
+        const sortableList = document.getElementById('sortable-list');
+        const rect = this.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+
+        if (e.clientY < midpoint) {
+            sortableList.insertBefore(draggedElement, this);
+        } else {
+            sortableList.insertBefore(draggedElement, this.nextSibling);
         }
-        e.dataTransfer.dropEffect = 'move';
-        return false;
+
+        // Update numbers in modal
+        updateModalNumbers();
     }
 
-    function handleDrop(e) {
-        if (e.stopPropagation) {
-            e.stopPropagation();
+    return false;
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function updateModalNumbers() {
+    const items = document.querySelectorAll('.sortable-item');
+    items.forEach((item, index) => {
+        const numberEl = item.querySelector('.sortable-number');
+        if (numberEl) {
+            numberEl.textContent = index + 1;
+        }
+    });
+}
+
+function updateReihenfolge() {
+    const forms = document.querySelectorAll('.schritt-form');
+    forms.forEach((form, index) => {
+        // Update die sichtbare Schritt-Nummer
+        const schrittNummer = form.querySelector('.schritt-nummer');
+        if (schrittNummer) {
+            schrittNummer.textContent = `Schritt ${index + 1}`;
         }
 
-        if (draggedElement !== this) {
-            // Bestimme ob wir vor oder nach dem Element einfügen
-            const rect = this.getBoundingClientRect();
-            const midpoint = rect.top + rect.height / 2;
-
-            if (e.clientY < midpoint) {
-                // Einfügen vor diesem Element
-                formset.insertBefore(draggedElement, this);
-            } else {
-                // Einfügen nach diesem Element
-                formset.insertBefore(draggedElement, this.nextSibling);
-            }
-
-            updateReihenfolge();
+        // Update das versteckte reihenfolge-Feld
+        const reihenfolgeInput = form.querySelector('input[name$="-reihenfolge"]');
+        if (reihenfolgeInput) {
+            reihenfolgeInput.value = index + 1;
         }
 
-        return false;
-    }
+        // Update data-index
+        form.setAttribute('data-index', index);
+    });
+}
 
-    function handleDragLeave(e) {
-        this.classList.remove('drag-over');
-    }
-
-    function updateReihenfolge() {
-        const forms = formset.querySelectorAll('.schritt-form');
-        forms.forEach((form, index) => {
-            // Update die sichtbare Schritt-Nummer
-            const schrittNummer = form.querySelector('.schritt-nummer');
-            if (schrittNummer) {
-                schrittNummer.textContent = `Schritt ${index + 1}`;
-            }
-
-            // Update das versteckte reihenfolge-Feld
-            const reihenfolgeInput = form.querySelector('input[name$="-reihenfolge"]');
-            if (reihenfolgeInput) {
-                reihenfolgeInput.value = index + 1;
-            }
-
-            // Update data-index
-            form.setAttribute('data-index', index);
-        });
-    }
-
-    // Initiale Reihenfolge setzen beim Laden
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
     updateReihenfolge();
 
     // Vor dem Submit nochmal updaten
     document.getElementById('templateForm').addEventListener('submit', function(e) {
         updateReihenfolge();
+    });
+
+    // ESC key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeReorderModal();
+        }
     });
 });
 </script>
