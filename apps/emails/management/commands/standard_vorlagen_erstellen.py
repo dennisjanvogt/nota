@@ -78,6 +78,135 @@ Notariatskammer''',
                 self.style.WARNING(f'○ Vorlage "{vorlage2.name}" existiert bereits.')
             )
 
+        # Vorlage: Auswahl für Besetzungsverfahren
+        vorlage3, created3 = EmailVorlage.objects.get_or_create(
+            name='Auswahl Besetzungsverfahren',
+            defaults={
+                'kategorie': 'bestellung',
+                'betreff': 'Auswahl für Besetzungsverfahren - Notarstelle',
+                'nachricht': '''Sehr geehrte/r {titel} {vorname} {nachname},
+
+wir freuen uns, Ihnen mitteilen zu können, dass Sie für das Besetzungsverfahren der Notarstelle {notarstelle} ausgewählt wurden.
+
+Sie gehören zu den 3 Kandidaten, die in das weitere Verfahren aufgenommen wurden.
+
+In den nächsten Tagen erhalten Sie weitere Informationen zum Ablauf und den nächsten Schritten.
+
+Mit freundlichen Grüßen
+Notariatskammer''',
+                'standard_empfaenger': 'd.vogt@sk-advisory.com',
+                'cc_empfaenger': '',
+                'ist_aktiv': True,
+            }
+        )
+
+        if created3:
+            self.stdout.write(
+                self.style.SUCCESS(f'✓ Vorlage "{vorlage3.name}" wurde erstellt.')
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(f'○ Vorlage "{vorlage3.name}" existiert bereits.')
+            )
+
+        # Vorlage: Einladung Kammer-Sitzung
+        vorlage4, created4 = EmailVorlage.objects.get_or_create(
+            name='Einladung Kammer-Sitzung',
+            defaults={
+                'kategorie': 'bestellung',
+                'betreff': 'Einladung zur Kammer-Sitzung - Besetzungsverfahren',
+                'nachricht': '''Sehr geehrte/r {titel} {vorname} {nachname},
+
+hiermit laden wir Sie zur Kammer-Sitzung ein, in der über die Besetzung der Notarstelle {notarstelle} entschieden wird.
+
+Termin: [Bitte Termin eintragen]
+Ort: [Bitte Ort eintragen]
+
+Sie werden gebeten, sich und Ihre Motivation für die Position vorzustellen.
+
+Bitte bestätigen Sie Ihre Teilnahme bis [Datum].
+
+Mit freundlichen Grüßen
+Notariatskammer''',
+                'standard_empfaenger': 'd.vogt@sk-advisory.com',
+                'cc_empfaenger': '',
+                'ist_aktiv': True,
+            }
+        )
+
+        if created4:
+            self.stdout.write(
+                self.style.SUCCESS(f'✓ Vorlage "{vorlage4.name}" wurde erstellt.')
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(f'○ Vorlage "{vorlage4.name}" existiert bereits.')
+            )
+
+        # Vorlage: Zusage Bestellung (1. Platz)
+        vorlage5, created5 = EmailVorlage.objects.get_or_create(
+            name='Zusage Bestellung',
+            defaults={
+                'kategorie': 'bestellung',
+                'betreff': 'Bestellung zum Notar - {titel} {vorname} {nachname}',
+                'nachricht': '''Sehr geehrte/r {titel} {vorname} {nachname},
+
+wir freuen uns, Ihnen mitteilen zu können, dass Sie im Besetzungsverfahren ausgewählt wurden.
+
+Sie werden zum Notar für die Notarstelle {notarstelle} bestellt.
+
+Die formelle Bestellung erfolgt in den nächsten Tagen. Sie werden rechtzeitig über alle weiteren Schritte informiert.
+
+Wir gratulieren Ihnen herzlich zu dieser Position und freuen uns auf die Zusammenarbeit.
+
+Mit freundlichen Grüßen
+Notariatskammer''',
+                'standard_empfaenger': 'd.vogt@sk-advisory.com',
+                'cc_empfaenger': '',
+                'ist_aktiv': True,
+            }
+        )
+
+        if created5:
+            self.stdout.write(
+                self.style.SUCCESS(f'✓ Vorlage "{vorlage5.name}" wurde erstellt.')
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(f'○ Vorlage "{vorlage5.name}" existiert bereits.')
+            )
+
+        # Vorlage: Absage Besetzungsverfahren
+        vorlage6, created6 = EmailVorlage.objects.get_or_create(
+            name='Absage Besetzungsverfahren',
+            defaults={
+                'kategorie': 'bestellung',
+                'betreff': 'Ergebnis Besetzungsverfahren',
+                'nachricht': '''Sehr geehrte/r {titel} {vorname} {nachname},
+
+vielen Dank für Ihre Teilnahme am Besetzungsverfahren für die Notarstelle {notarstelle}.
+
+Nach sorgfältiger Prüfung aller Kandidaten müssen wir Ihnen leider mitteilen, dass die Entscheidung zugunsten eines anderen Bewerbers gefallen ist.
+
+Wir bedanken uns für Ihr Interesse und Ihre Bewerbung. Wir wünschen Ihnen für Ihre berufliche Zukunft alles Gute.
+
+Mit freundlichen Grüßen
+Notariatskammer''',
+                'standard_empfaenger': 'd.vogt@sk-advisory.com',
+                'cc_empfaenger': '',
+                'ist_aktiv': True,
+            }
+        )
+
+        if created6:
+            self.stdout.write(
+                self.style.SUCCESS(f'✓ Vorlage "{vorlage6.name}" wurde erstellt.')
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(f'○ Vorlage "{vorlage6.name}" existiert bereits.')
+            )
+
         self.stdout.write(
-            self.style.SUCCESS('\n✓ Standard-Vorlagen wurden erfolgreich erstellt!')
+            self.style.SUCCESS('\n✓ Alle Standard-Vorlagen wurden erfolgreich erstellt!')
         )

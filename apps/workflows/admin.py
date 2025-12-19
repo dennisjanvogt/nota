@@ -11,7 +11,9 @@ from .models import (
     WorkflowSchrittUebergang,
     WorkflowInstanz,
     WorkflowSchrittInstanz,
-    WorkflowKommentar
+    WorkflowKommentar,
+    WorkflowBewerber,
+    WorkflowDokument
 )
 
 
@@ -169,6 +171,28 @@ class WorkflowKommentarInline(admin.TabularInline):
         super().save_model(request, obj, form, change)
 
 
+class WorkflowBewerberInline(admin.TabularInline):
+    """Inline für Bewerber in Workflow-Instanz."""
+    model = WorkflowBewerber
+    extra = 1
+    fields = ['anwaerter', 'status', 'ranking', 'bewerbung_datei', 'notizen']
+    readonly_fields = ['erstellt_am']
+
+
+class WorkflowDokumentInline(admin.TabularInline):
+    """Inline für Dokumente in Workflow-Instanz."""
+    model = WorkflowDokument
+    extra = 1
+    fields = ['titel', 'beschreibung', 'datei', 'schritt_instanz', 'hochgeladen_von']
+    readonly_fields = ['hochgeladen_von', 'erstellt_am']
+
+    def save_model(self, request, obj, form, change):
+        """Setzt den Benutzer automatisch auf den aktuellen Benutzer."""
+        if not obj.pk:
+            obj.hochgeladen_von = request.user
+        super().save_model(request, obj, form, change)
+
+
 @admin.register(WorkflowInstanz)
 class WorkflowInstanzAdmin(admin.ModelAdmin):
     """Admin für Workflow-Instanzen."""
@@ -189,7 +213,8 @@ class WorkflowInstanzAdmin(admin.ModelAdmin):
     readonly_fields = ['erstellt_am', 'aktualisiert_am', 'gestartet_am',
                        'abgeschlossen_am', 'fortschritt_anzeige']
     date_hierarchy = 'erstellt_am'
-    inlines = [WorkflowSchrittInstanzInline, WorkflowKommentarInline]
+    inlines = [WorkflowSchrittInstanzInline, WorkflowBewerberInline,
+               WorkflowDokumentInline, WorkflowKommentarInline]
 
     fieldsets = (
         ('Workflow-Informationen', {
@@ -351,3 +376,97 @@ class WorkflowKommentarAdmin(admin.ModelAdmin):
             return obj.kommentar[:max_length] + '...'
         return obj.kommentar
     kurzer_kommentar.short_description = 'Kommentar'
+
+
+@admin.register(WorkflowBewerber)
+class WorkflowBewerberAdmin(admin.ModelAdmin):
+    """Admin für Workflow-Bewerber."""
+
+    list_display = [
+        'anwaerter',
+        'workflow_instanz',
+        'status_display',
+        'ranking',
+        'hat_bewerbung',
+        'erstellt_am'
+    ]
+    list_filter = ['status', 'workflow_instanz__workflow_typ', 'erstellt_am']
+    search_fields = ['anwaerter__vorname', 'anwaerter__nachname',
+                     'workflow_instanz__name']
+    readonly_fields = ['erstellt_am', 'aktualisiert_am']
+    date_hierarchy = 'erstellt_am'
+
+    fieldsets = (
+        ('Bewerber-Informationen', {
+            'fields': ('workflow_instanz', 'anwaerter', 'status', 'ranking')
+        }),
+        ('Unterlagen', {
+            'fields': ('bewerbung_datei', 'notizen')
+        }),
+        ('Zeitstempel', {
+            'fields': ('erstellt_am', 'aktualisiert_am'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def status_display(self, obj):
+        """Zeigt Status mit farbiger Badge."""
+        farben = {
+            'beworben': '#6c757d',
+            'ausgewaehlt': '#0d6efd',
+            'platz_1': '#ffd700',
+            'platz_2': '#c0c0c0',
+            'platz_3': '#cd7f32',
+            'abgelehnt': '#dc3545',
+        }
+        farbe = farben.get(obj.status, '#6c757d')
+        return format_html(
+            '<span style="background: {}; color: white; padding: 3px 8px; '
+            'border-radius: 3px; font-size: 11px; font-weight: bold;">{}</span>',
+            farbe,
+            obj.get_status_display()
+        )
+    status_display.short_description = 'Status'
+
+    def hat_bewerbung(self, obj):
+        """Zeigt ob Bewerbung hochgeladen wurde."""
+        if obj.bewerbung_datei:
+            return format_html('<span style="color: green;">✓</span>')
+        return format_html('<span style="color: red;">✗</span>')
+    hat_bewerbung.short_description = 'Bewerbung'
+
+
+@admin.register(WorkflowDokument)
+class WorkflowDokumentAdmin(admin.ModelAdmin):
+    """Admin für Workflow-Dokumente."""
+
+    list_display = [
+        'titel',
+        'workflow_instanz',
+        'schritt_instanz',
+        'hochgeladen_von',
+        'erstellt_am'
+    ]
+    list_filter = ['workflow_instanz__workflow_typ', 'hochgeladen_von', 'erstellt_am']
+    search_fields = ['titel', 'beschreibung', 'workflow_instanz__name']
+    readonly_fields = ['erstellt_am', 'aktualisiert_am', 'hochgeladen_von']
+    date_hierarchy = 'erstellt_am'
+
+    fieldsets = (
+        ('Dokument-Informationen', {
+            'fields': ('workflow_instanz', 'schritt_instanz', 'titel', 'beschreibung')
+        }),
+        ('Datei', {
+            'fields': ('datei', 'hochgeladen_von')
+        }),
+        ('Zeitstempel', {
+            'fields': ('erstellt_am', 'aktualisiert_am'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        """Setzt den Benutzer automatisch auf den aktuellen Benutzer."""
+        if not obj.pk:
+            obj.hochgeladen_von = request.user
+        super().save_model(request, obj, form, change)

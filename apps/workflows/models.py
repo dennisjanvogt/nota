@@ -366,3 +366,112 @@ class WorkflowKommentar(ZeitstempelModel):
 
     def __str__(self):
         return f"Kommentar von {self.benutzer.username} am {self.erstellt_am.strftime('%d.%m.%Y %H:%M')}"
+
+
+class WorkflowBewerber(ZeitstempelModel):
+    """
+    Verknüpfung zwischen Workflow (Besetzungsverfahren) und Bewerbern.
+    Speichert Status, Ranking und Bewerbungsunterlagen.
+    """
+
+    STATUS_CHOICES = [
+        ('beworben', 'Hat sich beworben'),
+        ('ausgewaehlt', 'Für Verfahren ausgewählt'),
+        ('platz_1', '1. Platz (wird bestellt)'),
+        ('platz_2', '2. Platz'),
+        ('platz_3', '3. Platz'),
+        ('abgelehnt', 'Abgelehnt'),
+    ]
+
+    workflow_instanz = models.ForeignKey(
+        WorkflowInstanz,
+        on_delete=models.CASCADE,
+        related_name='bewerber',
+        verbose_name='Workflow-Instanz'
+    )
+    anwaerter = models.ForeignKey(
+        NotarAnwaerter,
+        on_delete=models.PROTECT,
+        related_name='bewerbungen',
+        verbose_name='Notar-Anwärter'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='beworben',
+        verbose_name='Status'
+    )
+    ranking = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Ranking',
+        help_text='1 = Bester, 2 = Zweiter, 3 = Dritter'
+    )
+    bewerbung_datei = models.FileField(
+        upload_to='bewerbungen/%Y/%m/',
+        null=True,
+        blank=True,
+        verbose_name='Bewerbungsunterlagen'
+    )
+    notizen = models.TextField(
+        blank=True,
+        verbose_name='Notizen'
+    )
+
+    class Meta:
+        verbose_name = 'Workflow-Bewerber'
+        verbose_name_plural = 'Workflow-Bewerber'
+        ordering = ['ranking', 'anwaerter__nachname']
+        unique_together = [['workflow_instanz', 'anwaerter']]
+
+    def __str__(self):
+        return f"{self.anwaerter.get_full_name()} - {self.get_status_display()}"
+
+
+class WorkflowDokument(ZeitstempelModel):
+    """
+    Dokumente die zu einem Workflow oder Workflow-Schritt gehören.
+    Z.B. Bewerbungen, Präsentationen, Beschlüsse, etc.
+    """
+
+    workflow_instanz = models.ForeignKey(
+        WorkflowInstanz,
+        on_delete=models.CASCADE,
+        related_name='dokumente',
+        verbose_name='Workflow-Instanz'
+    )
+    schritt_instanz = models.ForeignKey(
+        WorkflowSchrittInstanz,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='dokumente',
+        verbose_name='Schritt-Instanz',
+        help_text='Optional: Zu welchem Schritt gehört das Dokument?'
+    )
+    titel = models.CharField(
+        max_length=200,
+        verbose_name='Titel'
+    )
+    beschreibung = models.TextField(
+        blank=True,
+        verbose_name='Beschreibung'
+    )
+    datei = models.FileField(
+        upload_to='workflow_dokumente/%Y/%m/',
+        verbose_name='Datei'
+    )
+    hochgeladen_von = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='hochgeladene_workflow_dokumente',
+        verbose_name='Hochgeladen von'
+    )
+
+    class Meta:
+        verbose_name = 'Workflow-Dokument'
+        verbose_name_plural = 'Workflow-Dokumente'
+        ordering = ['-erstellt_am']
+
+    def __str__(self):
+        return f"{self.titel} ({self.workflow_instanz.name})"
