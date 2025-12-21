@@ -1,16 +1,16 @@
 {% extends 'base_modern.html' %}
 {% load static %}
 
-{% block title %}Anwärter-Vergleich - Notariatskammer{% endblock %}
+{% block title %}Kandidaten-Vergleich - Notariatskammer{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div class="page-header-top">
         <div>
             <h1 class="page-title">
-                <i class="bi bi-people"></i> Anwärter-Vergleich
+                <i class="bi bi-people"></i> Kandidaten-Vergleich
             </h1>
-            <p class="page-subtitle">{{ anwaerter.count }} Anwärter werden verglichen</p>
+            <p class="page-subtitle">{{ anwaerter.count }} Kandidat werden verglichen</p>
         </div>
         <div class="page-actions">
             <a href="?{% for anw in anwaerter %}anwaerter={{ anw.anwaerter_id }}&{% endfor %}format=pdf" class="btn btn-danger">
@@ -45,10 +45,10 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Anwärter-ID -->
+                <!-- Kandidaten-ID -->
                 <tr>
                     <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
-                        <i class="bi bi-hash"></i> Anwärter-ID
+                        <i class="bi bi-hash"></i> Kandidaten-ID
                     </td>
                     {% for anw in anwaerter %}
                     <td style="text-align: center; font-family: monospace;">{{ anw.anwaerter_id }}</td>
@@ -98,7 +98,7 @@
                     </td>
                     {% for anw in anwaerter %}
                     <td style="text-align: center;">
-                        <a href="{% url 'notarstelle_detail' anw.notarstelle.id %}">{{ anw.notarstelle.name }}</a>
+                        <a href="{% url 'notarstelle_detail' anw.notarstelle.bezeichnung %}">{{ anw.notarstelle.name }}</a>
                     </td>
                     {% endfor %}
                 </tr>

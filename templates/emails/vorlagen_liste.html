@@ -22,44 +22,19 @@
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-card-icon blue">
-            <i class="bi bi-envelope"></i>
-        </div>
-        <div class="stat-card-label">Gesamt</div>
-        <div class="stat-card-value">{{ stats.total }}</div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-card-icon green">
-            <i class="bi bi-check-circle"></i>
-        </div>
-        <div class="stat-card-label">Aktiv</div>
-        <div class="stat-card-value">{{ stats.aktiv }}</div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-card-icon orange">
-            <i class="bi bi-folder"></i>
-        </div>
-        <div class="stat-card-label">Kategorien</div>
-        <div class="stat-card-value">{{ stats.kategorien }}</div>
-    </div>
-</div>
-
 <!-- Vorlagen nach Kategorie gruppiert -->
-{% regroup vorlagen by get_kategorie_display as vorlagen_kategorien %}
+{% regroup vorlagen by kategorie as vorlagen_kategorien %}
 
-{% for kategorie in vorlagen_kategorien %}
+{% for kategorie_gruppe in vorlagen_kategorien %}
 <div class="card" style="margin-bottom: var(--spacing-lg);">
     <div class="card-header">
-        <h2 class="card-title">{{ kategorie.grouper }}</h2>
+        <h2 class="card-title">
+            <i class="bi bi-envelope"></i> {{ kategorie_gruppe.list.0.get_kategorie_display }}
+        </h2>
     </div>
     <div class="card-body">
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--spacing-md);">
-            {% for vorlage in kategorie.list %}
+            {% for vorlage in kategorie_gruppe.list %}
             <div class="card" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
                 <div class="card-body">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-sm);">
@@ -74,6 +49,11 @@
                     </div>
 
                     <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                        {% if vorlage.workflow_typ %}
+                        <div style="margin-bottom: 4px;">
+                            <i class="bi bi-diagram-3"></i> {{ vorlage.workflow_typ.name }}
+                        </div>
+                        {% endif %}
                         <div style="margin-bottom: 4px;">
                             <i class="bi bi-envelope"></i> An: {{ vorlage.standard_empfaenger }}
                         </div>

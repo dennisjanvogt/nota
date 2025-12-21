@@ -4,195 +4,184 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Projektziel
 
-Notariatskammer-Verwaltungssoftware zur Verwaltung von Notaren, Notar-Anwärtern und Notarstellen durch die Notariatskammer.
+Notariatskammer-Verwaltungssoftware zur Verwaltung von Notaren, Notariatskandidatn und Notarstellen durch die Notariatskammer.
 
 ## Tech Stack
 
-- **Backend**: Django 5.0 + Django REST Framework
-- **Datenbank**: SQLite (Development), PostgreSQL (Production-ready)
-- **Frontend**: Django Templates + Bootstrap 5
-- **Authentifizierung**: Django's Custom User Model (KammerBenutzer)
+- **Backend**: Django 5.2.9, Django REST Framework 3.14
+- **Python**: 3.12+ (getestet mit 3.14)
+- **Datenbank**: SQLite (Development), PostgreSQL-ready
+- **Frontend**: Django Templates + Bootstrap 5.3
+- **Exports**: openpyxl (Excel), ReportLab (PDF)
+- **Authentifizierung**: Custom User Model (`benutzer.KammerBenutzer`)
 - **Sprache**: Vollständig auf Deutsch
-
-## Environment Setup
-
-- Python virtual environment: `venv/`
-- Activate venv: `source venv/bin/activate` (Unix/macOS)
-- Deactivate venv: `deactivate`
-- Install dependencies: `pip install -r requirements.txt`
-
-## Projektstruktur
-
-```
-nota/
-├── manage.py
-├── requirements.txt
-├── config/                          # Django-Projekt-Konfiguration
-│   ├── settings.py                  # AUTH_USER_MODEL = 'benutzer.KammerBenutzer'
-│   ├── urls.py
-│   └── wsgi.py
-├── apps/                            # Alle Django Apps
-│   ├── kern/                        # Gemeinsame Basis-Models (ZeitstempelModel, AktivModel)
-│   ├── benutzer/                    # KammerBenutzer Model (Custom User)
-│   ├── notarstellen/                # Notarstellen-Verwaltung
-│   ├── personen/                    # Notare und Notar-Anwärter
-│   ├── workflows/                   # Workflow-System (Bestellungsprozess)
-│   ├── aktenzeichen/                # Aktenzeichen-Generierung
-│   └── berichte/                    # Export & Reporting
-├── templates/
-│   └── base.html                    # Bootstrap 5 Basis-Template
-├── static/                          # CSS, JS, Bilder
-└── media/                           # User uploads
-```
 
 ## Wichtige Entwicklungskommandos
 
-### Django Basics
-
+### Setup
 ```bash
-# Development Server starten
-python manage.py runserver
+# Virtual environment aktivieren
+source venv/bin/activate
 
-# Neue Migrations erstellen
-python manage.py makemigrations
+# Dependencies installieren
+pip install -r requirements.txt
 
-# Migrations anwenden
+# Datenbank migrieren
 python manage.py migrate
 
 # Superuser erstellen
 python manage.py createsuperuser
-
-# Django Shell öffnen
-python manage.py shell
-
-# Statische Dateien sammeln (Production)
-python manage.py collectstatic
 ```
 
-### Testing
-
+### Custom Management Commands
 ```bash
-# Alle Tests ausführen
-python manage.py test
+# Bestellungsprozess-Workflow anlegen
+python manage.py bestellungsprozess_anlegen
 
-# Tests für eine App
-python manage.py test apps.benutzer
+# Besetzungsverfahren-Workflow anlegen
+python manage.py besetzungsverfahren_anlegen
 
-# Tests mit Coverage
-coverage run --source='.' manage.py test
-coverage report
+# Testdaten erstellen (Notarstellen, Notare, Kandidat)
+python manage.py testdaten_erstellen
+
+# Notare importieren
+python manage.py import_notare
+
+# E-Mail Vorlagen erstellen
+python manage.py standard_vorlagen_erstellen
+
+# E-Mail Test versenden
+python manage.py test_email
+
+# Workflow-Schritte reparieren (bei Problemen)
+python manage.py workflow_schritte_reparieren
+```
+
+### Development
+```bash
+# Development Server
+python manage.py runserver
+
+# Django Shell
+python manage.py shell
+
+# Tests ausführen
+python manage.py test                    # Alle Tests
+python manage.py test apps.workflows     # Nur Workflow-Tests
+```
+
+### Migrations
+```bash
+python manage.py makemigrations
+python manage.py migrate
 ```
 
 ## Code-Konventionen
 
-### WICHTIG: Alles auf Deutsch!
+### KRITISCH: Alles auf Deutsch!
 
-- **Model-Felder**: Deutsche Namen (`vorname`, `nachname`, `notarstelle`, `erstellt_am`)
-- **Methoden**: Deutsche Namen (`workflow_starten()`, `schritt_abschliessen()`, `aktenzeichen_generieren()`)
-- **URLs**: Deutsche Pfade (`/notarstellen/`, `/workflows/instanzen/`)
-- **UI-Texte**: Vollständig auf Deutsch
-- **Kommentare**: Deutsch
-- **verbose_name**: Immer in Meta-Klassen definieren
+- **Felder**: `vorname`, `nachname`, `notarstelle`, `erstellt_am`
+- **Methoden**: `workflow_starten()`, `schritt_abschliessen()`
+- **URLs**: `/notarstellen/`, `/workflows/instanzen/`
+- **UI/Kommentare**: Vollständig auf Deutsch
+- **verbose_name**: Immer definieren
 
-### Beispiel Model:
-
+Beispiel Model:
 ```python
 class Notarstelle(ZeitstempelModel, AktivModel):
     """Notarstelle/Notariat."""
     notarnummer = models.CharField(max_length=20, unique=True, verbose_name='Notarnummer')
-    bezeichnung = models.CharField(max_length=50, verbose_name='Bezeichnung')
 
     class Meta:
         verbose_name = 'Notarstelle'
         verbose_name_plural = 'Notarstellen'
-        ordering = ['notarnummer']
 ```
 
-## Datenmodell-Übersicht
+## Architektur-Übersicht
 
-### Benutzer (apps.benutzer)
-- **KammerBenutzer**: Custom User Model für Kammermitarbeiter (rolle, abteilung)
+### App-Struktur
+```
+apps/
+├── kern/           # Basis-Models: ZeitstempelModel, AktivModel
+├── benutzer/       # Custom User (KammerBenutzer) mit Rollen
+├── notarstellen/   # Notarstellen-Verwaltung
+├── personen/       # Notare & Notariatskandidat (erbt von PersonBasis)
+├── workflows/      # Dynamisches Workflow-System mit State Machine
+├── emails/         # E-Mail Templates & Versand (UnverifiedSSLEmailBackend für Dev)
+└── berichte/       # Exports (CSV UTF-8 BOM, Excel, PDF)
+```
 
-### Notarstellen (apps.notarstellen)
-- **Notarstelle**: Notarstellen mit notarnummer, bezeichnung, Adresse
+### Basis-Models (apps.kern)
+Alle Models erben von:
+- **ZeitstempelModel**: Fügt `erstellt_am`, `aktualisiert_am` hinzu
+- **AktivModel**: Fügt `ist_aktiv` mit `aktivieren()`/`deaktivieren()` hinzu
 
-### Personen (apps.personen)
-- **PersonBasis**: Abstract Model mit vorname, nachname, titel, email, telefon
-- **Notar**: Notar mit notarstelle, bestellt_am
-- **NotarAnwaerter**: Notar-Anwärter mit betreuender_notar, zugelassen_am
+### Custom User Model (apps.benutzer)
+- **KRITISCH**: `AUTH_USER_MODEL = 'benutzer.KammerBenutzer'` in config/settings.py
+- **ACHTUNG**: Muss VOR erster Migration gesetzt sein
+- Rollen: Admin, Leitung, Sachbearbeiter
+- Kammermitarbeiter VERWALTEN Notare (sind NICHT selbst Notare)
 
-### Workflows (apps.workflows)
-**Definition:**
-- **WorkflowTyp**: z.B. "Bestellungsprozess"
-- **WorkflowSchritt**: Schritte eines Workflows
-- **WorkflowSchrittUebergang**: Erlaubte Übergänge
+### Workflow-System (apps.workflows)
 
-**Instanzen:**
-- **WorkflowInstanz**: Konkrete Workflow-Ausführung
-- **WorkflowSchrittInstanz**: Konkrete Schritt-Ausführung
-- **WorkflowKommentar**: Kommentare zu Workflows
+**Architektur:**
+- **WorkflowTyp**: Template/Definition (z.B. "Bestellungsprozess")
+- **WorkflowSchritt**: Schritt-Definitionen mit Reihenfolge
+- **WorkflowInstanz**: Konkrete Ausführung (status: entwurf → aktiv → archiviert)
+- **WorkflowSchrittInstanz**: Konkrete Schritt-Ausführung (status: pending → completed)
 
-### Aktenzeichen (apps.aktenzeichen)
-- **Nummernsequenz**: Thread-safe Sequenzen pro Jahr/Präfix
-- **Aktenzeichen**: Format "BES-2025-0001"
+**Services (apps/workflows/services.py):**
+- `WorkflowService.workflow_erstellen()` - Erstellt Workflow + alle Schritt-Instanzen
+- `WorkflowService.workflow_starten()` - Status: entwurf → aktiv
+- `WorkflowService.schritt_abschliessen()` - Schritt abschließen, prüft Auto-Archivierung
+- `WorkflowService.workflow_archivieren()` - Workflow archivieren
 
-## Wichtige Konzepte
+**Wichtig:**
+- Vereinfachtes Checklisten-System (keine komplexe State Machine mehr)
+- Workflow wird automatisch archiviert wenn alle Schritte completed
+- Alle Operationen in @transaction.atomic
 
-### Custom User Model
-- **KRITISCH**: `AUTH_USER_MODEL = 'benutzer.KammerBenutzer'` muss VOR erster Migration gesetzt sein
-- Kammermitarbeiter VERWALTEN Notare, sind aber NICHT selbst Notare
+### Personen-System (apps.personen)
 
-### Workflow-System
-- Dynamisch konfigurierbar über Django Admin
-- State Machine Pattern für Schritt-Übergänge
-- Hauptanwendungsfall: Bestellung von Notar-Anwärtern zu Notaren
+**Models:**
+- **PersonBasis**: Abstract Model (vorname, nachname, titel, email, telefon)
+- **Notar**: Erbt von PersonBasis, hat `notarstelle` (ForeignKey)
+- **NotarAnwaerter**: Erbt von PersonBasis, hat `betreuender_notar` (ForeignKey)
 
-### Thread-Safety bei Aktenzeichen
-- SELECT FOR UPDATE in `naechste_nummer_holen()`
-- @transaction.atomic Decorator
-- Tests für Concurrent Generation
+**Services (apps/personen/services.py):**
+- Handling der Bestellung von Kandidaten zu Notaren
 
-## Nächste Entwicklungsschritte
+### E-Mail System (apps.emails)
 
-### Phase 2: Stammdaten (nächster Schritt)
-1. Kern-Models implementieren (ZeitstempelModel, AktivModel)
-2. Notarstelle Model + Admin + Views
-3. Person-Models (Notar, NotarAnwaerter) + Admin
-4. CRUD-Funktionalität
-5. URL-Routing
+**WICHTIG für Development:**
+- Backend: `UnverifiedSSLEmailBackend` (SSL-Zertifikate werden nicht validiert)
+- Für Production: Auf `django.core.mail.backends.smtp.EmailBackend` wechseln
+- Konfiguration via .env (EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, etc.)
+- Strato SMTP: `smtp.strato.de:587` mit TLS
 
-### Phase 3: Aktenzeichen
-6. Nummernsequenz und Aktenzeichen Models
-7. AktenzeichenService (Thread-safe)
-8. Admin + Custom Views
+**Models:**
+- **EmailVorlage**: Templates für E-Mails mit Platzhaltern
 
-### Phase 4: Workflow-System
-9. Workflow Models implementieren
-10. Zustandsmaschine (zustandsmaschine.py)
-11. WorkflowService (services.py)
-12. Custom Views für Workflow-Instanzen
+### Berichte (apps.berichte)
 
-## Admin-Interface
+**Export-Formate:**
+- CSV: UTF-8 mit BOM, Semikolon-getrennt
+- Excel: XLSX mit Auto-Spaltenbreite
+- PDF: Querformat mit ReportLab
 
-- URL: http://localhost:8000/admin/
-- Alle Models sind im Django Admin registriert
-- Deutsche Beschriftungen (`verbose_name`)
-- Custom Admin-Konfiguration für komplexe Models
+## Login & URLs
+
+- Login: `http://localhost:8000/login/`
+- Dashboard: `http://localhost:8000/` (nach Login)
+- Admin: `http://localhost:8000/admin/`
+- Settings: `LOGIN_URL = 'login'`, `LOGIN_REDIRECT_URL = 'dashboard'`
 
 ## Troubleshooting
 
-### Migration Issues
-- Wenn AUTH_USER_MODEL geändert werden muss: Datenbank droppen und neu erstellen
-- Bei Migration-Konflikten: `python manage.py migrate --fake-initial`
+**Migration Issues:**
+- AUTH_USER_MODEL ändern erfordert Datenbank-Reset
+- `python manage.py migrate --fake-initial` bei Konflikten
 
-### Static Files Not Found
-- `python manage.py collectstatic` ausführen
-- STATICFILES_DIRS und STATIC_ROOT in settings.py prüfen
-
-## Deployment-Hinweise
-
-- SQLite für Development, PostgreSQL für Production
-- `DEBUG = False` in Production
-- `ALLOWED_HOSTS` konfigurieren
-- Statische Dateien mit WhiteNoise oder separatem Server
-- Environment Variables für Secrets (SECRET_KEY, DB-Credentials)
+**E-Mail Test fehlschlägt:**
+- Prüfe .env Datei (EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
+- Für lokales Testing: `python manage.py test_email`

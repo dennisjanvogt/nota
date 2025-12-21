@@ -11,7 +11,7 @@ from apps.personen.models import Notar, NotarAnwaerter
 
 
 class Command(BaseCommand):
-    help = 'Erstellt Testdaten für Notarstellen, Notare und Notar-Anwärter'
+    help = 'Erstellt Testdaten für Notarstellen, Notare und Notariatskandidat'
 
     def handle(self, *args, **options):
         self.stdout.write('Erstelle Testdaten...\n')
@@ -104,8 +104,8 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f'✓ {Notar.objects.count()} Notare erstellt'))
 
-        # Notar-Anwärter erstellen
-        self.stdout.write('Erstelle Notar-Anwärter...')
+        # Notariatskandidat erstellen
+        self.stdout.write('Erstelle Notariatskandidat...')
         anwaerter1 = NotarAnwaerter.objects.create(
             anwaerter_id='ANW-001',
             vorname='Lisa',
@@ -149,12 +149,12 @@ class Command(BaseCommand):
             notiz='Promotion im Gesellschaftsrecht'
         )
 
-        self.stdout.write(self.style.SUCCESS(f'✓ {NotarAnwaerter.objects.count()} Notar-Anwärter erstellt'))
+        self.stdout.write(self.style.SUCCESS(f'✓ {NotarAnwaerter.objects.count()} Notariatskandidat erstellt'))
 
         self.stdout.write(self.style.SUCCESS('\n✓ Testdaten erfolgreich erstellt!'))
         self.stdout.write('\nZusammenfassung:')
         self.stdout.write(f'  - {Notarstelle.objects.count()} Notarstellen')
         self.stdout.write(f'  - {Notar.objects.count()} Notare')
-        self.stdout.write(f'  - {NotarAnwaerter.objects.count()} Notar-Anwärter')
+        self.stdout.write(f'  - {NotarAnwaerter.objects.count()} Notariatskandidat')
         self.stdout.write('\nSie können sich jetzt im Admin einloggen: http://localhost:8000/admin/')
         self.stdout.write('Benutzername: admin | Passwort: admin\n')

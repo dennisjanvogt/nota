@@ -1,6 +1,6 @@
 # Notariatskammer Verwaltungssystem
 
-Ein umfassendes Django-basiertes Verwaltungssystem für die Notariatskammer zur Verwaltung von Notaren, Notar-Anwärtern, Notarstellen und Workflows.
+Ein umfassendes Django-basiertes Verwaltungssystem für die Notariatskammer zur Verwaltung von Notaren, Notariatskandidatn, Notarstellen und Workflows.
 
 ## 📋 Inhaltsverzeichnis
 
@@ -16,11 +16,11 @@ Ein umfassendes Django-basiertes Verwaltungssystem für die Notariatskammer zur 
 
 ## 🎯 Überblick
 
-Das Notariatskammer Verwaltungssystem ist eine webbasierte Anwendung zur effizienten Verwaltung aller Aufgaben einer Notariatskammer. Das System ermöglicht die Verwaltung von Stammdaten (Notare, Notar-Anwärter, Notarstellen), die Durchführung von Workflows (z.B. Bestellungsprozesse) sowie die Generierung und Verwaltung von Aktenzeichen.
+Das Notariatskammer Verwaltungssystem ist eine webbasierte Anwendung zur effizienten Verwaltung aller Aufgaben einer Notariatskammer. Das System ermöglicht die Verwaltung von Stammdaten (Notare, Notariatskandidat, Notarstellen), die Durchführung von Workflows (z.B. Bestellungsprozesse) sowie die Generierung und Verwaltung von Aktenzeichen.
 
 ### Hauptfunktionen
 
-- **Stammdatenverwaltung**: Notare, Notar-Anwärter, Notarstellen
+- **Stammdatenverwaltung**: Notare, Notariatskandidat, Notarstellen
 - **Workflow-System**: Dynamische, konfigurierbare Workflows mit State Machine
 - **Aktenzeichen-Generierung**: Thread-safe Generierung eindeutiger Aktenzeichen
 - **Berichte & Exports**: CSV, Excel und PDF-Exports
@@ -41,10 +41,10 @@ Das Notariatskammer Verwaltungssystem ist eine webbasierte Anwendung zur effizie
 - Vollständige Personalverwaltung
 - Zuordnung zu Notarstellen
 - Bestellungsdatum und Tätigkeitszeitraum
-- Historie (war vorher Anwärter)
+- Historie (war vorher Kandidat)
 
-#### Notar-Anwärter
-- Verwaltung von Notar-Anwärtern
+#### Notariatskandidat
+- Verwaltung von Notariatskandidatn
 - Zuordnung zu betreuenden Notaren
 - Zulassungsdatum und geplante Bestellung
 - Automatische Überführung bei Bestellung
@@ -95,7 +95,7 @@ Das Notariatskammer Verwaltungssystem ist eine webbasierte Anwendung zur effizie
 
 #### Verfügbare Berichte
 - Notare-Liste (mit Notarstellen)
-- Notar-Anwärter-Liste (mit betreuenden Notaren)
+- Notariatskandidat-Liste (mit betreuenden Notaren)
 - Notarstellen-Liste (mit Kontaktdaten)
 - Workflow-Liste (mit Status und Fortschritt)
 - Aktenzeichen-Liste (mit Kategorien)
@@ -110,7 +110,7 @@ Das Notariatskammer Verwaltungssystem ist eine webbasierte Anwendung zur effizie
 
 #### Statistiken
 - Anzahl Notare (aktiv)
-- Anzahl Notar-Anwärter (aktiv)
+- Anzahl Notariatskandidat (aktiv)
 - Anzahl Notarstellen
 - Anzahl aktive Workflows
 
@@ -275,7 +275,7 @@ DATABASES = {
 ### 2. Dashboard
 
 Nach der Anmeldung sehen Sie das Dashboard mit:
-- Statistiken (Notare, Anwärter, Notarstellen, Workflows)
+- Statistiken (Notare, Kandidat, Notarstellen, Workflows)
 - Ihre zugewiesenen Aufgaben
 - Offene Workflows
 - Letzte Aktenzeichen
@@ -290,8 +290,8 @@ Nach der Anmeldung sehen Sie das Dashboard mit:
 - Navigation: Stammdaten → Notare
 - Funktionen: Anlegen, Bearbeiten, Notarstelle zuweisen
 
-**Notar-Anwärter**:
-- Navigation: Stammdaten → Notar-Anwärter
+**Notariatskandidat**:
+- Navigation: Stammdaten → Notariatskandidat
 - Funktionen: Anlegen, Bearbeiten, betreuenden Notar zuweisen
 
 ### 4. Workflow starten
@@ -300,7 +300,7 @@ Nach der Anmeldung sehen Sie das Dashboard mit:
 1. Workflows → Workflow-Instanzen → Hinzufügen
 2. Workflow-Typ auswählen (z.B. "Bestellungsprozess")
 3. Name eingeben
-4. Betroffene Person auswählen (Notar-Anwärter)
+4. Betroffene Person auswählen (Notariatskandidat)
 5. Optional: Aktenzeichen wird automatisch generiert
 6. Speichern
 
@@ -358,7 +358,7 @@ nota/
 │   ├── kern/              # Basis-Models (ZeitstempelModel, AktivModel)
 │   ├── benutzer/          # Custom User Model (KammerBenutzer)
 │   ├── notarstellen/      # Notarstellen-Verwaltung
-│   ├── personen/          # Notare und Notar-Anwärter
+│   ├── personen/          # Notare und Notariatskandidat
 │   ├── workflows/         # Workflow-System (Models, Services, State Machine)
 │   ├── aktenzeichen/      # Aktenzeichen-Generierung
 │   └── berichte/          # Export-Funktionen

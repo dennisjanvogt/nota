@@ -1,0 +1,186 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ sprengel.name }} - Sprengel Details{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-geo-alt"></i> {{ sprengel.name }}
+            </h1>
+            <p class="page-subtitle">
+                <code style="font-size: 14px; font-weight: 600;">{{ sprengel.bezeichnung }}</code>
+                | {{ sprengel.gerichtsbezirk }}
+            </p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'sprengel_bearbeiten' sprengel.bezeichnung %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Bearbeiten
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Sprengel-Informationen -->
+<div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="bi bi-info-circle"></i> Sprengel-Informationen
+        </h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-lg);">
+            <!-- Bezeichnung -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Bezeichnung:</strong>
+                <div><code style="font-size: 15px; font-weight: 600;">{{ sprengel.bezeichnung }}</code></div>
+            </div>
+
+            <!-- Gerichtsbezirk -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Gerichtsbezirk:</strong>
+                <div>{{ sprengel.gerichtsbezirk }}</div>
+            </div>
+
+            <!-- Bundesland -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Bundesland:</strong>
+                <div>{{ sprengel.bundesland }}</div>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Status:</strong>
+                <div>
+                    {% if sprengel.ist_aktiv %}
+                        <span class="badge badge-success">Aktiv</span>
+                    {% else %}
+                        <span class="badge badge-danger">Inaktiv</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Notarstellen -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Notarstellen:</strong>
+                <div>
+                    <span class="badge badge-primary">
+                        <i class="bi bi-building"></i> {{ sprengel.anzahl_notarstellen }} gesamt
+                    </span>
+                    <span class="badge badge-success" style="margin-left: 4px;">
+                        <i class="bi bi-check-circle"></i> {{ sprengel.anzahl_aktive_notarstellen }} aktiv
+                    </span>
+                </div>
+            </div>
+
+            <!-- Erstellt am -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt am:</strong>
+                <div>{{ sprengel.erstellt_am|date:"d.m.Y H:i" }}</div>
+            </div>
+        </div>
+
+        {% if sprengel.beschreibung %}
+        <div style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+            <strong style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 13px;">Beschreibung:</strong>
+            <p style="margin: 0; white-space: pre-wrap;">{{ sprengel.beschreibung }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Notarstellen in diesem Sprengel -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="bi bi-building"></i> Notarstellen in diesem Sprengel
+        </h2>
+        {% if notarstellen %}
+        <span class="badge badge-success">{{ notarstellen.count }}</span>
+        {% endif %}
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if notarstellen %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Notarstelle</th>
+                        <th>Name</th>
+                        <th>Stadt</th>
+                        <th>Status</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notarstelle in notarstellen %}
+                    <tr>
+                        <td>
+                            <code style="font-size: 13px; font-weight: 600;">{{ notarstelle.bezeichnung }}</code>
+                        </td>
+                        <td>
+                            <strong>{{ notarstelle.name }}</strong>
+                        </td>
+                        <td>{{ notarstelle.stadt }}</td>
+                        <td>
+                            {% if notarstelle.ist_aktiv %}
+                                <span class="badge badge-success">
+                                    <i class="bi bi-check-circle"></i> Aktiv
+                                </span>
+                            {% else %}
+                                <span class="badge badge-danger">
+                                    <i class="bi bi-x-circle"></i> Inaktiv
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'notarstelle_detail' notarstelle.bezeichnung %}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-eye"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding: var(--spacing-2xl);">
+            <div class="empty-state-icon">
+                <i class="bi bi-building"></i>
+            </div>
+            <h3 class="empty-state-title">Keine Notarstellen</h3>
+            <p class="empty-state-text">In diesem Sprengel sind noch keine Notarstellen erfasst.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Actions -->
+<div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md); justify-content: space-between;">
+    <a href="{% url 'sprengel_liste' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Liste
+    </a>
+    <div style="display: flex; gap: var(--spacing-md);">
+        <a href="{% url 'sprengel_bearbeiten' sprengel.bezeichnung %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Bearbeiten
+        </a>
+        <a href="{% url 'sprengel_loeschen' sprengel.bezeichnung %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Löschen
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 768px) {
+        div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

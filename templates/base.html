@@ -61,7 +61,7 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'admin:notarstellen_notarstelle_changelist' %}">Notarstellen</a></li>
                             <li><a class="dropdown-item" href="{% url 'admin:personen_notar_changelist' %}">Notare</a></li>
-                            <li><a class="dropdown-item" href="{% url 'admin:personen_notaranwaerter_changelist' %}">Notar-Anwärter</a></li>
+                            <li><a class="dropdown-item" href="{% url 'admin:personen_notaranwaerter_changelist' %}">Notariatskandidaten</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -85,10 +85,16 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text"><small>{{ user.get_rolle_display }}</small></span></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'profil_bearbeiten' %}"><i class="bi bi-person-circle"></i> Profil bearbeiten</a></li>
                             <li><a class="dropdown-item" href="{% url 'admin:password_change' %}">Passwort ändern</a></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                <i class="bi bi-box-arrow-right"></i> Abmelden
-                            </a></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer;">
+                                        <i class="bi bi-box-arrow-right"></i> Abmelden
+                                    </button>
+                                </form>
+                            </li>
                         </ul>
                     </li>
                     {% else %}

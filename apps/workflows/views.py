@@ -4,6 +4,7 @@ Views für Workflow-System und Dashboard.
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.utils import timezone
 from .models import WorkflowInstanz, WorkflowSchrittInstanz, WorkflowTyp, WorkflowSchritt
@@ -25,9 +26,28 @@ def dashboard_view(request):
         'notare_gesamt': Notar.objects.filter(ist_aktiv=True).count(),
         'anwaerter_gesamt': NotarAnwaerter.objects.filter(ist_aktiv=True).count(),
         'notarstellen_gesamt': Notarstelle.objects.filter(ist_aktiv=True).count(),
-        'workflows_aktiv': WorkflowInstanz.objects.filter(status='aktiv').count(),
+        'workflows_offen': WorkflowInstanz.objects.exclude(status='archiviert').count(),
         'workflows_gesamt': WorkflowInstanz.objects.count(),
+        'workflows_abgeschlossen': WorkflowInstanz.objects.filter(status='archiviert').count(),
     }
+
+    # Deadline-Statistiken (alle offenen Workflows mit Fertigstellungsdatum)
+    offene_workflows_mit_datum = WorkflowInstanz.objects.exclude(
+        status='archiviert'
+    ).exclude(
+        fertigstellungsdatum__isnull=True
+    )
+    deadline_stats = {
+        'ueberfaellig': 0,
+        '1_tag': 0,
+        '5_tage': 0,
+        'mehr': 0,
+    }
+
+    for workflow in offene_workflows_mit_datum:
+        status = workflow.deadline_status
+        if status in deadline_stats:
+            deadline_stats[status] += 1
 
     # Offene Workflows (neueste 10)
     offene_workflows = WorkflowService.offene_workflows_holen()[:10]
@@ -39,6 +59,7 @@ def dashboard_view(request):
 
     context = {
         'statistiken': statistiken,
+        'deadline_stats': deadline_stats,
         'offene_workflows': offene_workflows,
         'workflows_nach_status': workflows_nach_status,
     }
@@ -53,8 +74,10 @@ def workflow_liste_view(request):
     """
     workflows = WorkflowInstanz.objects.select_related(
         'workflow_typ',
-        'erstellt_von',
-        'betroffene_person'
+        'erstellt_von'
+    ).prefetch_related(
+        'betroffene_notare',
+        'betroffene_kandidaten'
     ).order_by('-erstellt_am')
 
     # Filter nach Status
@@ -90,8 +113,10 @@ def workflow_detail_view(request, workflow_id):
     workflow = get_object_or_404(
         WorkflowInstanz.objects.select_related(
             'workflow_typ',
-            'erstellt_von',
-            'betroffene_person'
+            'erstellt_von'
+        ).prefetch_related(
+            'betroffene_notare',
+            'betroffene_kandidaten'
         ),
         id=workflow_id
     )
@@ -101,12 +126,63 @@ def workflow_detail_view(request, workflow_id):
         'workflow_schritt'
     ).order_by('workflow_schritt__reihenfolge')
 
+    from django.utils import timezone
     context = {
         'workflow': workflow,
         'schritte': schritte,
+        'heute': timezone.now().date(),
     }
 
     return render(request, 'workflows/workflow_detail.html', context)
+
+
+@login_required
+def workflow_name_aendern_view(request, workflow_id):
+    """
+    Ändert den Namen eines Workflows via AJAX.
+    """
+    if request.method == 'POST':
+        workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
+        new_name = request.POST.get('name', '').strip()
+
+        if not new_name:
+            return JsonResponse({'success': False, 'error': 'Name darf nicht leer sein'})
+
+        workflow.name = new_name
+        workflow.save()
+
+        return JsonResponse({'success': True, 'name': new_name})
+
+    return JsonResponse({'success': False, 'error': 'Nur POST-Anfragen erlaubt'})
+
+
+@login_required
+def workflow_datum_aendern_view(request, workflow_id):
+    """
+    Ändert das Fertigstellungsdatum eines Workflows via AJAX.
+    """
+    if request.method == 'POST':
+        workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
+        fertigstellungsdatum = request.POST.get('fertigstellungsdatum', '').strip()
+
+        if fertigstellungsdatum:
+            from datetime import datetime
+            try:
+                workflow.fertigstellungsdatum = datetime.strptime(fertigstellungsdatum, '%Y-%m-%d').date()
+                workflow.save()
+                return JsonResponse({
+                    'success': True,
+                    'fertigstellungsdatum': workflow.fertigstellungsdatum.strftime('%d.%m.%Y')
+                })
+            except ValueError:
+                return JsonResponse({'success': False, 'error': 'Ungültiges Datumsformat'})
+        else:
+            # Datum entfernen
+            workflow.fertigstellungsdatum = None
+            workflow.save()
+            return JsonResponse({'success': True, 'fertigstellungsdatum': None})
+
+    return JsonResponse({'success': False, 'error': 'Nur POST-Anfragen erlaubt'})
 
 
 @login_required
@@ -137,6 +213,32 @@ def schritt_abschliessen_view(request, schritt_id):
     return render(request, 'workflows/schritt_abschliessen.html', context)
 
 
+@login_required
+def schritt_rueckgaengig_machen_view(request, schritt_id):
+    """
+    Macht einen abgeschlossenen Workflow-Schritt rückgängig (zurück auf pending).
+    """
+    schritt = get_object_or_404(WorkflowSchrittInstanz, id=schritt_id)
+
+    if request.method == 'POST':
+        try:
+            WorkflowService.schritt_rueckgaengig_machen(schritt)
+            messages.success(
+                request,
+                f'Schritt "{schritt.workflow_schritt.name}" wurde rückgängig gemacht.'
+            )
+        except Exception as e:
+            messages.error(request, f'Fehler beim Rückgängigmachen: {str(e)}')
+
+        return redirect('workflow_detail', workflow_id=schritt.workflow_instanz.id)
+
+    # Bei GET-Request: Bestätigungs-Seite anzeigen
+    context = {
+        'schritt': schritt,
+    }
+    return render(request, 'workflows/schritt_rueckgaengig.html', context)
+
+
 # ===== CRUD Views für Workflow-Instanzen =====
 
 @login_required
@@ -149,14 +251,32 @@ def workflow_erstellen_view(request):
             workflow = WorkflowService.workflow_erstellen(
                 workflow_typ=form.cleaned_data['workflow_typ'],
                 name=form.cleaned_data['name'],
-                erstellt_von=request.user,
-                betroffene_person=form.cleaned_data.get('betroffene_person')
+                erstellt_von=request.user
             )
 
             # Notizen hinzufügen falls vorhanden
             if form.cleaned_data.get('notizen'):
                 workflow.notizen = form.cleaned_data['notizen']
                 workflow.save()
+
+            # Betroffene Personen hinzufügen (aus verstecktem Feld)
+            betroffene_personen_ids = form.cleaned_data.get('betroffene_personen_ids', '')
+            if betroffene_personen_ids:
+                for person_data in betroffene_personen_ids.split(','):
+                    if ':' in person_data:
+                        typ, person_id = person_data.split(':', 1)
+                        if typ == 'notar':
+                            try:
+                                notar = Notar.objects.get(notar_id=person_id)
+                                workflow.betroffene_notare.add(notar)
+                            except Notar.DoesNotExist:
+                                pass
+                        elif typ == 'kandidat':
+                            try:
+                                kandidat = NotarAnwaerter.objects.get(anwaerter_id=person_id)
+                                workflow.betroffene_kandidaten.add(kandidat)
+                            except NotarAnwaerter.DoesNotExist:
+                                pass
 
             messages.success(
                 request,
@@ -230,7 +350,15 @@ def workflow_starten_view(request, workflow_id):
     workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
 
     if request.method == 'POST':
+        fertigstellungsdatum = request.POST.get('fertigstellungsdatum')
+
         try:
+            # Fertigstellungsdatum setzen (falls angegeben)
+            if fertigstellungsdatum:
+                from datetime import datetime
+                workflow.fertigstellungsdatum = datetime.strptime(fertigstellungsdatum, '%Y-%m-%d').date()
+                workflow.save()
+
             WorkflowService.workflow_starten(workflow)
             messages.success(
                 request,
@@ -241,8 +369,10 @@ def workflow_starten_view(request, workflow_id):
 
         return redirect('workflow_detail', workflow_id=workflow_id)
 
+    from django.utils import timezone
     context = {
         'workflow': workflow,
+        'heute': timezone.now().date(),
     }
 
     return render(request, 'workflows/workflow_starten.html', context)
@@ -402,3 +532,55 @@ def workflow_template_loeschen_view(request, template_id):
     }
 
     return render(request, 'workflows/template_loeschen.html', context)
+
+
+@login_required
+def personen_autocomplete_api(request):
+    """
+    API-Endpoint für Autocomplete-Suche von Notaren und Kandidaten.
+
+    Returns JSON: [
+        {"id": "NOT-000001", "name": "Max Mustermann", "typ": "notar"},
+        {"id": "NKA-000005", "name": "Anna Schmidt", "typ": "kandidat"},
+    ]
+    """
+    query = request.GET.get('q', '').strip()
+
+    if len(query) < 2:
+        return JsonResponse([], safe=False)
+
+    results = []
+
+    # Notare durchsuchen
+    notare = Notar.objects.filter(
+        Q(vorname__icontains=query) |
+        Q(nachname__icontains=query) |
+        Q(notar_id__icontains=query),
+        ist_aktiv=True
+    )[:10]
+
+    for notar in notare:
+        results.append({
+            'id': notar.notar_id,
+            'name': notar.get_voller_name(),
+            'typ': 'notar',
+            'zusatz': notar.notarstelle.name if notar.notarstelle else ''
+        })
+
+    # Kandidaten durchsuchen
+    kandidaten = NotarAnwaerter.objects.filter(
+        Q(vorname__icontains=query) |
+        Q(nachname__icontains=query) |
+        Q(anwaerter_id__icontains=query),
+        ist_aktiv=True
+    )[:10]
+
+    for kandidat in kandidaten:
+        results.append({
+            'id': kandidat.anwaerter_id,
+            'name': kandidat.get_voller_name(),
+            'typ': 'kandidat',
+            'zusatz': f'bei {kandidat.betreuender_notar.get_voller_name()}' if kandidat.betreuender_notar else ''
+        })
+
+    return JsonResponse(results, safe=False)

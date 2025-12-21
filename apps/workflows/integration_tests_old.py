@@ -72,7 +72,7 @@ class BestellungsprozessIntegrationTest(TestCase):
             ist_aktiv=True
         )
 
-        # Notar-Anwärter
+        # Notariatskandidat
         self.anwaerter = NotarAnwaerter.objects.create(
             vorname='Maria',
             nachname='Musterfrau',
@@ -357,7 +357,7 @@ class WorkflowAbbrechenIntegrationTest(TestCase):
 
         # Workflow abbrechen
         zustandsmaschine = WorkflowZustandsmaschine(workflow)
-        grund = 'Anwärter hat zurückgezogen.'
+        grund = 'Kandidat hat zurückgezogen.'
         zustandsmaschine.workflow_abbrechen(grund)
 
         # Workflow-Status prüfen

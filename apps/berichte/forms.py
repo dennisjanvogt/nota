@@ -60,7 +60,7 @@ class NotareFilterForm(forms.Form):
 
 
 class AnwaerterFilterForm(forms.Form):
-    """Filter-Formular für Notar-Anwärter-Berichte."""
+    """Filter-Formular für Notariatskandidat-Berichte."""
 
     STATUS_CHOICES = [
         ('', 'Alle'),
@@ -227,3 +227,48 @@ class WorkflowsFilterForm(forms.Form):
     )
 
 
+class SprengelFilterForm(forms.Form):
+    """Filter-Formular für Sprengel-Berichte."""
+
+    STATUS_CHOICES = [
+        ('', 'Alle'),
+        ('aktiv', 'Nur Aktive'),
+        ('inaktiv', 'Nur Inaktive'),
+    ]
+
+    BUNDESLAND_CHOICES = [
+        ('', 'Alle'),
+        ('Wien', 'Wien'),
+        ('Niederösterreich', 'Niederösterreich'),
+        ('Oberösterreich', 'Oberösterreich'),
+        ('Salzburg', 'Salzburg'),
+        ('Tirol', 'Tirol'),
+        ('Vorarlberg', 'Vorarlberg'),
+        ('Kärnten', 'Kärnten'),
+        ('Steiermark', 'Steiermark'),
+        ('Burgenland', 'Burgenland'),
+    ]
+
+    search = forms.CharField(
+        label='Suche',
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Bezeichnung, Name oder Gerichtsbezirk...'
+        })
+    )
+
+    status = forms.ChoiceField(
+        label='Status',
+        choices=STATUS_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    bundesland = forms.ChoiceField(
+        label='Bundesland',
+        choices=BUNDESLAND_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )

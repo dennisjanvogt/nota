@@ -17,9 +17,12 @@ urlpatterns = [
 
     # Schritt-Aktionen
     path('schritte/<int:schritt_id>/abschliessen/', views.schritt_abschliessen_view, name='schritt_abschliessen'),
+    path('schritte/<int:schritt_id>/rueckgaengig/', views.schritt_rueckgaengig_machen_view, name='schritt_rueckgaengig'),
 
     # Workflow-Aktionen
     path('workflows/<int:workflow_id>/starten/', views.workflow_starten_view, name='workflow_starten'),
+    path('workflows/<int:workflow_id>/name-aendern/', views.workflow_name_aendern_view, name='workflow_name_aendern'),
+    path('workflows/<int:workflow_id>/datum-aendern/', views.workflow_datum_aendern_view, name='workflow_datum_aendern'),
 
     # Template-Verwaltung
     path('templates/', views.workflow_template_liste_view, name='workflow_template_liste'),
@@ -27,4 +30,7 @@ urlpatterns = [
     path('templates/<int:template_id>/', views.workflow_template_detail_view, name='workflow_template_detail'),
     path('templates/<int:template_id>/bearbeiten/', views.workflow_template_bearbeiten_view, name='workflow_template_bearbeiten'),
     path('templates/<int:template_id>/loeschen/', views.workflow_template_loeschen_view, name='workflow_template_loeschen'),
+
+    # API
+    path('api/personen-autocomplete/', views.personen_autocomplete_api, name='personen_autocomplete_api'),
 ]

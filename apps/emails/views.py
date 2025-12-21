@@ -14,18 +14,10 @@ from apps.personen.models import Notar, NotarAnwaerter
 @login_required
 def vorlagen_liste_view(request):
     """Liste aller E-Mail-Vorlagen."""
-    vorlagen = EmailVorlage.objects.all().order_by('kategorie', 'name')
-
-    # Statistiken
-    stats = {
-        'total': vorlagen.count(),
-        'aktiv': vorlagen.filter(ist_aktiv=True).count(),
-        'kategorien': vorlagen.values('kategorie').distinct().count(),
-    }
+    vorlagen = EmailVorlage.objects.select_related('workflow_typ').order_by('kategorie', 'name')
 
     context = {
         'vorlagen': vorlagen,
-        'stats': stats,
     }
     return render(request, 'emails/vorlagen_liste.html', context)
 
@@ -108,7 +100,7 @@ def email_vorbereiten_view(request, vorlage_id):
     """E-Mail basierend auf Vorlage vorbereiten."""
     vorlage = get_object_or_404(EmailVorlage, id=vorlage_id)
 
-    # Alle Notare und Anwärter für Auswahl
+    # Alle Notare und Kandidat für Auswahl
     notare = Notar.objects.select_related('notarstelle').filter(ist_aktiv=True).order_by('nachname', 'vorname')
     anwaerter = NotarAnwaerter.objects.select_related('notarstelle').filter(ist_aktiv=True).order_by('nachname', 'vorname')
 

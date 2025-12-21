@@ -13,10 +13,12 @@ urlpatterns = [
     path('filter/anwaerter/', views.anwaerter_filter_view, name='filter_anwaerter'),
     path('filter/notarstellen/', views.notarstellen_filter_view, name='filter_notarstellen'),
     path('filter/workflows/', views.workflows_filter_view, name='filter_workflows'),
+    path('filter/sprengel/', views.sprengel_filter_view, name='filter_sprengel'),
 
     # Exports
     path('export/notare/', views.export_notare_view, name='export_notare'),
     path('export/anwaerter/', views.export_anwaerter_view, name='export_anwaerter'),
     path('export/notarstellen/', views.export_notarstellen_view, name='export_notarstellen'),
     path('export/workflows/', views.export_workflows_view, name='export_workflows'),
+    path('export/sprengel/', views.export_sprengel_view, name='export_sprengel'),
 ]

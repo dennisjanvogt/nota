@@ -49,11 +49,13 @@ INSTALLED_APPS = [
     # Project apps
     'apps.kern',
     'apps.benutzer',
+    'apps.sprengel',
     'apps.notarstellen',
     'apps.personen',
     'apps.workflows',
     'apps.berichte',
     'apps.emails',
+    'apps.services',
 ]
 
 MIDDLEWARE = [
@@ -158,6 +160,10 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
+# Security Settings
+# Erlaubt iframes von der gleichen Domain (für PDF-Vorschau im DMS)
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 # ============================================
 # E-Mail Konfiguration (Strato)
 # ============================================
@@ -169,8 +175,8 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'nota@dennis24.com')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'nota@dennis24.com')
-SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'nota@dennis24.com')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Die Notariatskammer - WNB <nota@dennis24.com>')
+SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'Die Notariatskammer - WNB <nota@dennis24.com>')
 
 # E-Mail Timeout Einstellungen
 EMAIL_TIMEOUT = 10

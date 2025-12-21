@@ -1,6 +1,6 @@
 """
 Service-Layer für Personen-App.
-Enthält Business-Logik für Notare und Notar-Anwärter.
+Enthält Business-Logik für Notare und Notariatskandidat.
 """
 from django.db import transaction
 from django.utils import timezone
@@ -10,12 +10,12 @@ from .models import Notar, NotarAnwaerter
 @transaction.atomic
 def anwaerter_zu_notar_befoerdern(anwaerter, notarstelle, bestellt_am=None, erstellt_von=None):
     """
-    Befördert einen Notar-Anwärter zum Notar.
+    Befördert einen Notariatskandidat zum Notar.
 
     Diese Methode:
     1. Erstellt einen neuen Notar mit den Daten des Anwärters
-    2. Markiert den Anwärter als inaktiv (wird NICHT gelöscht für Historie!)
-    3. Verknüpft Notar mit Anwärter für Nachverfolgbarkeit
+    2. Markiert den Kandidat als inaktiv (wird NICHT gelöscht für Historie!)
+    3. Verknüpft Notar mit Kandidat für Nachverfolgbarkeit
 
     Args:
         anwaerter: NotarAnwaerter-Instanz die befördert werden soll
@@ -27,11 +27,11 @@ def anwaerter_zu_notar_befoerdern(anwaerter, notarstelle, bestellt_am=None, erst
         Notar: Die neu erstellte Notar-Instanz
 
     Raises:
-        ValueError: Wenn der Anwärter nicht aktiv ist
+        ValueError: Wenn der Kandidat nicht aktiv ist
     """
     if not anwaerter.ist_aktiv:
         raise ValueError(
-            f"Anwärter {anwaerter.get_full_name()} ist bereits inaktiv und kann nicht befördert werden."
+            f"Kandidat {anwaerter.get_full_name()} ist bereits inaktiv und kann nicht befördert werden."
         )
 
     # Standardwert für bestellt_am
@@ -52,17 +52,17 @@ def anwaerter_zu_notar_befoerdern(anwaerter, notarstelle, bestellt_am=None, erst
         bestellt_am=bestellt_am,
         beginn_datum=bestellt_am,  # Beginn als Notar = Bestellungsdatum
 
-        # Markierung dass er vorher Anwärter war
+        # Markierung dass er vorher Kandidat war
         war_vorher_anwaerter=True,
 
-        # Notiz mit Referenz zum Anwärter
-        notiz=f"Befördert von Notar-Anwärter {anwaerter.anwaerter_id} am {bestellt_am.strftime('%d.%m.%Y')}",
+        # Notiz mit Referenz zum Kandidat
+        notiz=f"Befördert von Notariatskandidat {anwaerter.anwaerter_id} am {bestellt_am.strftime('%d.%m.%Y')}",
 
         # Status
         ist_aktiv=True
     )
 
-    # Anwärter als inaktiv markieren (NICHT löschen!)
+    # Kandidat als inaktiv markieren (NICHT löschen!)
     anwaerter.ist_aktiv = False
     anwaerter.ende_datum = bestellt_am
 
@@ -78,7 +78,7 @@ def anwaerter_zu_notar_befoerdern(anwaerter, notarstelle, bestellt_am=None, erst
 
 def anwaerter_wartezeit_berechnen(anwaerter):
     """
-    Berechnet wie lange ein Anwärter bereits wartet.
+    Berechnet wie lange ein Kandidat bereits wartet.
 
     Args:
         anwaerter: NotarAnwaerter-Instanz

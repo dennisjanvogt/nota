@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Notariatskammer Verwaltung{% endblock %}</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
@@ -19,15 +25,15 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
         <!-- Logo -->
-        <div class="sidebar-logo">
+        <a href="{% url 'dashboard' %}" class="sidebar-logo" style="text-decoration: none; color: inherit; cursor: pointer;">
             <div class="sidebar-logo-icon">
-                N
+                <img src="{% static 'images/logo.png' %}" alt="Notariatskammer Logo" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
             <div class="sidebar-logo-text">
                 <h1>Notariatskammer</h1>
                 <p>Verwaltung</p>
             </div>
-        </div>
+        </a>
 
         <!-- Navigation -->
         <nav class="sidebar-nav">
@@ -41,30 +47,11 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
-                </ul>
-            </div>
-
-            <!-- Stammdaten -->
-            <div class="sidebar-nav-section">
-                <div class="sidebar-nav-section-title">Stammdaten</div>
-                <ul>
                     <li class="sidebar-nav-item">
-                        <a href="{% url 'notare_liste' %}" class="sidebar-nav-link {% if 'notare' in request.path %}active{% endif %}">
-                            <i class="bi bi-person-badge"></i>
-                            <span>Notare</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-nav-item">
-                        <a href="{% url 'anwaerter_liste' %}" class="sidebar-nav-link {% if 'anwaerter' in request.path %}active{% endif %}">
-                            <i class="bi bi-person"></i>
-                            <span>Notar-Anwärter</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-nav-item">
-                        <a href="{% url 'notarstellen_liste' %}" class="sidebar-nav-link {% if 'notarstellen' in request.path %}active{% endif %}">
-                            <i class="bi bi-building"></i>
-                            <span>Notarstellen</span>
-                        </a>
+                        <button type="button" class="sidebar-nav-link {% if 'stammdaten' in request.path %}active{% endif %}" onclick="openStammdatenModal()">
+                            <i class="bi bi-database"></i>
+                            <span>Stammdaten</span>
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -93,21 +80,21 @@
                         </a>
                     </li>
                     <li class="sidebar-nav-item">
+                        <a href="/dms/" class="sidebar-nav-link {% if 'dms' in request.path %}active{% endif %}">
+                            <i class="bi bi-folder2-open"></i>
+                            <span>DMS</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
                         <a href="{% url 'vorlagen_liste' %}" class="sidebar-nav-link {% if 'emails' in request.path %}active{% endif %}">
                             <i class="bi bi-envelope"></i>
                             <span>E-Mail-Vorlagen</span>
                         </a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="{% url 'workflow_template_liste' %}" class="sidebar-nav-link {% if 'templates' in request.path and 'workflows' in request.path %}active{% endif %}">
-                            <i class="bi bi-collection"></i>
-                            <span>Workflow-Templates</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-nav-item">
-                        <a href="/admin/" class="sidebar-nav-link">
-                            <i class="bi bi-gear"></i>
-                            <span>Admin-Bereich</span>
+                        <a href="{% url 'service_katalog' %}" class="sidebar-nav-link {% if 'services' in request.path %}active{% endif %}">
+                            <i class="bi bi-tools"></i>
+                            <span>Services</span>
                         </a>
                     </li>
                 </ul>
@@ -116,9 +103,9 @@
 
         <!-- User Menu (at bottom) -->
         <div class="user-menu">
-            <button class="user-menu-button" onclick="toggleUserMenu()">
-                <div class="user-avatar">
-                    {{ user.first_name.0|default:user.username.0|upper }}
+            <button class="user-menu-button" type="button" onclick="toggleUserProfileMenu(event)">
+                <div class="user-avatar" {% if user.profilbild %}style="background-image: url('{{ user.profilbild.url }}'); background-size: cover; background-position: center; font-size: 0;"{% endif %}>
+                    {% if not user.profilbild %}{{ user.first_name.0|default:user.username.0|upper }}{% endif %}
                 </div>
                 <div class="user-info">
                     <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
@@ -126,18 +113,40 @@
                 </div>
                 <i class="bi bi-chevron-right"></i>
             </button>
-            <div id="userMenuDropdown" style="display: none; margin-top: 8px;">
-                <a href="/admin/password_change/" class="sidebar-nav-link">
+
+        </div>
+    </aside>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="user-profile-modal">
+        <div class="user-profile-modal-backdrop" onclick="closeUserProfileModal()"></div>
+        <div class="user-profile-modal-content">
+            <div class="user-profile-modal-menu">
+                <a href="{% url 'profil_bearbeiten' %}" class="user-profile-modal-item" onclick="closeUserProfileModal()">
+                    <i class="bi bi-person-circle"></i>
+                    <span>Profil bearbeiten</span>
+                </a>
+                <a href="/admin/password_change/" class="user-profile-modal-item" onclick="closeUserProfileModal()">
                     <i class="bi bi-key"></i>
                     <span>Passwort ändern</span>
                 </a>
-                <a href="{% url 'logout' %}" class="sidebar-nav-link">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Abmelden</span>
+                {% if user.is_staff %}
+                <a href="/admin/" class="user-profile-modal-item" onclick="closeUserProfileModal()">
+                    <i class="bi bi-gear"></i>
+                    <span>Admin-Bereich</span>
                 </a>
+                {% endif %}
+                <div class="user-profile-modal-divider"></div>
+                <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="user-profile-modal-item user-profile-modal-logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Abmelden</span>
+                    </button>
+                </form>
             </div>
         </div>
-    </aside>
+    </div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -155,19 +164,99 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Stammdaten Modal -->
+    <div id="stammdatenModal" class="modal-overlay" onclick="closeStammdatenModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 style="margin: 0; font-size: 20px; font-weight: 600;">
+                    <i class="bi bi-database"></i> Stammdaten
+                </h3>
+                <button type="button" class="modal-close" onclick="closeStammdatenModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div class="list-group" style="border-radius: 0;">
+                    <a href="{% url 'notare_liste' %}" class="list-group-item list-group-item-action" style="border-left: none; border-right: none; border-top: none; padding: 16px 24px; display: flex; align-items: center; gap: 12px;">
+                        <i class="bi bi-person-badge" style="font-size: 24px; color: var(--primary-orange);"></i>
+                        <div>
+                            <div style="font-weight: 500; font-size: 15px;">Notare</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Alle registrierten Notare verwalten</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'anwaerter_liste' %}" class="list-group-item list-group-item-action" style="border-left: none; border-right: none; padding: 16px 24px; display: flex; align-items: center; gap: 12px;">
+                        <i class="bi bi-person" style="font-size: 24px; color: var(--secondary-blue);"></i>
+                        <div>
+                            <div style="font-weight: 500; font-size: 15px;">Notariatskandidaten</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Alle Kandidaten verwalten</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'notarstellen_liste' %}" class="list-group-item list-group-item-action" style="border-left: none; border-right: none; padding: 16px 24px; display: flex; align-items: center; gap: 12px;">
+                        <i class="bi bi-building" style="font-size: 24px; color: var(--primary-blue);"></i>
+                        <div>
+                            <div style="font-weight: 500; font-size: 15px;">Notarstellen</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Alle Notarstellen verwalten</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'sprengel_liste' %}" class="list-group-item list-group-item-action" style="border-left: none; border-right: none; border-bottom: none; padding: 16px 24px; display: flex; align-items: center; gap: 12px;">
+                        <i class="bi bi-geo-alt" style="font-size: 24px; color: var(--primary-purple);"></i>
+                        <div>
+                            <div style="font-weight: 500; font-size: 15px;">Sprengel</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Notarsprengel & Gerichtsbezirke verwalten</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- Scripts -->
     <script>
-        function toggleUserMenu() {
-            const dropdown = document.getElementById('userMenuDropdown');
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        function toggleUserProfileMenu(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            const modal = document.getElementById('userProfileModal');
+            if (modal) {
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden'; // Verhindere Scrollen im Hintergrund
+            }
         }
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const userMenu = document.querySelector('.user-menu');
-            const dropdown = document.getElementById('userMenuDropdown');
-            if (!userMenu.contains(event.target)) {
-                dropdown.style.display = 'none';
+        function closeUserProfileModal() {
+            const modal = document.getElementById('userProfileModal');
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = ''; // Erlaube wieder Scrollen
+            }
+        }
+
+        // Stammdaten Modal Functions
+        function openStammdatenModal() {
+            const modal = document.getElementById('stammdatenModal');
+            if (modal) {
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeStammdatenModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            const modal = document.getElementById('stammdatenModal');
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Schließe Modal mit ESC-Taste
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeUserProfileModal();
+                closeStammdatenModal();
             }
         });
     </script>

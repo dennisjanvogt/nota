@@ -10,9 +10,14 @@
             <h1 class="page-title">
                 <i class="bi bi-mortarboard"></i> {{ anwaerter.get_voller_name }}
             </h1>
-            <p class="page-subtitle">Anwärter-ID: {{ anwaerter.anwaerter_id }}</p>
+            <p class="page-subtitle">Kandidaten-ID: {{ anwaerter.anwaerter_id }}</p>
         </div>
         <div class="page-actions">
+            {% if anwaerter.ist_aktiv %}
+            <a href="{% url 'anwaerter_zu_notar' anwaerter.anwaerter_id %}" class="btn btn-success">
+                <i class="bi bi-person-badge"></i> Zum Notar ernennen
+            </a>
+            {% endif %}
             <a href="{% url 'anwaerter_bearbeiten' anwaerter.anwaerter_id %}" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Bearbeiten
             </a>
@@ -32,12 +37,6 @@
     {% else %}
     <span class="badge badge-danger" style="font-size: 14px; padding: 8px 16px;">
         <i class="bi bi-x-circle"></i> Inaktiv
-    </span>
-    {% endif %}
-
-    {% if anwaerter.geplante_bestellung %}
-    <span class="badge badge-warning" style="font-size: 14px; padding: 8px 16px;">
-        <i class="bi bi-calendar-event"></i> Bestellung geplant: {{ anwaerter.geplante_bestellung|date:"d.m.Y" }}
     </span>
     {% endif %}
 </div>
@@ -77,11 +76,16 @@
                 <div style="margin-bottom: var(--spacing-md);">
                     <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Notarstelle</div>
                     <div style="font-size: 15px; font-weight: 500;">
-                        <a href="{% url 'notarstelle_detail' anwaerter.notarstelle.id %}">{{ anwaerter.notarstelle.name }}</a>
+                        <a href="{% url 'notarstelle_detail' anwaerter.notarstelle.bezeichnung %}">{{ anwaerter.notarstelle.name }}</a>
                     </div>
                     <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
                         {{ anwaerter.notarstelle.strasse }}, {{ anwaerter.notarstelle.plz }} {{ anwaerter.notarstelle.stadt }}
                     </div>
+                    {% if anwaerter.notarstelle.sprengel %}
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                        <i class="bi bi-geo-alt"></i> Sprengel: {{ anwaerter.notarstelle.sprengel.bezeichnung }}
+                    </div>
+                    {% endif %}
                 </div>
                 {% if anwaerter.betreuender_notar %}
                 <div style="margin-bottom: var(--spacing-md);">
@@ -187,7 +191,7 @@
             <div class="empty-state-icon">
                 <i class="bi bi-diagram-3"></i>
             </div>
-            <p class="empty-state-text">Für diesen Anwärter sind noch keine Workflows vorhanden.</p>
+            <p class="empty-state-text">Für diesen Kandidat sind noch keine Workflows vorhanden.</p>
         </div>
     </div>
 </div>

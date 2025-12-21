@@ -13,10 +13,10 @@
             <p class="page-subtitle">{{ notarstelle.bezeichnung }}</p>
         </div>
         <div class="page-actions">
-            <a href="{% url 'notarstelle_bearbeiten' notarstelle.id %}" class="btn btn-primary">
+            <a href="{% url 'notarstelle_bearbeiten' notarstelle.bezeichnung %}" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Bearbeiten
             </a>
-            <a href="{% url 'notarstelle_loeschen' notarstelle.id %}" class="btn btn-danger">
+            <a href="{% url 'notarstelle_loeschen' notarstelle.bezeichnung %}" class="btn btn-danger">
                 <i class="bi bi-trash"></i> Löschen
             </a>
         </div>
@@ -44,10 +44,6 @@
     <div class="card-body">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
             <div>
-                <div style="margin-bottom: var(--spacing-md);">
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Notarnummer</div>
-                    <div style="font-size: 15px; font-weight: 500;">{{ notarstelle.notarnummer }}</div>
-                </div>
                 <div style="margin-bottom: var(--spacing-md);">
                     <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Bezeichnung</div>
                     <div style="font-size: 15px; font-weight: 500;">{{ notarstelle.bezeichnung }}</div>
@@ -168,11 +164,11 @@
     </div>
 </div>
 
-<!-- Zugeordnete Notar-Anwärter -->
+<!-- Zugeordnete Notariatskandidat -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
     <div class="card-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 class="card-title">Zugeordnete Notar-Anwärter ({{ anwaerter.count }})</h2>
+            <h2 class="card-title">Zugeordnete Notariatskandidat ({{ anwaerter.count }})</h2>
         </div>
     </div>
     <div class="card-body">
@@ -209,7 +205,7 @@
             <div class="empty-state-icon">
                 <i class="bi bi-mortarboard"></i>
             </div>
-            <p class="empty-state-text">Dieser Notarstelle sind keine aktiven Notar-Anwärter zugeordnet.</p>
+            <p class="empty-state-text">Dieser Notarstelle sind keine aktiven Notariatskandidat zugeordnet.</p>
         </div>
         {% endif %}
     </div>

@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.conf import settings
+from django.conf.urls.static import static
+from apps.kern import views as kern_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,15 +31,27 @@ urlpatterns = [
     # Dashboard & Workflows (Hauptanwendung)
     path('', include('apps.workflows.urls')),
 
-    # Personen (Notare & Anwärter)
-    path('personen/', include('apps.personen.urls')),
-
-    # Notarstellen
-    path('notarstellen/', include('apps.notarstellen.urls')),
+    # Stammdaten (Master Data)
+    path('stammdaten/', include('apps.personen.urls')),
+    path('stammdaten/', include('apps.notarstellen.urls')),
+    path('stammdaten/', include('apps.sprengel.urls')),
 
     # Berichte & Exports
     path('berichte/', include('apps.berichte.urls')),
 
     # E-Mail-System
     path('emails/', include('apps.emails.urls')),
+
+    # Benutzer
+    path('benutzer/', include('apps.benutzer.urls')),
+
+    # Services
+    path('services/', include('apps.services.urls')),
+
+    # DMS (Dokumentenmanagementsystem)
+    path('dms/', kern_views.dms_platzhalter_view, name='dms'),
 ]
+
+# Serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

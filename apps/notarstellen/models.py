@@ -13,16 +13,11 @@ class Notarstelle(ZeitstempelModel, AktivModel):
 
     Eine Notarstelle ist ein Notariat, das von der Notariatskammer verwaltet wird.
     """
-    notarnummer = models.CharField(
-        max_length=20,
-        unique=True,
-        verbose_name='Notarnummer',
-        help_text='Eindeutige Nummer der Notarstelle, z.B. "1" oder "HH-1"'
-    )
     bezeichnung = models.CharField(
-        max_length=100,
+        max_length=50,
+        primary_key=True,
         verbose_name='Bezeichnung',
-        help_text='z.B. "NOT-1" oder "Notariat Hamburg I"'
+        help_text='Format: NST-000001'
     )
     name = models.CharField(
         max_length=200,
@@ -47,6 +42,17 @@ class Notarstelle(ZeitstempelModel, AktivModel):
         max_length=100,
         blank=True,
         verbose_name='Bundesland'
+    )
+
+    # Sprengel-Zuordnung
+    sprengel = models.ForeignKey(
+        'sprengel.Sprengel',
+        on_delete=models.PROTECT,
+        related_name='notarstellen',
+        null=True,
+        blank=True,
+        verbose_name='Sprengel',
+        help_text='Zugehöriger Notarsprengel (Gerichtsbezirk)'
     )
 
     # Kontaktdaten
@@ -76,9 +82,8 @@ class Notarstelle(ZeitstempelModel, AktivModel):
     class Meta:
         verbose_name = 'Notarstelle'
         verbose_name_plural = 'Notarstellen'
-        ordering = ['notarnummer']
+        ordering = ['bezeichnung']
         indexes = [
-            models.Index(fields=['notarnummer']),
             models.Index(fields=['ist_aktiv']),
             models.Index(fields=['stadt']),
         ]
@@ -98,5 +103,22 @@ class Notarstelle(ZeitstempelModel, AktivModel):
         return self.notare.filter(ende_datum__isnull=True).count()
 
     def anzahl_anwaerter(self):
-        """Gibt die Anzahl der zugeordneten Notar-Anwärter zurück."""
+        """Gibt die Anzahl der zugeordneten Notariatskandidat zurück."""
         return self.anwaerter.filter(ende_datum__isnull=True).count()
+
+    @classmethod
+    def generate_next_id(cls):
+        """Generiert die nächste Notarstellen-Bezeichnung im Format: NST-000001"""
+        import re
+
+        last = cls.objects.filter(
+            bezeichnung__startswith='NST-'
+        ).order_by('-bezeichnung').first()
+
+        if last:
+            match = re.search(r'-(\d+)$', last.bezeichnung)
+            nummer = int(match.group(1)) + 1 if match else 1
+        else:
+            nummer = 1
+
+        return f"NST-{nummer:06d}"

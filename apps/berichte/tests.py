@@ -52,7 +52,7 @@ class ExporterTestCase(TestCase):
             ist_aktiv=True
         )
 
-        # Notar-Anwärter
+        # Notariatskandidat
         self.anwaerter = NotarAnwaerter.objects.create(
             vorname='Maria',
             nachname='Musterfrau',
@@ -145,12 +145,12 @@ class CSVExporterTestCase(ExporterTestCase):
         self.assertEqual(rows[1][5], 'Ja')  # Boolean als "Ja"
 
     def test_anwaerter_csv_export(self):
-        """Test: Notar-Anwärter können als CSV exportiert werden."""
+        """Test: Notariatskandidat können als CSV exportiert werden."""
         queryset = NotarAnwaerter.objects.all()
         spalten = [
             ('vorname', 'Vorname'),
             ('nachname', 'Nachname'),
-            ('anwaerter_id', 'Anwärter-ID'),
+            ('anwaerter_id', 'Kandidaten-ID'),
             ('betreuender_notar__nachname', 'Betreuender Notar')
         ]
 
@@ -310,7 +310,7 @@ class BerichteViewsTestCase(ExporterTestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
 
     def test_anwaerter_export_csv(self):
-        """Test: Anwärter CSV-Export funktioniert."""
+        """Test: Kandidat CSV-Export funktioniert."""
         response = self.client.get(reverse('export_anwaerter') + '?format=csv')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv; charset=utf-8')

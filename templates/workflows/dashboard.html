@@ -22,114 +22,138 @@
 
 <!-- Statistiken -->
 <div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-card-icon orange">
-            <i class="bi bi-person-badge"></i>
+    <a href="{% url 'notare_liste' %}" class="stat-card-link">
+        <div class="stat-card">
+            <div class="stat-card-icon orange">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div>
+                <div class="stat-card-label">Notare</div>
+                <div class="stat-card-value">{{ statistiken.notare_gesamt }}</div>
+            </div>
         </div>
-        <div class="stat-card-label">Notare</div>
-        <div class="stat-card-value">{{ statistiken.notare_gesamt }}</div>
-        <div class="stat-card-change">
-            <i class="bi bi-arrow-right"></i>
-            <a href="{% url 'notare_liste' %}" style="color: inherit; text-decoration: none;">Details anzeigen</a>
-        </div>
-    </div>
+    </a>
 
-    <div class="stat-card">
-        <div class="stat-card-icon green">
-            <i class="bi bi-person-plus"></i>
+    <a href="{% url 'anwaerter_liste' %}" class="stat-card-link">
+        <div class="stat-card">
+            <div class="stat-card-icon green">
+                <i class="bi bi-person-plus"></i>
+            </div>
+            <div>
+                <div class="stat-card-label">Notariatskandidat</div>
+                <div class="stat-card-value">{{ statistiken.anwaerter_gesamt }}</div>
+            </div>
         </div>
-        <div class="stat-card-label">Notar-Anwärter</div>
-        <div class="stat-card-value">{{ statistiken.anwaerter_gesamt }}</div>
-        <div class="stat-card-change">
-            <i class="bi bi-arrow-right"></i>
-            <a href="{% url 'anwaerter_liste' %}" style="color: inherit; text-decoration: none;">Details anzeigen</a>
-        </div>
-    </div>
+    </a>
 
-    <div class="stat-card">
-        <div class="stat-card-icon blue">
-            <i class="bi bi-building"></i>
+    <a href="{% url 'notarstellen_liste' %}" class="stat-card-link">
+        <div class="stat-card">
+            <div class="stat-card-icon blue">
+                <i class="bi bi-building"></i>
+            </div>
+            <div>
+                <div class="stat-card-label">Notarstellen</div>
+                <div class="stat-card-value">{{ statistiken.notarstellen_gesamt }}</div>
+            </div>
         </div>
-        <div class="stat-card-label">Notarstellen</div>
-        <div class="stat-card-value">{{ statistiken.notarstellen_gesamt }}</div>
-        <div class="stat-card-change">
-            <i class="bi bi-arrow-right"></i>
-            <a href="{% url 'notarstellen_liste' %}" style="color: inherit; text-decoration: none;">Details anzeigen</a>
-        </div>
-    </div>
+    </a>
 
-    <div class="stat-card">
-        <div class="stat-card-icon orange">
-            <i class="bi bi-diagram-3"></i>
+    <a href="{% url 'workflow_liste' %}" class="stat-card-link">
+        <div class="stat-card">
+            <div class="stat-card-icon orange">
+                <i class="bi bi-diagram-3"></i>
+            </div>
+            <div>
+                <div class="stat-card-label">Offene Workflows</div>
+                <div class="stat-card-value">{{ statistiken.workflows_offen }}</div>
+            </div>
         </div>
-        <div class="stat-card-label">Aktive Workflows</div>
-        <div class="stat-card-value">{{ statistiken.workflows_aktiv }}</div>
-        <div class="stat-card-change">
-            <i class="bi bi-arrow-right"></i>
-            <a href="{% url 'workflow_liste' %}" style="color: inherit; text-decoration: none;">Details anzeigen</a>
-        </div>
-    </div>
+    </a>
 </div>
 
-<!-- Offene Workflows -->
+<!-- Dashboard Grid: Deadline-Übersicht + Zusätzliche Stats -->
 <div style="margin-bottom: var(--spacing-xl);">
-    <!-- Offene Workflows -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">
-                <i class="bi bi-diagram-3"></i> Offene Workflows
-            </h2>
-            {% if offene_workflows %}
-            <span class="badge badge-success">{{ offene_workflows|length }}</span>
-            {% endif %}
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);" class="dashboard-grid">
+        <!-- Tortendiagramm: Workflows nach Deadline -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-pie-chart-fill"></i> Workflows nach Deadline
+                </h2>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 300px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="deadlineChart"></canvas>
+                </div>
+                <!-- Legende -->
+                <div style="margin-top: var(--spacing-lg); display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: #dc3545; border-radius: 2px;"></div>
+                        <span style="font-size: 12px; color: var(--text-secondary);">Überfällig ({{ deadline_stats.ueberfaellig }})</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: #ffc107; border-radius: 2px;"></div>
+                        <span style="font-size: 12px; color: var(--text-secondary);">≤ 1 Tag ({{ deadline_stats.1_tag }})</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: #0d6efd; border-radius: 2px;"></div>
+                        <span style="font-size: 12px; color: var(--text-secondary);">≤ 5 Tage ({{ deadline_stats.5_tage }})</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: #198754; border-radius: 2px;"></div>
+                        <span style="font-size: 12px; color: var(--text-secondary);">> 5 Tage ({{ deadline_stats.mehr }})</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body" style="padding: 0;">
-            {% if offene_workflows %}
-                {% for workflow in offene_workflows %}
-                <a href="{% url 'workflow_detail' workflow.id %}"
-                   style="display: block; padding: var(--spacing-lg); border-bottom: 1px solid var(--border-color); text-decoration: none; color: inherit; transition: background 0.2s;"
-                   onmouseover="this.style.background='var(--bg-primary)'"
-                   onmouseout="this.style.background='transparent'">
-                    <div style="display: flex; justify-content: space-between; align-items-start; margin-bottom: var(--spacing-sm);">
-                        <div style="font-weight: 600; color: var(--text-primary);">
-                            {{ workflow.name }}
-                        </div>
-                        <span class="badge {% if workflow.status == 'aktiv' %}badge-success{% else %}badge-warning{% endif %}">
-                            {{ workflow.get_status_display }}
-                        </span>
-                    </div>
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--spacing-sm);">
-                        <i class="bi bi-diagram-3"></i> {{ workflow.workflow_typ.name }}
-                    </div>
-                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                        <div class="progress" style="flex: 1;">
-                            <div class="progress-bar" style="width: {{ workflow.fortschritt_prozent }}%;"></div>
-                        </div>
-                        <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); min-width: 40px;">
-                            {{ workflow.fortschritt_prozent }}%
+
+        <!-- Quick Stats -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-speedometer2"></i> Schnellübersicht
+                </h2>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-md); height: 100%;">
+                    <!-- Total Workflows -->
+                    <div style="padding: var(--spacing-md); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--border-radius); color: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Gesamt Workflows</div>
+                                <div style="font-size: 32px; font-weight: 700;">{{ statistiken.workflows_gesamt }}</div>
+                            </div>
+                            <i class="bi bi-diagram-3-fill" style="font-size: 48px; opacity: 0.3;"></i>
                         </div>
                     </div>
-                </a>
-                {% endfor %}
-                <div style="padding: var(--spacing-lg); text-align: center;">
-                    <a href="{% url 'workflow_liste' %}" class="btn btn-secondary">
-                        Alle Workflows anzeigen
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
+
+                    <!-- Completion Rate -->
+                    <div style="padding: var(--spacing-md); background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: var(--border-radius); color: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Abschlussrate</div>
+                                <div style="font-size: 32px; font-weight: 700;">
+                                    {% widthratio statistiken.workflows_abgeschlossen statistiken.workflows_gesamt 100 %}%
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle-fill" style="font-size: 48px; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Active Users -->
+                    <div style="padding: var(--spacing-md); background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: var(--border-radius); color: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Gesamte Personen</div>
+                                <div style="font-size: 32px; font-weight: 700;">
+                                    {{ statistiken.notare_gesamt|add:statistiken.anwaerter_gesamt }}
+                                </div>
+                            </div>
+                            <i class="bi bi-people-fill" style="font-size: 48px; opacity: 0.3;"></i>
+                        </div>
+                    </div>
                 </div>
-            {% else %}
-                <div class="empty-state" style="padding: var(--spacing-2xl);">
-                    <div class="empty-state-icon">
-                        <i class="bi bi-inbox"></i>
-                    </div>
-                    <h3 class="empty-state-title">Keine offenen Workflows</h3>
-                    <p class="empty-state-text">Starten Sie einen neuen Workflow, um loszulegen.</p>
-                    <a href="{% url 'workflow_erstellen' %}" class="btn btn-primary">
-                        <i class="bi bi-plus-lg"></i>
-                        Workflow erstellen
-                    </a>
-                </div>
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
@@ -138,10 +162,127 @@
 
 {% block extra_css %}
 <style>
+    .stat-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card-link:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-card-link:hover .stat-card {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        border-color: var(--primary-color);
+    }
+
+    .stat-card-link:active {
+        transform: translateY(0);
+    }
+
     @media (max-width: 1024px) {
         div[style*="grid-template-columns"] {
             grid-template-columns: 1fr !important;
         }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr !important;
+        }
     }
+
+    /* Dashboard Grid Animations */
+    .dashboard-grid .card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+// Deadline Pie Chart
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('deadlineChart');
+    if (ctx) {
+        const data = {
+            labels: ['Überfällig', '≤ 1 Tag', '≤ 5 Tage', '> 5 Tage'],
+            datasets: [{
+                data: [
+                    {{ deadline_stats.ueberfaellig }},
+                    {{ deadline_stats.1_tag }},
+                    {{ deadline_stats.5_tage }},
+                    {{ deadline_stats.mehr }}
+                ],
+                backgroundColor: [
+                    '#dc3545',  // Rot
+                    '#ffc107',  // Gelb
+                    '#0d6efd',  // Blau
+                    '#198754'   // Grün
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        };
+
+        const config = {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false  // Wir haben unsere eigene Legende
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const value = context.parsed;
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return ` ${value} Workflows (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%',  // Donut-Stil
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        };
+
+        new Chart(ctx, config);
+    }
+});
+</script>
 {% endblock %}

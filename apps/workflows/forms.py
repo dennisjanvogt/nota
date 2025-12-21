@@ -3,19 +3,27 @@ Forms für Workflow-Verwaltung.
 """
 from django import forms
 from django.forms import inlineformset_factory
+from django.db.models import Q
 from .models import WorkflowInstanz, WorkflowSchrittInstanz, WorkflowTyp, WorkflowSchritt
 from apps.personen.models import NotarAnwaerter
+from apps.services.models import ServiceDefinition
+from apps.emails.models import EmailVorlage
 
 
 class WorkflowInstanzForm(forms.ModelForm):
     """Form für Erstellen und Bearbeiten von Workflow-Instanzen."""
+
+    # Verstecktes Feld für ausgewählte Personen (wird via JavaScript gefüllt)
+    betroffene_personen_ids = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
 
     class Meta:
         model = WorkflowInstanz
         fields = [
             'workflow_typ',
             'name',
-            'betroffene_person',
             'notizen',
         ]
         widgets = {
@@ -24,7 +32,6 @@ class WorkflowInstanzForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'z.B. Bestellung Max Mustermann'
             }),
-            'betroffene_person': forms.Select(attrs={'class': 'form-control'}),
             'notizen': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
@@ -36,10 +43,6 @@ class WorkflowInstanzForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Nur aktive Workflow-Typen anzeigen
         self.fields['workflow_typ'].queryset = WorkflowTyp.objects.filter(ist_aktiv=True)
-        # Nur aktive Anwärter anzeigen
-        self.fields['betroffene_person'].queryset = NotarAnwaerter.objects.filter(ist_aktiv=True)
-        # Betroffene Person ist optional
-        self.fields['betroffene_person'].required = False
 
 
 class WorkflowSchrittAbschlussForm(forms.Form):
@@ -94,7 +97,7 @@ class WorkflowSchrittForm(forms.ModelForm):
 
     class Meta:
         model = WorkflowSchritt
-        fields = ['name', 'beschreibung', 'reihenfolge', 'ist_optional']
+        fields = ['name', 'beschreibung', 'reihenfolge', 'ist_optional', 'service', 'email_vorlage']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -109,7 +112,40 @@ class WorkflowSchrittForm(forms.ModelForm):
             'ist_optional': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
+            'service': forms.Select(attrs={
+                'class': 'form-select',
+            }),
+            'email_vorlage': forms.Select(attrs={
+                'class': 'form-select',
+            }),
         }
+        labels = {
+            'service': 'Verknüpfter Service',
+            'email_vorlage': 'E-Mail-Vorlage',
+        }
+        help_texts = {
+            'service': 'Service der bei diesem Schritt ausgeführt werden kann',
+            'email_vorlage': 'E-Mail-Vorlage für diesen Schritt',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Nur aktive Services anzeigen
+        self.fields['service'].queryset = ServiceDefinition.objects.filter(
+            ist_aktiv=True
+        ).select_related('kategorie').order_by('kategorie__name', 'name')
+
+        # Service-Feld optional machen
+        self.fields['service'].required = False
+
+        # E-Mail-Vorlage-Feld: Nur aktive Vorlagen
+        self.fields['email_vorlage'].queryset = EmailVorlage.objects.filter(
+            ist_aktiv=True
+        ).order_by('kategorie', 'name')
+
+        # E-Mail-Vorlage optional
+        self.fields['email_vorlage'].required = False
 
 
 # Formset für Workflow-Schritte

@@ -17,7 +17,7 @@ class WorkflowSchrittInline(admin.TabularInline):
     """Inline für Workflow-Schritte in WorkflowTyp."""
     model = WorkflowSchritt
     extra = 0
-    fields = ['reihenfolge', 'name', 'beschreibung', 'ist_optional']
+    fields = ['reihenfolge', 'name', 'beschreibung', 'ist_optional', 'service', 'email_vorlage']
     ordering = ['reihenfolge']
 
 
@@ -66,9 +66,11 @@ class WorkflowSchrittAdmin(admin.ModelAdmin):
         'workflow_typ',
         'reihenfolge',
         'name',
-        'ist_optional'
+        'ist_optional',
+        'service_anzeige',
+        'email_vorlage_anzeige'
     ]
-    list_filter = ['workflow_typ', 'ist_optional']
+    list_filter = ['workflow_typ', 'ist_optional', 'service']
     search_fields = ['name', 'beschreibung']
     ordering = ['workflow_typ', 'reihenfolge']
     readonly_fields = ['erstellt_am', 'aktualisiert_am']
@@ -81,11 +83,33 @@ class WorkflowSchrittAdmin(admin.ModelAdmin):
         ('Schritt-Details', {
             'fields': ('name', 'beschreibung', 'ist_optional')
         }),
+        ('Service-Integration', {
+            'fields': ('service', 'email_vorlage'),
+            'description': 'Verknüpfung mit Services und E-Mail-Vorlagen'
+        }),
         ('Zeitstempel', {
             'fields': ('erstellt_am', 'aktualisiert_am'),
             'classes': ('collapse',)
         }),
     )
+
+    def service_anzeige(self, obj):
+        """Zeigt den verknüpften Service."""
+        if obj.service:
+            return format_html(
+                '<i class="bi bi-{}"></i> {}',
+                obj.service.icon,
+                obj.service.name
+            )
+        return '-'
+    service_anzeige.short_description = 'Service'
+
+    def email_vorlage_anzeige(self, obj):
+        """Zeigt die E-Mail-Vorlage."""
+        if obj.email_vorlage:
+            return obj.email_vorlage.name
+        return '-'
+    email_vorlage_anzeige.short_description = 'E-Mail-Vorlage'
 
 
 class WorkflowSchrittInstanzInline(admin.TabularInline):
@@ -112,13 +136,12 @@ class WorkflowInstanzAdmin(admin.ModelAdmin):
         'workflow_typ',
         'status_display',
         'fortschritt',
-        'betroffene_person',
+        'betroffene_personen_anzeige',
         'erstellt_von',
         'erstellt_am'
     ]
     list_filter = ['status', 'workflow_typ', 'erstellt_am']
-    search_fields = ['name', 'kennung',
-                     'betroffene_person__vorname', 'betroffene_person__nachname']
+    search_fields = ['name', 'kennung']
     readonly_fields = ['kennung', 'jahr', 'laufende_nummer', 'erstellt_am', 'aktualisiert_am', 'archiviert_am', 'fortschritt_anzeige']
     date_hierarchy = 'erstellt_am'
     inlines = [WorkflowSchrittInstanzInline]
@@ -133,7 +156,7 @@ class WorkflowInstanzAdmin(admin.ModelAdmin):
             'description': 'Automatisch generierte Kennung'
         }),
         ('Zuordnungen', {
-            'fields': ('erstellt_von', 'betroffene_person')
+            'fields': ('erstellt_von', 'betroffene_notare', 'betroffene_kandidaten')
         }),
         ('Notizen', {
             'fields': ('notizen',)
@@ -172,6 +195,18 @@ class WorkflowInstanzAdmin(admin.ModelAdmin):
             f'{prozent}%' if prozent > 0 else ''
         )
     fortschritt.short_description = 'Fortschritt'
+
+    def betroffene_personen_anzeige(self, obj):
+        """Zeigt alle betroffenen Personen (Notare + Kandidaten)."""
+        personen = []
+        for notar in obj.betroffene_notare.all():
+            personen.append(f'🟠 {notar.get_voller_name()}')
+        for kandidat in obj.betroffene_kandidaten.all():
+            personen.append(f'🔵 {kandidat.get_voller_name()}')
+        if not personen:
+            return '-'
+        return format_html('<br>'.join(personen))
+    betroffene_personen_anzeige.short_description = 'Betroffene Personen'
 
     def fortschritt_anzeige(self, obj):
         """Zeigt ausführliche Fortschrittsanzeige."""

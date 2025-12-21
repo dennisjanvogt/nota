@@ -8,11 +8,13 @@ from apps.personen.models import Notar, NotarAnwaerter
 from apps.notarstellen.models import Notarstelle
 from apps.workflows.models import WorkflowInstanz
 from .exporters import export_data
+from apps.sprengel.models import Sprengel
 from .forms import (
     NotareFilterForm,
     AnwaerterFilterForm,
     NotarstellenFilterForm,
-    WorkflowsFilterForm
+    WorkflowsFilterForm,
+    SprengelFilterForm
 )
 
 
@@ -30,8 +32,8 @@ def berichte_uebersicht_view(request):
                 'export_url': 'export_notare',
             },
             {
-                'titel': 'Notar-Anwärter',
-                'beschreibung': 'Liste aller Notar-Anwärter mit betreuenden Notaren',
+                'titel': 'Notariatskandidat',
+                'beschreibung': 'Liste aller Notariatskandidat mit betreuenden Notaren',
                 'filter_url': 'filter_anwaerter',
                 'export_url': 'export_anwaerter',
             },
@@ -46,6 +48,12 @@ def berichte_uebersicht_view(request):
                 'beschreibung': 'Liste aller Workflow-Instanzen mit Status',
                 'filter_url': 'filter_workflows',
                 'export_url': 'export_workflows',
+            },
+            {
+                'titel': 'Sprengel',
+                'beschreibung': 'Liste aller Notarsprengel mit Gerichtsbezirken',
+                'filter_url': 'filter_sprengel',
+                'export_url': 'export_sprengel',
             },
         ]
     }
@@ -153,7 +161,7 @@ def export_notare_view(request):
 
 @login_required
 def anwaerter_filter_view(request):
-    """Filter-Seite für Anwärter-Export."""
+    """Filter-Seite für Kandidaten-Export."""
     form = AnwaerterFilterForm(request.GET or None)
 
     # Basis-Queryset
@@ -197,7 +205,7 @@ def anwaerter_filter_view(request):
         'form': form,
         'queryset': queryset,
         'anzahl': queryset.count(),
-        'titel': 'Notar-Anwärter',
+        'titel': 'Notariatskandidat',
         'export_url_name': 'export_anwaerter',
     }
     return render(request, 'berichte/filter.html', context)
@@ -205,7 +213,7 @@ def anwaerter_filter_view(request):
 
 @login_required
 def export_anwaerter_view(request):
-    """Exportiert Notar-Anwärter-Liste mit Filtern."""
+    """Exportiert Notariatskandidat-Liste mit Filtern."""
     format_typ = request.GET.get('format', 'csv')
 
     # Basis-Queryset
@@ -247,7 +255,7 @@ def export_anwaerter_view(request):
             queryset = queryset.filter(zugelassen_am__lte=form.cleaned_data['zugelassen_bis'])
 
     spalten = [
-        ('anwaerter_id', 'Anwärter-ID'),
+        ('anwaerter_id', 'Kandidaten-ID'),
         ('titel', 'Titel'),
         ('vorname', 'Vorname'),
         ('nachname', 'Nachname'),
@@ -319,7 +327,10 @@ def export_workflows_view(request):
 
     # Basis-Queryset
     queryset = WorkflowInstanz.objects.select_related(
-        'workflow_typ', 'erstellt_von', 'aktenzeichen', 'betroffene_person'
+        'workflow_typ', 'erstellt_von'
+    ).prefetch_related(
+        'betroffene_notare',
+        'betroffene_kandidaten'
     ).order_by('-erstellt_am')
 
     # Filter anwenden
@@ -350,8 +361,9 @@ def export_workflows_view(request):
         ('workflow_typ__name', 'Workflow-Typ'),
         ('status', 'Status'),
         ('aktenzeichen__vollstaendige_nummer', 'Aktenzeichen'),
-        ('betroffene_person__nachname', 'Betroffene Person (Nachname)'),
-        ('betroffene_person__vorname', 'Betroffene Person (Vorname)'),
+        # Betroffene Personen sind jetzt ManyToMany - Export-Unterstützung folgt später
+        # ('betroffene_person__nachname', 'Betroffene Person (Nachname)'),
+        # ('betroffene_person__vorname', 'Betroffene Person (Vorname)'),
         ('erstellt_von__username', 'Erstellt von'),
         ('erstellt_am', 'Erstellt am'),
         ('gestartet_am', 'Gestartet am'),
@@ -408,7 +420,10 @@ def workflows_filter_view(request):
 
     # Basis-Queryset
     queryset = WorkflowInstanz.objects.select_related(
-        'workflow_typ', 'erstellt_von', 'aktenzeichen', 'betroffene_person'
+        'workflow_typ', 'erstellt_von'
+    ).prefetch_related(
+        'betroffene_notare',
+        'betroffene_kandidaten'
     ).order_by('-erstellt_am')
 
     # Filter anwenden
@@ -440,3 +455,84 @@ def workflows_filter_view(request):
         'export_url_name': 'export_workflows',
     }
     return render(request, 'berichte/filter.html', context)
+
+
+@login_required
+def sprengel_filter_view(request):
+    """Filter-Seite für Sprengel-Export."""
+    form = SprengelFilterForm(request.GET or None)
+
+    # Basis-Queryset
+    queryset = Sprengel.objects.all().order_by('bezeichnung')
+
+    # Filter anwenden
+    if form.is_valid():
+        if form.cleaned_data.get('search'):
+            search = form.cleaned_data['search']
+            queryset = queryset.filter(
+                Q(bezeichnung__icontains=search) |
+                Q(name__icontains=search) |
+                Q(gerichtsbezirk__icontains=search)
+            )
+
+        if form.cleaned_data.get('status'):
+            status = form.cleaned_data['status']
+            if status == 'aktiv':
+                queryset = queryset.filter(ist_aktiv=True)
+            elif status == 'inaktiv':
+                queryset = queryset.filter(ist_aktiv=False)
+
+        if form.cleaned_data.get('bundesland'):
+            queryset = queryset.filter(bundesland=form.cleaned_data['bundesland'])
+
+    context = {
+        'form': form,
+        'queryset': queryset,
+        'anzahl': queryset.count(),
+        'titel': 'Sprengel',
+        'export_url_name': 'export_sprengel',
+    }
+    return render(request, 'berichte/filter.html', context)
+
+
+@login_required
+def export_sprengel_view(request):
+    """Exportiert Sprengel-Liste mit Filtern."""
+    format_typ = request.GET.get('format', 'csv')
+
+    # Basis-Queryset
+    queryset = Sprengel.objects.all().order_by('bezeichnung')
+
+    # Filter anwenden
+    form = SprengelFilterForm(request.GET)
+    if form.is_valid():
+        if form.cleaned_data.get('search'):
+            search = form.cleaned_data['search']
+            queryset = queryset.filter(
+                Q(bezeichnung__icontains=search) |
+                Q(name__icontains=search) |
+                Q(gerichtsbezirk__icontains=search)
+            )
+
+        if form.cleaned_data.get('status'):
+            status = form.cleaned_data['status']
+            if status == 'aktiv':
+                queryset = queryset.filter(ist_aktiv=True)
+            elif status == 'inaktiv':
+                queryset = queryset.filter(ist_aktiv=False)
+
+        if form.cleaned_data.get('bundesland'):
+            queryset = queryset.filter(bundesland=form.cleaned_data['bundesland'])
+
+    spalten = [
+        ('bezeichnung', 'Bezeichnung'),
+        ('name', 'Name'),
+        ('gerichtsbezirk', 'Gerichtsbezirk'),
+        ('bundesland', 'Bundesland'),
+        ('anzahl_notarstellen', 'Anzahl Notarstellen'),
+        ('anzahl_aktive_notarstellen', 'Davon aktiv'),
+        ('ist_aktiv', 'Aktiv'),
+        ('erstellt_am', 'Erstellt am'),
+    ]
+
+    return export_data(queryset, spalten, format_typ, titel='Sprengel')

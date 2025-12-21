@@ -1,7 +1,7 @@
 """
 Models für Personen-Verwaltung.
 
-Notare und Notar-Anwärter, die von der Kammer verwaltet werden.
+Notare und Notariatskandidaten, die von der Kammer verwaltet werden.
 """
 from django.db import models
 from apps.kern.models import ZeitstempelModel, AktivModel
@@ -12,7 +12,7 @@ class PersonBasis(ZeitstempelModel, AktivModel):
     """
     Abstract Base Model für alle Personentypen.
 
-    Gemeinsame Felder für Notare und Notar-Anwärter.
+    Gemeinsame Felder für Notare und Notariatskandidaten.
     """
     vorname = models.CharField(
         max_length=100,
@@ -80,8 +80,8 @@ class Notar(PersonBasis):
     notar_id = models.CharField(
         max_length=50,
         unique=True,
-        verbose_name='Notar-ID',
-        help_text='Eindeutige Identifikationsnummer des Notars'
+        verbose_name='Bezeichnung',
+        help_text='Format: NOT-000001'
     )
     bestellt_am = models.DateField(
         verbose_name='Bestellt am',
@@ -89,8 +89,8 @@ class Notar(PersonBasis):
     )
     war_vorher_anwaerter = models.BooleanField(
         default=False,
-        verbose_name='War vorher Notar-Anwärter',
-        help_text='Hat die Person vorher als Notar-Anwärter gearbeitet?'
+        verbose_name='War vorher Notariatskandidat',
+        help_text='Hat die Person vorher als Notariatskandidat gearbeitet?'
     )
     notiz = models.TextField(
         blank=True,
@@ -112,25 +112,42 @@ class Notar(PersonBasis):
         return f"{self.get_voller_name()} (Notar {self.notar_id})"
 
     def anzahl_betreute_anwaerter(self):
-        """Gibt die Anzahl der aktuell betreuten Anwärter zurück."""
+        """Gibt die Anzahl der aktuell betreuten Kandidaten zurück."""
         return self.betreute_anwaerter.filter(
             ist_aktiv=True,
             ende_datum__isnull=True
         ).count()
 
+    @classmethod
+    def generate_next_id(cls):
+        """Generiert die nächste Notar-ID im Format: NOT-000001"""
+        import re
+
+        last = cls.objects.filter(
+            notar_id__startswith='NOT-'
+        ).order_by('-notar_id').first()
+
+        if last:
+            match = re.search(r'-(\d+)$', last.notar_id)
+            nummer = int(match.group(1)) + 1 if match else 1
+        else:
+            nummer = 1
+
+        return f"NOT-{nummer:06d}"
+
 
 class NotarAnwaerter(PersonBasis):
     """
-    Notar-Anwärter - Notar in Ausbildung.
+    Notariatskandidat - Notar in Ausbildung.
 
-    Ein Notar-Anwärter lernt bei einem betreuenden Notar und wird später zum Notar bestellt.
+    Ein Notariatskandidat lernt bei einem betreuenden Notar und wird später zum Notar bestellt.
     """
     betreuender_notar = models.ForeignKey(
         Notar,
         on_delete=models.PROTECT,
         related_name='betreute_anwaerter',
         verbose_name='Betreuender Notar',
-        help_text='Der Notar, bei dem der Anwärter lernt'
+        help_text='Der Notar, bei dem der Kandidat lernt'
     )
     notarstelle = models.ForeignKey(
         Notarstelle,
@@ -141,12 +158,12 @@ class NotarAnwaerter(PersonBasis):
     anwaerter_id = models.CharField(
         max_length=50,
         unique=True,
-        verbose_name='Anwärter-ID',
-        help_text='Eindeutige Identifikationsnummer des Anwärters'
+        verbose_name='Bezeichnung',
+        help_text='Format: NKA-000001'
     )
     zugelassen_am = models.DateField(
         verbose_name='Zugelassen am',
-        help_text='Datum der Zulassung als Notar-Anwärter'
+        help_text='Datum der Zulassung als Notariatskandidat'
     )
     geplante_bestellung = models.DateField(
         null=True,
@@ -161,8 +178,8 @@ class NotarAnwaerter(PersonBasis):
     )
 
     class Meta:
-        verbose_name = 'Notar-Anwärter'
-        verbose_name_plural = 'Notar-Anwärter'
+        verbose_name = 'Notariatskandidat'
+        verbose_name_plural = 'Notariatskandidaten'
         ordering = ['nachname', 'vorname']
         indexes = [
             models.Index(fields=['anwaerter_id']),
@@ -172,11 +189,28 @@ class NotarAnwaerter(PersonBasis):
         ]
 
     def __str__(self):
-        return f"{self.get_voller_name()} (Anwärter {self.anwaerter_id})"
+        return f"{self.get_voller_name()} (Kandidat {self.anwaerter_id})"
 
     def dauer_in_monaten(self):
-        """Berechnet die Dauer der Anwärterzeit in Monaten."""
+        """Berechnet die Dauer der Kandidatenzeit in Monaten."""
         from datetime import date
         ende = self.ende_datum or date.today()
         delta = (ende.year - self.beginn_datum.year) * 12 + ende.month - self.beginn_datum.month
         return delta
+
+    @classmethod
+    def generate_next_id(cls):
+        """Generiert die nächste Kandidaten-ID im Format: NKA-000001"""
+        import re
+
+        last = cls.objects.filter(
+            anwaerter_id__startswith='NKA-'
+        ).order_by('-anwaerter_id').first()
+
+        if last:
+            match = re.search(r'-(\d+)$', last.anwaerter_id)
+            nummer = int(match.group(1)) + 1 if match else 1
+        else:
+            nummer = 1
+
+        return f"NKA-{nummer:06d}"

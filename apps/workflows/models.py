@@ -14,7 +14,7 @@ class WorkflowTyp(ZeitstempelModel):
     """
     Definition eines Workflow-Typs (Template).
 
-    Beispiel: "Bestellung Notar-Anwärter zum Notar"
+    Beispiel: "Bestellung Notariatskandidat zum Notar"
     """
 
     name = models.CharField(
@@ -88,6 +88,28 @@ class WorkflowSchritt(ZeitstempelModel):
         help_text='Kann dieser Schritt übersprungen werden?'
     )
 
+    # Service-Integration
+    service = models.ForeignKey(
+        'services.ServiceDefinition',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workflow_schritte',
+        verbose_name='Verknüpfter Service',
+        help_text='Service der bei diesem Schritt angeboten wird'
+    )
+
+    # E-Mail-Vorlagen-Integration
+    email_vorlage = models.ForeignKey(
+        'emails.EmailVorlage',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workflow_schritte',
+        verbose_name='E-Mail-Vorlage',
+        help_text='E-Mail-Vorlage die in diesem Schritt verwendet wird'
+    )
+
     class Meta:
         verbose_name = 'Workflow-Schritt'
         verbose_name_plural = 'Workflow-Schritte'
@@ -140,14 +162,26 @@ class WorkflowInstanz(ZeitstempelModel):
         blank=True,
         verbose_name='Archiviert am'
     )
-    betroffene_person = models.ForeignKey(
-        NotarAnwaerter,
-        on_delete=models.PROTECT,
+    fertigstellungsdatum = models.DateField(
         null=True,
         blank=True,
-        related_name='workflows',
-        verbose_name='Betroffene Person',
-        help_text='Notar-Anwärter, der betroffen ist (z.B. bei Bestellungsprozess)'
+        verbose_name='Fertigstellungsdatum',
+        help_text='Geplantes Datum zur Fertigstellung des Workflows'
+    )
+    # Betroffene Personen (allgemein für alle Workflows)
+    betroffene_notare = models.ManyToManyField(
+        'personen.Notar',
+        blank=True,
+        related_name='workflows_als_betroffener',
+        verbose_name='Betroffene Notare',
+        help_text='Notare, die von diesem Workflow betroffen sind'
+    )
+    betroffene_kandidaten = models.ManyToManyField(
+        'personen.NotarAnwaerter',
+        blank=True,
+        related_name='workflows_als_betroffener',
+        verbose_name='Betroffene Kandidaten',
+        help_text='Notariatskandidaten, die von diesem Workflow betroffen sind'
     )
     notizen = models.TextField(
         blank=True,
@@ -171,6 +205,22 @@ class WorkflowInstanz(ZeitstempelModel):
         default=0,
         verbose_name='Laufende Nummer',
         help_text='Laufende Nummer innerhalb Jahr und Typ'
+    )
+
+    # Besetzungsverfahren-spezifisch
+    referenten = models.ManyToManyField(
+        'personen.Notar',
+        blank=True,
+        related_name='workflows_als_referent',
+        verbose_name='Referenten',
+        help_text='Notare die als Referenten am Workflow beteiligt sind'
+    )
+    bewerber = models.ManyToManyField(
+        'personen.NotarAnwaerter',
+        blank=True,
+        related_name='workflows_als_bewerber',
+        verbose_name='Bewerber',
+        help_text='Kandidat die sich um die Stelle bewerben'
     )
 
     class Meta:
@@ -218,6 +268,56 @@ class WorkflowInstanz(ZeitstempelModel):
 
         # Kennung zusammensetzen (z.B. 2025-BES-001)
         return f"{self.jahr}-{kuerzel}-{self.laufende_nummer:03d}"
+
+    def alle_betroffenen_personen(self):
+        """Liefert alle betroffenen Personen (Notare + Kandidaten) als Liste mit Typ."""
+        personen = []
+        for notar in self.betroffene_notare.all():
+            personen.append({
+                'typ': 'notar',
+                'id': notar.notar_id,
+                'name': notar.get_voller_name(),
+                'objekt': notar
+            })
+        for kandidat in self.betroffene_kandidaten.all():
+            personen.append({
+                'typ': 'kandidat',
+                'id': kandidat.anwaerter_id,
+                'name': kandidat.get_voller_name(),
+                'objekt': kandidat
+            })
+        return personen
+
+    @property
+    def tage_bis_fertigstellung(self):
+        """Berechnet Tage bis zum Fertigstellungsdatum."""
+        if not self.fertigstellungsdatum:
+            return None
+        from django.utils import timezone
+        heute = timezone.now().date()
+        delta = self.fertigstellungsdatum - heute
+        return delta.days
+
+    @property
+    def ist_ueberfaellig(self):
+        """Prüft ob Workflow überfällig ist."""
+        tage = self.tage_bis_fertigstellung
+        return tage is not None and tage < 0
+
+    @property
+    def deadline_status(self):
+        """Liefert Status der Deadline: 'ueberfaellig', '1_tag', '5_tage', 'mehr'."""
+        tage = self.tage_bis_fertigstellung
+        if tage is None:
+            return None
+        if tage < 0:
+            return 'ueberfaellig'
+        elif tage <= 1:
+            return '1_tag'
+        elif tage <= 5:
+            return '5_tage'
+        else:
+            return 'mehr'
 
     def __str__(self):
         return f"{self.name} ({self.get_status_display()})"

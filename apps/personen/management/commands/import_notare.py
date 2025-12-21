@@ -10,7 +10,7 @@ from datetime import datetime
 
 
 class Command(BaseCommand):
-    help = 'Importiert echte österreichische Notare, Anwärter und Notarstellen aus CSV-Dateien'
+    help = 'Importiert echte österreichische Notare, Kandidat und Notarstellen aus CSV-Dateien'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -31,7 +31,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--anwaerter',
             type=str,
-            help='Pfad zur CSV-Datei mit Notar-Anwärtern',
+            help='Pfad zur CSV-Datei mit Notariatskandidatn',
         )
 
     @transaction.atomic
@@ -51,7 +51,7 @@ class Command(BaseCommand):
         if options['notare']:
             self.import_notare(options['notare'])
 
-        # Import Anwärter
+        # Import Kandidat
         if options['anwaerter']:
             self.import_anwaerter(options['anwaerter'])
 
@@ -65,9 +65,8 @@ class Command(BaseCommand):
             reader = csv.DictReader(f)
             for row in reader:
                 notarstelle, created = Notarstelle.objects.update_or_create(
-                    notarnummer=row['notarnummer'],
+                    bezeichnung=row['bezeichnung'],
                     defaults={
-                        'bezeichnung': row['bezeichnung'],
                         'name': row['name'],
                         'strasse': row['strasse'],
                         'plz': row['plz'],
@@ -95,11 +94,11 @@ class Command(BaseCommand):
             for row in reader:
                 # Notarstelle finden
                 try:
-                    notarstelle = Notarstelle.objects.get(notarnummer=row['notarstelle_nr'])
+                    notarstelle = Notarstelle.objects.get(bezeichnung=row['notarstelle'])
                 except Notarstelle.DoesNotExist:
                     self.stdout.write(
                         self.style.WARNING(
-                            f'  ! Notarstelle {row["notarstelle_nr"]} nicht gefunden für {row["vorname"]} {row["nachname"]}'
+                            f'  ! Notarstelle {row["notarstelle"]} nicht gefunden für {row["vorname"]} {row["nachname"]}'
                         )
                     )
                     continue
@@ -129,7 +128,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'✓ {count} Notare importiert'))
 
     def import_anwaerter(self, csv_path):
-        self.stdout.write(f'\nImportiere Notar-Anwärter aus {csv_path}...')
+        self.stdout.write(f'\nImportiere Notariatskandidat aus {csv_path}...')
         count = 0
 
         with open(csv_path, 'r', encoding='utf-8') as f:
@@ -137,20 +136,20 @@ class Command(BaseCommand):
             for row in reader:
                 # Notarstelle finden
                 try:
-                    notarstelle = Notarstelle.objects.get(notarnummer=row['notarstelle_nr'])
+                    notarstelle = Notarstelle.objects.get(bezeichnung=row['notarstelle'])
                 except Notarstelle.DoesNotExist:
                     self.stdout.write(
                         self.style.WARNING(
-                            f'  ! Notarstelle {row["notarstelle_nr"]} nicht gefunden für {row["vorname"]} {row["nachname"]}'
+                            f'  ! Notarstelle {row["notarstelle"]} nicht gefunden für {row["vorname"]} {row["nachname"]}'
                         )
                     )
                     continue
 
                 # Betreuender Notar (optional)
                 betreuender_notar = None
-                if row.get('betreuender_notar_id'):
+                if row.get('betreuender_notar'):
                     try:
-                        betreuender_notar = Notar.objects.get(notar_id=row['betreuender_notar_id'])
+                        betreuender_notar = Notar.objects.get(notar_id=row['betreuender_notar'])
                     except Notar.DoesNotExist:
                         pass
 
@@ -176,4 +175,4 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write(f'  → {anwaerter.titel} {anwaerter.vorname} {anwaerter.nachname} (aktualisiert)')
 
-        self.stdout.write(self.style.SUCCESS(f'✓ {count} Notar-Anwärter importiert'))
+        self.stdout.write(self.style.SUCCESS(f'✓ {count} Notariatskandidat importiert'))

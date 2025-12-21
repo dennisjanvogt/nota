@@ -1,0 +1,162 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-person-circle"></i> {{ title }}
+            </h1>
+            <p class="page-description">Bearbeiten Sie hier Ihre persönlichen Daten und Ihr Profilbild</p>
+        </div>
+    </div>
+</div>
+
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Aktuelles Profilbild Vorschau -->
+                {% if user.profilbild %}
+                <div style="margin-bottom: var(--spacing-lg); text-align: center;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary);">
+                        Aktuelles Profilbild
+                    </h3>
+                    <img src="{{ user.profilbild.url }}" alt="Profilbild" style="max-width: 200px; max-height: 200px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                </div>
+                {% endif %}
+
+                <!-- Persönliche Daten -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Persönliche Daten
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.help_text %}
+                        <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                            {{ form.first_name.help_text }}
+                        </small>
+                        {% endif %}
+                        {% if form.first_name.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.first_name.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.last_name.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Kontaktdaten -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Kontaktdaten
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.email.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ form.telefon.label }}</label>
+                        {{ form.telefon }}
+                        {% if form.telefon.errors %}
+                        <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                            {{ form.telefon.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">{{ form.abteilung.label }}</label>
+                    {{ form.abteilung }}
+                    {% if form.abteilung.help_text %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        {{ form.abteilung.help_text }}
+                    </small>
+                    {% endif %}
+                    {% if form.abteilung.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ form.abteilung.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Profilbild -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Profilbild
+                </h3>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">{{ form.profilbild.label }}</label>
+                    {{ form.profilbild }}
+                    {% if form.profilbild.help_text %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        {{ form.profilbild.help_text }}
+                    </small>
+                    {% endif %}
+                    {% if form.profilbild.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ form.profilbild.errors }}
+                    </div>
+                    {% endif %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        <i class="bi bi-info-circle"></i> Empfohlene Größe: 400x400 Pixel. Unterstützte Formate: JPG, PNG, GIF
+                    </small>
+                </div>
+
+                <!-- Benutzer-Info (Read-only) -->
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    Account-Informationen
+                </h3>
+
+                <div style="background: var(--bg-primary); padding: var(--spacing-md); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                        <div>
+                            <small style="color: var(--text-secondary); font-size: 13px;">Benutzername</small>
+                            <div style="font-weight: 500; margin-top: 2px;">{{ user.username }}</div>
+                        </div>
+                        <div>
+                            <small style="color: var(--text-secondary); font-size: 13px;">Rolle</small>
+                            <div style="font-weight: 500; margin-top: 2px;">{{ user.get_rolle_display }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Zurück zum Dashboard
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> Änderungen speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

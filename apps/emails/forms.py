@@ -12,6 +12,7 @@ class EmailVorlageForm(forms.ModelForm):
         model = EmailVorlage
         fields = [
             'name',
+            'workflow_typ',
             'kategorie',
             'betreff',
             'nachricht',
@@ -24,6 +25,7 @@ class EmailVorlageForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'z.B. Anfrage Strafregisterauszug'
             }),
+            'workflow_typ': forms.Select(attrs={'class': 'form-control'}),
             'kategorie': forms.Select(attrs={'class': 'form-control'}),
             'betreff': forms.TextInput(attrs={
                 'class': 'form-control',

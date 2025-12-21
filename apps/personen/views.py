@@ -1,5 +1,5 @@
 """
-Views für Personen-Verwaltung (Notare und Notar-Anwärter).
+Views für Personen-Verwaltung (Notare und Notariatskandidat).
 """
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -20,7 +20,7 @@ def notare_liste_view(request):
     notarstelle_filter = request.GET.get('notarstelle', '')
 
     # Basis-Queryset
-    notare = Notar.objects.select_related('notarstelle').order_by('nachname', 'vorname')
+    notare = Notar.objects.select_related('notarstelle', 'notarstelle__sprengel').order_by('nachname', 'vorname')
 
     # Suche
     if search:
@@ -67,17 +67,17 @@ def notare_liste_view(request):
 def notar_detail_view(request, notar_id):
     """Detail-Ansicht eines Notars."""
     notar = get_object_or_404(
-        Notar.objects.select_related('notarstelle'),
+        Notar.objects.select_related('notarstelle', 'notarstelle__sprengel'),
         notar_id=notar_id
     )
 
-    # Workflows des Notars (falls er vorher Anwärter war)
+    # Workflows des Notars (falls er vorher Kandidat war)
     workflows = []
     if notar.war_vorher_anwaerter:
         from apps.workflows.models import WorkflowInstanz
         # Versuche Workflows zu finden, die mit diesem Notar verknüpft sind
         workflows = WorkflowInstanz.objects.filter(
-            betroffene_person__email=notar.email
+            betroffene_notare=notar
         ).order_by('-erstellt_am')[:5]
 
     context = {
@@ -90,7 +90,7 @@ def notar_detail_view(request, notar_id):
 
 @login_required
 def anwaerter_liste_view(request):
-    """Liste aller Notar-Anwärter."""
+    """Liste aller Notariatskandidat."""
     # Such- und Filterparameter
     search = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
@@ -99,7 +99,8 @@ def anwaerter_liste_view(request):
     # Basis-Queryset
     anwaerter = NotarAnwaerter.objects.select_related(
         'betreuender_notar',
-        'notarstelle'
+        'notarstelle',
+        'notarstelle__sprengel'
     ).order_by('nachname', 'vorname')
 
     # Suche
@@ -125,7 +126,7 @@ def anwaerter_liste_view(request):
     stats = {
         'total': NotarAnwaerter.objects.count(),
         'aktiv': NotarAnwaerter.objects.filter(ist_aktiv=True, ende_datum__isnull=True).count(),
-        'mit_planung': NotarAnwaerter.objects.filter(geplante_bestellung__isnull=False).count(),
+        'mit_betreuung': NotarAnwaerter.objects.filter(betreuender_notar__isnull=False).count(),
     }
 
     # Betreuende Notare für Filter
@@ -145,17 +146,17 @@ def anwaerter_liste_view(request):
 
 @login_required
 def anwaerter_detail_view(request, anwaerter_id):
-    """Detail-Ansicht eines Notar-Anwärters."""
+    """Detail-Ansicht eines Notariatskandidats."""
     anwaerter = get_object_or_404(
-        NotarAnwaerter.objects.select_related('betreuender_notar', 'notarstelle'),
+        NotarAnwaerter.objects.select_related('betreuender_notar', 'notarstelle', 'notarstelle__sprengel'),
         anwaerter_id=anwaerter_id
     )
 
     # Workflows des Anwärters
     from apps.workflows.models import WorkflowInstanz
     workflows = WorkflowInstanz.objects.filter(
-        betroffene_person=anwaerter
-    ).select_related('workflow_typ', 'aktenzeichen').order_by('-erstellt_am')
+        betroffene_kandidaten=anwaerter
+    ).select_related('workflow_typ', 'erstellt_von').order_by('-erstellt_am')
 
     context = {
         'anwaerter': anwaerter,
@@ -227,23 +228,23 @@ def notar_loeschen_view(request, notar_id):
     return render(request, 'personen/notar_loeschen.html', context)
 
 
-# ===== CRUD Views für Notar-Anwärter =====
+# ===== CRUD Views für Notariatskandidat =====
 
 @login_required
 def anwaerter_erstellen_view(request):
-    """Erstellen eines neuen Notar-Anwärters."""
+    """Erstellen eines neuen Notariatskandidats."""
     if request.method == 'POST':
         form = NotarAnwaerterForm(request.POST)
         if form.is_valid():
             anwaerter = form.save()
-            messages.success(request, f'Notar-Anwärter "{anwaerter.get_voller_name()}" wurde erfolgreich erstellt.')
+            messages.success(request, f'Notariatskandidat "{anwaerter.get_voller_name()}" wurde erfolgreich erstellt.')
             return redirect('anwaerter_detail', anwaerter_id=anwaerter.anwaerter_id)
     else:
         form = NotarAnwaerterForm()
 
     context = {
         'form': form,
-        'title': 'Neuer Notar-Anwärter',
+        'title': 'Neuer Notariatskandidat',
         'submit_text': 'Erstellen',
     }
     return render(request, 'personen/anwaerter_form.html', context)
@@ -251,14 +252,14 @@ def anwaerter_erstellen_view(request):
 
 @login_required
 def anwaerter_bearbeiten_view(request, anwaerter_id):
-    """Bearbeiten eines Notar-Anwärters."""
+    """Bearbeiten eines Notariatskandidats."""
     anwaerter = get_object_or_404(NotarAnwaerter, anwaerter_id=anwaerter_id)
 
     if request.method == 'POST':
         form = NotarAnwaerterForm(request.POST, instance=anwaerter)
         if form.is_valid():
             anwaerter = form.save()
-            messages.success(request, f'Notar-Anwärter "{anwaerter.get_voller_name()}" wurde erfolgreich aktualisiert.')
+            messages.success(request, f'Notariatskandidat "{anwaerter.get_voller_name()}" wurde erfolgreich aktualisiert.')
             return redirect('anwaerter_detail', anwaerter_id=anwaerter.anwaerter_id)
     else:
         form = NotarAnwaerterForm(instance=anwaerter)
@@ -266,7 +267,7 @@ def anwaerter_bearbeiten_view(request, anwaerter_id):
     context = {
         'form': form,
         'anwaerter': anwaerter,
-        'title': f'Notar-Anwärter bearbeiten: {anwaerter.get_voller_name()}',
+        'title': f'Notariatskandidat bearbeiten: {anwaerter.get_voller_name()}',
         'submit_text': 'Speichern',
     }
     return render(request, 'personen/anwaerter_form.html', context)
@@ -274,19 +275,74 @@ def anwaerter_bearbeiten_view(request, anwaerter_id):
 
 @login_required
 def anwaerter_loeschen_view(request, anwaerter_id):
-    """Löschen eines Notar-Anwärters."""
+    """Löschen eines Notariatskandidats."""
     anwaerter = get_object_or_404(NotarAnwaerter, anwaerter_id=anwaerter_id)
 
     if request.method == 'POST':
         name = anwaerter.get_voller_name()
         anwaerter.delete()
-        messages.success(request, f'Notar-Anwärter "{name}" wurde gelöscht.')
+        messages.success(request, f'Notariatskandidat "{name}" wurde gelöscht.')
         return redirect('anwaerter_liste')
 
     context = {
         'anwaerter': anwaerter,
     }
     return render(request, 'personen/anwaerter_loeschen.html', context)
+
+
+@login_required
+def anwaerter_zu_notar_view(request, anwaerter_id):
+    """Wandelt einen Notariatskandidat in einen Notar um."""
+    anwaerter = get_object_or_404(NotarAnwaerter, anwaerter_id=anwaerter_id)
+
+    if request.method == 'POST':
+        # Generiere neue Notar-ID
+        import re
+        letzte_notar = Notar.objects.filter(
+            notar_id__startswith='NOT-'
+        ).order_by('-notar_id').first()
+
+        if letzte_notar and letzte_notar.notar_id:
+            match = re.search(r'NOT-(\d+)', letzte_notar.notar_id)
+            if match:
+                nummer = int(match.group(1)) + 1
+            else:
+                nummer = 1
+        else:
+            nummer = 1
+
+        neue_notar_id = f'NOT-{nummer:03d}'
+
+        # Erstelle neuen Notar aus Kandidaten-Daten
+        notar = Notar.objects.create(
+            notar_id=neue_notar_id,
+            vorname=anwaerter.vorname,
+            nachname=anwaerter.nachname,
+            titel=anwaerter.titel,
+            email=anwaerter.email,
+            telefon=anwaerter.telefon,
+            notarstelle=anwaerter.notarstelle,
+            bestellt_am=request.POST.get('bestellt_am'),
+            beginn_datum=anwaerter.beginn_datum,
+            war_vorher_anwaerter=True,
+            ist_aktiv=True,
+            notiz=f'Umgewandelt von Kandidat {anwaerter.anwaerter_id}\n\n{anwaerter.notiz or ""}'
+        )
+
+        # Deaktiviere den Kandidat
+        anwaerter.ist_aktiv = False
+        anwaerter.save()
+
+        messages.success(
+            request,
+            f'{anwaerter.get_voller_name()} wurde erfolgreich zum Notar ernannt (ID: {notar.notar_id}).'
+        )
+        return redirect('notar_detail', notar_id=notar.notar_id)
+
+    context = {
+        'anwaerter': anwaerter,
+    }
+    return render(request, 'personen/anwaerter_zu_notar.html', context)
 
 
 # ===== Notar-Vergleich =====
@@ -362,6 +418,14 @@ def notare_vergleich_pdf_export(notare):
     elements.append(Paragraph('Notar-Vergleich', title_style))
     elements.append(Spacer(1, 0.5*cm))
 
+    # Style für kleine Texte
+    small_style = ParagraphStyle(
+        'SmallText',
+        parent=styles['Normal'],
+        fontSize=8,
+        leading=10,
+    )
+
     # Vergleichstabelle erstellen
     data = []
 
@@ -369,26 +433,27 @@ def notare_vergleich_pdf_export(notare):
     header = ['Eigenschaft'] + [notar.get_voller_name() for notar in notare]
     data.append(header)
 
-    # Datenzeilen
+    # Datenzeilen mit Paragraph-Wrapping für lange Texte
     rows = [
         ('Notar-ID', [notar.notar_id for notar in notare]),
         ('Titel', [notar.titel or '—' for notar in notare]),
-        ('E-Mail', [notar.email or '—' for notar in notare]),
+        ('E-Mail', [Paragraph(notar.email or '—', small_style) for notar in notare]),
         ('Telefon', [notar.telefon or '—' for notar in notare]),
-        ('Notarstelle', [notar.notarstelle.name for notar in notare]),
+        ('Notarstelle', [Paragraph(notar.notarstelle.name, small_style) for notar in notare]),
         ('Ort', [notar.notarstelle.stadt for notar in notare]),
         ('Bestellt am', [notar.bestellt_am.strftime('%d.%m.%Y') if notar.bestellt_am else '—' for notar in notare]),
         ('Beginn', [notar.beginn_datum.strftime('%d.%m.%Y') if notar.beginn_datum else '—' for notar in notare]),
         ('Ende', [notar.ende_datum.strftime('%d.%m.%Y') if notar.ende_datum else '—' for notar in notare]),
         ('Status', ['Aktiv' if notar.ist_aktiv and not notar.ende_datum else 'Inaktiv' for notar in notare]),
-        ('War Anwärter', ['Ja' if notar.war_vorher_anwaerter else 'Nein' for notar in notare]),
+        ('War Kandidat', ['Ja' if notar.war_vorher_anwaerter else 'Nein' for notar in notare]),
     ]
 
     for label, values in rows:
         data.append([label] + values)
 
-    # Tabelle erstellen
-    table = Table(data, colWidths=[5*cm] + [6*cm] * len(notare))
+    # Tabelle erstellen - mehr Platz für Daten-Spalten
+    col_width = (landscape(A4)[0] - 2*cm - 4.5*cm) / len(notare)  # Verfügbarer Platz gleichmäßig verteilen
+    table = Table(data, colWidths=[4.5*cm] + [col_width] * len(notare))
 
     # Tabellen-Style
     table.setStyle(TableStyle([
@@ -396,6 +461,7 @@ def notare_vergleich_pdf_export(notare):
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#9EBDD5')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 11),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
@@ -418,8 +484,8 @@ def notare_vergleich_pdf_export(notare):
         # Padding
         ('LEFTPADDING', (0, 0), (-1, -1), 8),
         ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 1), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('TOPPADDING', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
     ]))
 
     elements.append(table)
@@ -454,24 +520,24 @@ def notare_vergleich_pdf_export(notare):
 
 @login_required
 def anwaerter_vergleichen_view(request):
-    """Anwärter nebeneinander vergleichen."""
+    """Kandidat nebeneinander vergleichen."""
     anwaerter_ids = request.GET.getlist('anwaerter')
 
     if not anwaerter_ids:
-        messages.warning(request, 'Bitte wählen Sie mindestens 2 Anwärter zum Vergleichen aus.')
+        messages.warning(request, 'Bitte wählen Sie mindestens 2 Kandidat zum Vergleichen aus.')
         return redirect('anwaerter_liste')
 
     if len(anwaerter_ids) > 3:
-        messages.warning(request, 'Sie können maximal 3 Anwärter gleichzeitig vergleichen.')
+        messages.warning(request, 'Sie können maximal 3 Kandidat gleichzeitig vergleichen.')
         return redirect('anwaerter_liste')
 
-    # Anwärter laden
+    # Kandidat laden
     anwaerter = NotarAnwaerter.objects.filter(anwaerter_id__in=anwaerter_ids).select_related(
         'notarstelle', 'betreuender_notar'
     )
 
     if anwaerter.count() != len(anwaerter_ids):
-        messages.error(request, 'Einige der ausgewählten Anwärter wurden nicht gefunden.')
+        messages.error(request, 'Einige der ausgewählten Kandidat wurden nicht gefunden.')
         return redirect('anwaerter_liste')
 
     # PDF Export?
@@ -485,7 +551,7 @@ def anwaerter_vergleichen_view(request):
 
 
 def anwaerter_vergleich_pdf_export(request, anwaerter):
-    """Anwärter-Vergleich als PDF exportieren."""
+    """Kandidaten-Vergleich als PDF exportieren."""
     from io import BytesIO
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib import colors
@@ -511,8 +577,16 @@ def anwaerter_vergleich_pdf_export(request, anwaerter):
         textColor=colors.HexColor('#9EBDD5'),
         spaceAfter=20,
     )
-    elements.append(Paragraph('Anwärter-Vergleich', title_style))
+    elements.append(Paragraph('Kandidaten-Vergleich', title_style))
     elements.append(Spacer(1, 0.5*cm))
+
+    # Style für kleine Texte
+    small_style = ParagraphStyle(
+        'SmallText',
+        parent=styles['Normal'],
+        fontSize=8,
+        leading=10,
+    )
 
     # Tabellendaten vorbereiten
     data = []
@@ -521,38 +595,39 @@ def anwaerter_vergleich_pdf_export(request, anwaerter):
     header = ['Eigenschaft'] + [anw.get_voller_name() for anw in anwaerter]
     data.append(header)
 
-    # Datenzeilen
+    # Datenzeilen mit Paragraph-Wrapping für lange Texte
     rows = [
-        ('Anwärter-ID', [anw.anwaerter_id for anw in anwaerter]),
+        ('Kandidaten-ID', [anw.anwaerter_id for anw in anwaerter]),
         ('Titel', [anw.titel or '—' for anw in anwaerter]),
-        ('E-Mail', [anw.email or '—' for anw in anwaerter]),
+        ('E-Mail', [Paragraph(anw.email or '—', small_style) for anw in anwaerter]),
         ('Telefon', [anw.telefon or '—' for anw in anwaerter]),
-        ('Notarstelle', [anw.notarstelle.name for anw in anwaerter]),
+        ('Notarstelle', [Paragraph(anw.notarstelle.name, small_style) for anw in anwaerter]),
         ('Ort', [anw.notarstelle.stadt for anw in anwaerter]),
-        ('Betreuender Notar', [anw.betreuender_notar.get_voller_name() if anw.betreuender_notar else '—' for anw in anwaerter]),
+        ('Betreuender Notar', [Paragraph(anw.betreuender_notar.get_voller_name(), small_style) if anw.betreuender_notar else '—' for anw in anwaerter]),
         ('Zugelassen am', [anw.zugelassen_am.strftime('%d.%m.%Y') if anw.zugelassen_am else '—' for anw in anwaerter]),
         ('Beginn', [anw.beginn_datum.strftime('%d.%m.%Y') if anw.beginn_datum else '—' for anw in anwaerter]),
         ('Ende', [anw.ende_datum.strftime('%d.%m.%Y') if anw.ende_datum else '—' for anw in anwaerter]),
-        ('Geplante Bestellung', [anw.geplante_bestellung.strftime('%d.%m.%Y') if anw.geplante_bestellung else '—' for anw in anwaerter]),
         ('Status', ['Aktiv' if anw.ist_aktiv and not anw.ende_datum else 'Inaktiv' for anw in anwaerter]),
     ]
 
     for label, values in rows:
         data.append([label] + values)
 
-    # Tabelle erstellen
-    col_widths = [5*cm] + [5*cm] * len(anwaerter)
-    table = Table(data, colWidths=col_widths)
+    # Tabelle erstellen - mehr Platz für Daten-Spalten
+    col_width = (landscape(A4)[0] - 2*cm - 4.5*cm) / len(anwaerter)  # Verfügbarer Platz gleichmäßig verteilen
+    table = Table(data, colWidths=[4.5*cm] + [col_width] * len(anwaerter))
 
     # Tabellenstil
     table.setStyle(TableStyle([
         # Header
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#9EBDD5')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 11),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('TOPPADDING', (0, 0), (-1, 0), 12),
 
         # Erste Spalte (Labels)
         ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#F5F5F7')),
@@ -560,20 +635,19 @@ def anwaerter_vergleich_pdf_export(request, anwaerter):
         ('FONTSIZE', (0, 1), (0, -1), 9),
 
         # Daten
-        ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
         ('FONTNAME', (1, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE', (1, 1), (-1, -1), 9),
+        ('ROWBACKGROUNDS', (1, 1), (-1, -1), [colors.white, colors.HexColor('#FAFAFA')]),
 
-        # Alternating row colors
-        ('ROWBACKGROUNDS', (1, 1), (-1, -1), [colors.white, colors.HexColor('#F9F9F9')]),
-
-        # Grid
+        # Borders
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#9EBDD5')),
 
         # Padding
-        ('TOPPADDING', (0, 1), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
     ]))
 
     elements.append(table)

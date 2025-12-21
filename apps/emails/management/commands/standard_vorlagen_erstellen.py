@@ -19,7 +19,7 @@ class Command(BaseCommand):
                 'betreff': 'Anforderung Strafregisterauszug - {titel} {vorname} {nachname}',
                 'nachricht': '''Sehr geehrte Damen und Herren,
 
-im Rahmen des Zulassungsverfahrens für die Position als Notar/Notar-Anwärter benötigen wir für folgende Person einen aktuellen Strafregisterauszug:
+im Rahmen des Zulassungsverfahrens für die Position als Notar/Notariatskandidat benötigen wir für folgende Person einen aktuellen Strafregisterauszug:
 
 Name: {titel} {vorname} {nachname}
 E-Mail: {email}

@@ -62,6 +62,20 @@
 
             <form method="post">
                 {% csrf_token %}
+
+                <!-- Fertigstellungsdatum -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label" for="fertigstellungsdatum">
+                        <i class="bi bi-calendar-check"></i> Fertigstellungsdatum (Pflicht)
+                    </label>
+                    <input type="date" id="fertigstellungsdatum" name="fertigstellungsdatum" class="form-control" required
+                           min="{{ heute|date:'Y-m-d' }}"
+                           value="{% if workflow.fertigstellungsdatum %}{{ workflow.fertigstellungsdatum|date:'Y-m-d' }}{% endif %}">
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        Bis wann soll der Workflow abgeschlossen sein?
+                    </small>
+                </div>
+
                 <div style="display: flex; justify-content: space-between; gap: var(--spacing-md);">
                     <a href="{% url 'workflow_detail' workflow.id %}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Abbrechen

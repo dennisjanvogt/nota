@@ -495,7 +495,7 @@ class BestellungsprozessTest(TestCase):
             bestellt_am=timezone.now().date()
         )
 
-        # Erstelle Notar-Anwärter
+        # Erstelle Notariatskandidat
         self.notar_anwaerter = NotarAnwaerter.objects.create(
             vorname='Erika',
             nachname='Musterfrau',

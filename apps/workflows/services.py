@@ -16,7 +16,7 @@ class WorkflowService:
 
     @staticmethod
     @transaction.atomic
-    def workflow_erstellen(workflow_typ, name, erstellt_von, betroffene_person=None):
+    def workflow_erstellen(workflow_typ, name, erstellt_von):
         """
         Erstellt einen neuen Workflow und alle zugehörigen Schritt-Instanzen.
 
@@ -24,7 +24,6 @@ class WorkflowService:
             workflow_typ: Der Workflow-Typ (Template)
             name: Name des Workflows
             erstellt_von: Benutzer, der den Workflow erstellt
-            betroffene_person: Optional - betroffene Person (z.B. Notar-Anwärter)
 
         Returns:
             WorkflowInstanz: Der erstellte Workflow
@@ -34,8 +33,7 @@ class WorkflowService:
             workflow_typ=workflow_typ,
             name=name,
             status='entwurf',
-            erstellt_von=erstellt_von,
-            betroffene_person=betroffene_person
+            erstellt_von=erstellt_von
         )
 
         # Alle Schritt-Instanzen erstellen
@@ -80,6 +78,26 @@ class WorkflowService:
             WorkflowService.workflow_archivieren(workflow)
 
     @staticmethod
+    @transaction.atomic
+    def schritt_rueckgaengig_machen(schritt_instanz):
+        """
+        Setzt einen abgeschlossenen Schritt zurück auf 'pending'.
+        Falls der Workflow archiviert war, wird er wieder auf 'aktiv' gesetzt.
+
+        Args:
+            schritt_instanz: Die Schritt-Instanz
+        """
+        schritt_instanz.status = 'pending'
+        schritt_instanz.save()
+
+        # Falls Workflow archiviert war, wieder aktivieren
+        workflow = schritt_instanz.workflow_instanz
+        if workflow.status == 'archiviert':
+            workflow.status = 'aktiv'
+            workflow.archiviert_am = None
+            workflow.save()
+
+    @staticmethod
     def workflow_archivieren(workflow_instanz):
         """
         Archiviert einen Workflow (Status = 'archiviert').
@@ -94,17 +112,19 @@ class WorkflowService:
     @staticmethod
     def offene_workflows_holen():
         """
-        Liefert alle aktiven Workflows.
+        Liefert alle offenen Workflows (nicht archiviert).
 
         Returns:
-            QuerySet: Alle aktiven Workflow-Instanzen
+            QuerySet: Alle offenen Workflow-Instanzen (Entwurf und Aktiv)
         """
-        return WorkflowInstanz.objects.filter(
-            status='aktiv'
+        return WorkflowInstanz.objects.exclude(
+            status='archiviert'
         ).select_related(
             'workflow_typ',
-            'erstellt_von',
-            'betroffene_person'
+            'erstellt_von'
+        ).prefetch_related(
+            'betroffene_notare',
+            'betroffene_kandidaten'
         ).order_by('-erstellt_am')
 
     @staticmethod

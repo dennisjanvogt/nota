@@ -53,9 +53,9 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="id_anwaerter" class="form-label">Notar-Anwärter</label>
+                                <label for="id_anwaerter" class="form-label">Notariatskandidat</label>
                                 <select name="anwaerter_id" id="id_anwaerter" class="form-control person-select">
-                                    <option value="">--- Kein Anwärter ---</option>
+                                    <option value="">--- Kein Kandidat ---</option>
                                     {% for anwaerter in anwaerter %}
                                         <option value="{{ anwaerter.id }}"
                                                 data-vorname="{{ anwaerter.vorname }}"

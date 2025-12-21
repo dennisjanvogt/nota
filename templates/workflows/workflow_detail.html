@@ -9,7 +9,10 @@
     <div class="page-header-top">
         <div>
             <h1 class="page-title">
-                <i class="bi bi-diagram-3"></i> {{ workflow.name }}
+                <i class="bi bi-diagram-3"></i> <span id="workflowNameDisplay">{{ workflow.name }}</span>
+                <button type="button" onclick="openEditNameModal()" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); margin-left: 8px; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-primary)'; this.style.color='var(--primary-color)'" onmouseout="this.style.background='none'; this.style.color='var(--text-secondary)'">
+                    <i class="bi bi-pencil"></i>
+                </button>
             </h1>
             <p class="page-subtitle">
                 {% if workflow.kennung %}
@@ -22,59 +25,172 @@
     </div>
 </div>
 
-<!-- Two-Column Layout -->
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
-    <!-- Main Column -->
-    <div>
-        <!-- Status und Fortschritt Card -->
-        <div class="card" style="margin-bottom: var(--spacing-lg);">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <i class="bi bi-info-circle"></i> Status und Fortschritt
-                </h2>
+<!-- Edit Name Modal -->
+<div id="editNameModal" class="modal-overlay" onclick="closeEditNameModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;">
+                <i class="bi bi-pencil"></i> Workflow-Name bearbeiten
+            </h3>
+            <button type="button" class="modal-close" onclick="closeEditNameModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <form id="editNameForm" onsubmit="saveWorkflowName(event)">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" id="workflowNameInput" name="name" class="form-control" value="{{ workflow.name }}" required>
+                </div>
             </div>
-            <div class="card-body">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
-                    <!-- Left Info -->
-                    <div>
-                        <div style="margin-bottom: var(--spacing-md);">
-                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Status:</strong>
-                            {% if workflow.status == 'entwurf' %}
-                                <span class="badge badge-secondary">{{ workflow.get_status_display }}</span>
-                            {% elif workflow.status == 'aktiv' %}
-                                <span class="badge badge-success">{{ workflow.get_status_display }}</span>
-                            {% elif workflow.status == 'archiviert' %}
-                                <span class="badge badge-primary">{{ workflow.get_status_display }}</span>
-                            {% endif %}
-                        </div>
-                        <div style="margin-bottom: var(--spacing-md);">
-                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt von:</strong>
-                            <div>{{ workflow.erstellt_von.get_full_name|default:workflow.erstellt_von.username }}</div>
-                        </div>
-                        <div>
-                            <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt am:</strong>
-                            <div>{{ workflow.erstellt_am|date:"d.m.Y H:i" }}</div>
-                        </div>
-                    </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditNameModal()">
+                    <i class="bi bi-x-circle"></i> Abbrechen
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Speichern
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-                    <!-- Right Progress -->
-                    <div>
-                        <strong style="display: block; margin-bottom: var(--spacing-sm); color: var(--text-secondary); font-size: 13px;">Fortschritt:</strong>
-                        <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
-                            <div class="progress" style="flex: 1; height: 30px;">
-                                <div class="progress-bar" style="width: {{ workflow.fortschritt_prozent }}%;"></div>
-                            </div>
-                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); min-width: 50px;">
-                                {{ workflow.fortschritt_prozent }}%
-                            </div>
-                        </div>
-                        <div style="font-size: 14px; color: var(--text-secondary);">
-                            {{ schritte|length }} Schritte gesamt
-                        </div>
+<!-- Edit Fertigstellungsdatum Modal -->
+<div id="editDatumModal" class="modal-overlay" onclick="closeEditDatumModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;">
+                <i class="bi bi-calendar-check"></i> Fertigstellungsdatum bearbeiten
+            </h3>
+            <button type="button" class="modal-close" onclick="closeEditDatumModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <form id="editDatumForm" onsubmit="saveFertigstellungsdatum(event)">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Fertigstellungsdatum</label>
+                    <input type="date" id="fertigstellungsdatumInput" name="fertigstellungsdatum" class="form-control"
+                           value="{% if workflow.fertigstellungsdatum %}{{ workflow.fertigstellungsdatum|date:'Y-m-d' }}{% endif %}"
+                           min="{{ heute|date:'Y-m-d' }}">
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        Bis wann soll der Workflow abgeschlossen sein?
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditDatumModal()">
+                    <i class="bi bi-x-circle"></i> Abbrechen
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Speichern
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Status und Fortschritt Card - Full Width -->
+<div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="bi bi-info-circle"></i> Status und Fortschritt
+        </h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: auto auto auto 1fr auto; gap: var(--spacing-xl); align-items: center;">
+            <!-- Status -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Status:</strong>
+                {% if workflow.status == 'entwurf' %}
+                    <span class="badge badge-secondary">{{ workflow.get_status_display }}</span>
+                {% elif workflow.status == 'aktiv' %}
+                    <span class="badge badge-success">{{ workflow.get_status_display }}</span>
+                {% elif workflow.status == 'archiviert' %}
+                    <span class="badge badge-primary">{{ workflow.get_status_display }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Erstellt von -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt von:</strong>
+                <div>{{ workflow.erstellt_von.get_full_name|default:workflow.erstellt_von.username }}</div>
+            </div>
+
+            <!-- Erstellt am -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Erstellt am:</strong>
+                <div>{{ workflow.erstellt_am|date:"d.m.Y H:i" }}</div>
+            </div>
+
+            <!-- Fertigstellungsdatum -->
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Fertigstellung:</strong>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    {% if workflow.fertigstellungsdatum %}
+                        <span id="fertigstellungsdatumDisplay">{{ workflow.fertigstellungsdatum|date:"d.m.Y" }}</span>
+                        {% if workflow.deadline_status == 'ueberfaellig' %}
+                            <span class="badge badge-danger" style="font-size: 11px;">Überfällig</span>
+                        {% elif workflow.deadline_status == '1_tag' %}
+                            <span class="badge badge-warning" style="font-size: 11px;">≤ 1 Tag</span>
+                        {% elif workflow.deadline_status == '5_tage' %}
+                            <span class="badge badge-primary" style="font-size: 11px;">≤ 5 Tage</span>
+                        {% endif %}
+                        <button type="button" onclick="openEditDatumModal()" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 2px 6px; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-primary)'; this.style.color='var(--primary-color)'" onmouseout="this.style.background='none'; this.style.color='var(--text-secondary)'">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    {% else %}
+                        <span style="color: var(--text-secondary);">Nicht gesetzt</span>
+                        <button type="button" onclick="openEditDatumModal()" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 2px 6px; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-primary)'; this.style.color='var(--primary-color)'" onmouseout="this.style.background='none'; this.style.color='var(--text-secondary)'">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Betroffene Personen -->
+            {% with alle_personen=workflow.alle_betroffenen_personen %}
+            {% if alle_personen %}
+            <div>
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">
+                    <i class="bi bi-people"></i> Betroffene Personen:
+                </strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    {% for person in alle_personen %}
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: {% if person.typ == 'notar' %}rgba(255, 107, 0, 0.1){% else %}rgba(13, 110, 253, 0.1){% endif %}; color: {% if person.typ == 'notar' %}#ff6b00{% else %}#0d6efd{% endif %}; border: 1px solid {% if person.typ == 'notar' %}rgba(255, 107, 0, 0.3){% else %}rgba(13, 110, 253, 0.3){% endif %}; border-radius: 6px; font-size: 13px; font-weight: 500;">
+                        <span style="font-size: 10px;">{% if person.typ == 'notar' %}●{% else %}●{% endif %}</span>
+                        {{ person.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- Fortschritt -->
+            <div style="min-width: 250px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Fortschritt:</strong>
+                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                    <div class="progress" style="flex: 1; height: 24px;">
+                        <div class="progress-bar" style="width: {{ workflow.fortschritt_prozent }}%;"></div>
                     </div>
+                    <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); min-width: 45px;">
+                        {{ workflow.fortschritt_prozent }}%
+                    </div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                    {{ schritte|length }} Schritte gesamt
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div style="display: grid; grid-template-columns: 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+    <div>
 
         <!-- Workflow-Schritte Card -->
         <div class="card">
@@ -128,9 +244,15 @@
                                     <i class="bi bi-check"></i> Abhaken
                                 </a>
                             {% elif schritt.status == 'completed' %}
-                                <span class="badge badge-success">
+                                <span class="badge badge-success" style="margin-bottom: 4px;">
                                     <i class="bi bi-check-circle"></i> Erledigt
                                 </span>
+                                <form method="post" action="{% url 'schritt_rueckgaengig' schritt.id %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Schritt wirklich rückgängig machen?')">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Rückgängig
+                                    </button>
+                                </form>
                             {% endif %}
                         </div>
                     </div>
@@ -138,45 +260,17 @@
                 {% endfor %}
             </div>
         </div>
-    </div>
-
-    <!-- Sidebar Column -->
-    <div>
-        <!-- Betroffene Person -->
-        {% if workflow.betroffene_person %}
-        <div class="card" style="margin-bottom: var(--spacing-lg);">
-            <div class="card-header">
-                <h3 class="card-title" style="font-size: 16px;">
-                    <i class="bi bi-person"></i> Betroffene Person
-                </h3>
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: var(--spacing-sm);">
-                    <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Name:</strong>
-                    <div style="font-weight: 500;">
-                        {{ workflow.betroffene_person.vorname }} {{ workflow.betroffene_person.nachname }}
-                    </div>
-                </div>
-                <div>
-                    <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">ID:</strong>
-                    <div style="font-family: 'SF Mono', 'Monaco', monospace; color: var(--primary-color);">
-                        {{ workflow.betroffene_person.anwaerter_id }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
 
         <!-- Notizen -->
         {% if workflow.notizen %}
-        <div class="card">
+        <div class="card" style="margin-top: var(--spacing-lg);">
             <div class="card-header">
-                <h3 class="card-title" style="font-size: 16px;">
+                <h2 class="card-title">
                     <i class="bi bi-sticky"></i> Notizen
-                </h3>
+                </h2>
             </div>
             <div class="card-body">
-                <p style="margin: 0; font-size: 14px;">{{ workflow.notizen }}</p>
+                <p style="margin: 0; font-size: 14px; white-space: pre-wrap;">{{ workflow.notizen }}</p>
             </div>
         </div>
         {% endif %}
@@ -187,13 +281,115 @@
 
 {% block extra_css %}
 <style>
-    @media (max-width: 1024px) {
-        div[style*="grid-template-columns: 2fr 1fr"] {
+    @media (max-width: 1200px) {
+        div[style*="grid-template-columns: auto auto auto 1fr auto"] {
             grid-template-columns: 1fr !important;
+            gap: var(--spacing-md) !important;
         }
-        div[style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
+        div[style*="grid-template-columns: auto auto auto 1fr auto"] > div {
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+        }
+        div[style*="grid-template-columns: auto auto auto 1fr auto"] > div:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
         }
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openEditNameModal() {
+    document.getElementById('editNameModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('workflowNameInput').focus();
+}
+
+function closeEditNameModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('editNameModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function saveWorkflowName(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const newName = formData.get('name');
+
+    fetch('{% url "workflow_name_aendern" workflow.id %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('workflowNameDisplay').textContent = newName;
+            document.title = newName + ' - Workflow Details';
+            closeEditNameModal();
+        } else {
+            alert('Fehler beim Speichern: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Fehler beim Speichern des Namens');
+    });
+}
+
+// Edit Fertigstellungsdatum Modal Functions
+function openEditDatumModal() {
+    document.getElementById('editDatumModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('fertigstellungsdatumInput').focus();
+}
+
+function closeEditDatumModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('editDatumModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function saveFertigstellungsdatum(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const newDatum = formData.get('fertigstellungsdatum');
+
+    fetch('{% url "workflow_datum_aendern" workflow.id %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload page to update all deadline displays
+            location.reload();
+        } else {
+            alert('Fehler beim Speichern: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Fehler beim Speichern des Datums');
+    });
+}
+
+// ESC key to close modals
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeEditNameModal();
+        closeEditDatumModal();
+    }
+});
+</script>
 {% endblock %}

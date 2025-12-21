@@ -12,7 +12,7 @@
 - **GesendeteEmail**: Protokolliert alle gesendeten E-Mails
   - Verknüpfung zur verwendeten Vorlage
   - Empfänger, Betreff, Nachricht
-  - Verknüpfung zu Notar oder Anwärter
+  - Verknüpfung zu Notar oder Kandidat
   - Erfolgsstatus und Fehlerprotokollierung
 
 ### 2. Funktionen
@@ -22,7 +22,7 @@
 - ✅ Standard-Empfänger konfigurierbar
 - ✅ Vor dem Senden können E-Mails noch bearbeitet werden
 - ✅ Alle gesendeten E-Mails werden protokolliert
-- ✅ Verknüpfung zu Notar/Anwärter für einfache Nachverfolgung
+- ✅ Verknüpfung zu Notar/Kandidat für einfache Nachverfolgung
 
 ### 3. URLs
 - `/emails/vorlagen/` - Liste aller E-Mail-Vorlagen
@@ -157,7 +157,7 @@ Notariatskammer
 
 1. **Vorlage erstellen:** Gehen Sie zu "E-Mail-Vorlagen" → "Neue Vorlage"
 2. **E-Mail senden:**
-   - Von der Notar-/Anwärter-Detailseite
+   - Von der Notar-/Kandidaten-Detailseite
    - Wählen Sie die gewünschte Vorlage
    - Platzhalter werden automatisch ersetzt
    - Passen Sie bei Bedarf Empfänger oder Text an

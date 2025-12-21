@@ -9,7 +9,7 @@
 ### 2. Echte österreichische Daten importiert
 - ✅ 30 Notarstellen aus allen Bundesländern
 - ✅ 40 Notare mit realistischen Namen
-- ✅ 20 Notar-Anwärter
+- ✅ 20 Notariatskandidat
 - ✅ Dummy-Daten entfernt
 
 ### 3. CRUD-System erstellt für Notarstellen
@@ -48,7 +48,7 @@ templates/notarstellen/
 - notar_loeschen_view()
 ```
 
-### 3. CRUD Views für Notar-Anwärter
+### 3. CRUD Views für Notariatskandidat
 ```python
 # apps/personen/views.py - Hinzufügen:
 - anwaerter_erstellen_view()
@@ -56,7 +56,7 @@ templates/notarstellen/
 - anwaerter_loeschen_view()
 ```
 
-### 4. URLs für Notare & Anwärter
+### 4. URLs für Notare & Kandidat
 ```python
 # apps/personen/urls.py - Ergänzen:
 - /personen/notare/neu/
@@ -84,7 +84,7 @@ templates/personen/
 
 1. **Notarstellen-Templates erstellen** (Vorlage unten)
 2. **Dieselben CRUD-Views für Notare erstellen** (nach gleichem Muster)
-3. **Dieselben CRUD-Views für Anwärter erstellen** (nach gleichem Muster)
+3. **Dieselben CRUD-Views für Kandidat erstellen** (nach gleichem Muster)
 4. **Alle Liste-Templates aktualisieren** (Links auf eigene Seiten)
 
 ## 🎯 Vorlage für Form-Template
@@ -206,7 +206,7 @@ Hier ist eine Vorlage für `notarstelle_loeschen.html`:
 
 ## 💡 Wie weiter?
 
-Die Templates können einfach kopiert und für Notare/Anwärter angepasst werden:
+Die Templates können einfach kopiert und für Notare/Kandidat angepasst werden:
 1. `notarstelle_form.html` → `notar_form.html` (nur URL ändern)
 2. `notarstelle_loeschen.html` → `notar_loeschen.html` (nur Felder anpassen)
 

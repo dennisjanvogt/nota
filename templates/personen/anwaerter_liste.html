@@ -1,72 +1,82 @@
 {% extends 'base_modern.html' %}
 {% load static %}
 
-{% block title %}Notar-Anwärter - Notariatskammer Verwaltung{% endblock %}
+{% block title %}Notariatskandidat - Notariatskammer Verwaltung{% endblock %}
 
 {% block content %}
 <!-- Page Header -->
 <div class="page-header">
-    <div class="page-header-top">
-        <div>
-            <h1 class="page-title">Notar-Anwärter</h1>
-            <p class="page-subtitle">Übersicht aller registrierten Notar-Anwärter</p>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-xl);">
+        <!-- Title Section -->
+        <div style="flex-shrink: 0;">
+            <h1 class="page-title">Notariatskandidat</h1>
+            <p class="page-subtitle">Übersicht aller registrierten Notariatskandidat</p>
         </div>
-        <div class="page-actions">
+
+        <!-- Statistics Cards -->
+        <div style="display: flex; justify-content: center; gap: 32px; flex: 1;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div class="stat-card-icon blue" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-person-plus" style="font-size: 24px;"></i>
+                </div>
+                <div class="stat-card-value" style="font-size: 28px; font-weight: 700; margin: 0;">{{ stats.total }}</div>
+                <div class="stat-card-label" style="font-size: 13px;">Gesamt</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div class="stat-card-icon green" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-check-circle" style="font-size: 24px;"></i>
+                </div>
+                <div class="stat-card-value" style="font-size: 28px; font-weight: 700; margin: 0;">{{ stats.aktiv }}</div>
+                <div class="stat-card-label" style="font-size: 13px;">Aktiv</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div class="stat-card-icon orange" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-person-check" style="font-size: 24px;"></i>
+                </div>
+                <div class="stat-card-value" style="font-size: 28px; font-weight: 700; margin: 0;">{{ stats.mit_betreuung }}</div>
+                <div class="stat-card-label" style="font-size: 13px;">Mit Betreuung</div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+            <a href="{% url 'anwaerter_erstellen' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Neuer Kandidat
+            </a>
+            <button type="button" class="btn btn-secondary" onclick="openFilterModal()">
+                <i class="bi bi-funnel"></i>
+                <span id="filterButtonText">Filter</span>
+            </button>
             <button type="button" id="vergleichenBtn" class="btn btn-secondary" style="display: none;" onclick="anwaerterVergleichen()">
                 <i class="bi bi-people"></i>
                 <span id="vergleichenText">Vergleichen (0)</span>
             </button>
-            <a href="{% url 'anwaerter_erstellen' %}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i>
-                Neuer Anwärter
-            </a>
         </div>
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-card-icon blue">
-            <i class="bi bi-person-plus"></i>
+<!-- Filter Modal -->
+<div id="filterModal" class="modal-overlay" onclick="closeFilterModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;">
+                <i class="bi bi-funnel"></i> Filter & Suche
+            </h3>
+            <button type="button" class="modal-close" onclick="closeFilterModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
-        <div class="stat-card-label">Gesamt</div>
-        <div class="stat-card-value">{{ stats.total }}</div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-card-icon green">
-            <i class="bi bi-check-circle"></i>
-        </div>
-        <div class="stat-card-label">Aktiv</div>
-        <div class="stat-card-value">{{ stats.aktiv }}</div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-card-icon orange">
-            <i class="bi bi-calendar-event"></i>
-        </div>
-        <div class="stat-card-label">Bestellung geplant</div>
-        <div class="stat-card-value">{{ stats.mit_planung }}</div>
-    </div>
-</div>
-
-<!-- Filter & Search Card -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Filter & Suche</h2>
-    </div>
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-4">
-                <div class="form-group">
+        <form method="get" id="filterForm">
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: var(--spacing-md);">
                     <label class="form-label">Suche</label>
                     <input type="text" name="search" class="form-control"
                            placeholder="Name, ID oder E-Mail..." value="{{ search }}">
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: var(--spacing-md);">
                     <label class="form-label">Status</label>
                     <select name="status" class="form-control">
                         <option value="">Alle</option>
@@ -74,34 +84,31 @@
                         <option value="inaktiv" {% if status_filter == 'inaktiv' %}selected{% endif %}>Inaktiv</option>
                     </select>
                 </div>
-            </div>
-            <div class="col-md-3">
                 <div class="form-group">
                     <label class="form-label">Notarstelle</label>
                     <select name="notarstelle" class="form-control">
                         <option value="">Alle</option>
                         {% for notarstelle in notarstellen %}
-                        <option value="{{ notarstelle.id }}" {% if notarstelle_filter == notarstelle.id|stringformat:"s" %}selected{% endif %}>
+                        <option value="{{ notarstelle.bezeichnung }}" {% if notarstelle_filter == notarstelle.bezeichnung %}selected{% endif %}>
                             {{ notarstelle.name }}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="form-group">
-                    <label class="form-label">&nbsp;</label>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        <i class="bi bi-search"></i>
-                        Filtern
-                    </button>
-                </div>
+            <div class="modal-footer">
+                <a href="{% url 'anwaerter_liste' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Zurücksetzen
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Anwenden
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Anwärter Table -->
+<!-- Kandidat Table -->
 <div class="table-container">
     <table class="table">
         <thead>
@@ -109,12 +116,9 @@
                 <th style="width: 40px;">
                     <input type="checkbox" id="selectAll" onchange="toggleAllAnwaerter(this)" style="cursor: pointer;">
                 </th>
-                <th>Anwärter-ID</th>
                 <th>Name</th>
                 <th>Notarstelle</th>
-                <th>Betreuender Notar</th>
                 <th>Kontakt</th>
-                <th>Zugelassen am</th>
                 <th>Status</th>
                 <th>Aktionen</th>
             </tr>
@@ -127,23 +131,8 @@
                         <input type="checkbox" class="anwaerter-checkbox" data-anwaerter-id="{{ anw.anwaerter_id }}" onchange="updateVergleichenButton()" style="cursor: pointer;">
                     </td>
                     <td>
-                        <strong>{{ anw.anwaerter_id }}</strong>
-                    </td>
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                                {{ anw.vorname.0 }}{{ anw.nachname.0 }}
-                            </div>
-                            <div>
-                                <div style="font-weight: 500;">
-                                    {% if anw.titel %}{{ anw.titel }} {% endif %}{{ anw.vorname }} {{ anw.nachname }}
-                                </div>
-                                {% if anw.geplante_bestellung %}
-                                <div style="font-size: 12px; color: var(--warning);">
-                                    <i class="bi bi-calendar-event"></i> Bestellung geplant: {{ anw.geplante_bestellung|date:"d.m.Y" }}
-                                </div>
-                                {% endif %}
-                            </div>
+                        <div style="font-weight: 500;">
+                            {% if anw.titel %}{{ anw.titel }} {% endif %}{{ anw.vorname }} {{ anw.nachname }}
                         </div>
                     </td>
                     <td>
@@ -151,17 +140,10 @@
                         <div style="font-size: 12px; color: var(--text-secondary);">
                             {{ anw.notarstelle.stadt }}
                         </div>
-                    </td>
-                    <td>
-                        {% if anw.betreuender_notar %}
-                        <div style="font-size: 13px;">
-                            {{ anw.betreuender_notar.vorname }} {{ anw.betreuender_notar.nachname }}
+                        {% if anw.notarstelle.sprengel %}
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                            <i class="bi bi-geo-alt"></i> Sprengel: {{ anw.notarstelle.sprengel.bezeichnung }}
                         </div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">
-                            {{ anw.betreuender_notar.notar_id }}
-                        </div>
-                        {% else %}
-                        <span style="color: var(--text-secondary); font-size: 13px;">—</span>
                         {% endif %}
                     </td>
                     <td>
@@ -174,7 +156,6 @@
                         </div>
                         {% endif %}
                     </td>
-                    <td>{{ anw.zugelassen_am|date:"d.m.Y" }}</td>
                     <td>
                         {% if anw.ist_aktiv and not anw.ende_datum %}
                         <span class="badge badge-success">
@@ -188,10 +169,10 @@
                     </td>
                     <td>
                         <div style="display: flex; gap: 4px;">
-                            <a href="{% url 'anwaerter_detail' anw.anwaerter_id %}" class="btn btn-secondary btn-sm">
+                            <a href="{% url 'anwaerter_detail' anw.anwaerter_id %}" class="btn btn-secondary btn-sm" title="Details">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{% url 'anwaerter_bearbeiten' anw.anwaerter_id %}" class="btn btn-secondary btn-sm">
+                            <a href="{% url 'anwaerter_bearbeiten' anw.anwaerter_id %}" class="btn btn-secondary btn-sm" title="Bearbeiten">
                                 <i class="bi bi-pencil"></i>
                             </a>
                         </div>
@@ -200,23 +181,23 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="9">
+                    <td colspan="7">
                         <div class="empty-state">
                             <div class="empty-state-icon">
                                 <i class="bi bi-person-plus"></i>
                             </div>
-                            <h3 class="empty-state-title">Keine Notar-Anwärter gefunden</h3>
+                            <h3 class="empty-state-title">Keine Notariatskandidat gefunden</h3>
                             <p class="empty-state-text">
                                 {% if search or status_filter or notarstelle_filter %}
-                                Keine Anwärter entsprechen den gewählten Filterkriterien.
+                                Keine Kandidat entsprechen den gewählten Filterkriterien.
                                 {% else %}
-                                Es sind noch keine Notar-Anwärter im System erfasst.
+                                Es sind noch keine Notariatskandidat im System erfasst.
                                 {% endif %}
                             </p>
                             {% if not search and not status_filter and not notarstelle_filter %}
                             <a href="{% url 'anwaerter_erstellen' %}" class="btn btn-primary">
                                 <i class="bi bi-plus-lg"></i>
-                                Ersten Anwärter anlegen
+                                Ersten Kandidat anlegen
                             </a>
                             {% endif %}
                         </div>
@@ -232,7 +213,7 @@
 <div class="card" style="margin-top: var(--spacing-lg);">
     <div class="card-body" style="text-align: center; color: var(--text-secondary); font-size: 14px;">
         <i class="bi bi-info-circle"></i>
-        {{ anwaerter.count }} Anwärter gefunden
+        {{ anwaerter.count }} Kandidat gefunden
         {% if search or status_filter or notarstelle_filter %}
         <a href="{% url 'anwaerter_liste' %}" style="margin-left: 12px; color: var(--primary-color);">
             Alle Filter zurücksetzen
@@ -312,16 +293,16 @@ function anwaerterVergleichen() {
     const anwaerterIds = Array.from(checkboxes).map(cb => cb.dataset.anwaerterId);
 
     if (anwaerterIds.length < 2) {
-        alert('Bitte wählen Sie mindestens 2 Anwärter zum Vergleichen aus.');
+        alert('Bitte wählen Sie mindestens 2 Kandidat zum Vergleichen aus.');
         return;
     }
 
     if (anwaerterIds.length > 3) {
-        alert('Sie können maximal 3 Anwärter gleichzeitig vergleichen.');
+        alert('Sie können maximal 3 Kandidat gleichzeitig vergleichen.');
         return;
     }
 
-    // URL mit Anwärter-IDs erstellen
+    // URL mit Kandidaten-IDs erstellen
     const params = anwaerterIds.map(id => `anwaerter=${id}`).join('&');
     window.location.href = `{% url 'anwaerter_vergleichen' %}?${params}`;
 }
@@ -329,6 +310,42 @@ function anwaerterVergleichen() {
 // Initial update
 document.addEventListener('DOMContentLoaded', function() {
     updateVergleichenButton();
+    updateFilterButtonText();
+});
+
+// Filter Modal Functions
+function openFilterModal() {
+    document.getElementById('filterModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFilterModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('filterModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function updateFilterButtonText() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeFilters = 0;
+
+    if (urlParams.get('search')) activeFilters++;
+    if (urlParams.get('status')) activeFilters++;
+    if (urlParams.get('notarstelle')) activeFilters++;
+
+    const buttonText = document.getElementById('filterButtonText');
+    if (activeFilters > 0) {
+        buttonText.textContent = `Filter (${activeFilters})`;
+    } else {
+        buttonText.textContent = 'Filter';
+    }
+}
+
+// ESC key to close modal
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeFilterModal();
+    }
 });
 </script>
 {% endblock %}

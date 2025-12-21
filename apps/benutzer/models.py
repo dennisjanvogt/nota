@@ -41,6 +41,14 @@ class KammerBenutzer(AbstractUser):
         verbose_name='Telefon'
     )
 
+    profilbild = models.ImageField(
+        upload_to='profilbilder/',
+        blank=True,
+        null=True,
+        verbose_name='Profilbild',
+        help_text='Profilbild des Benutzers'
+    )
+
     class Meta:
         verbose_name = 'Kammermitarbeiter'
         verbose_name_plural = 'Kammermitarbeiter'

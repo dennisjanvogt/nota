@@ -1,7 +1,9 @@
 """
 Forms für Notarstellen-Verwaltung.
 """
+import re
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import Notarstelle
 
 
@@ -11,7 +13,6 @@ class NotarstelleForm(forms.ModelForm):
     class Meta:
         model = Notarstelle
         fields = [
-            'notarnummer',
             'bezeichnung',
             'name',
             'strasse',
@@ -25,8 +26,7 @@ class NotarstelleForm(forms.ModelForm):
             'notiz',
         ]
         widgets = {
-            'notarnummer': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'z.B. 1'}),
-            'bezeichnung': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'z.B. NOT-1'}),
+            'bezeichnung': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NST-000001'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'z.B. Notariat Wien 1'}),
             'strasse': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'z.B. Stephansplatz 3'}),
             'plz': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'z.B. 1010'}),
@@ -49,3 +49,12 @@ class NotarstelleForm(forms.ModelForm):
             'besetzt_seit': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'notiz': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
+
+    def clean_bezeichnung(self):
+        """Validiert das Format der Notarstellen-Bezeichnung: NST-000001"""
+        bezeichnung = self.cleaned_data.get('bezeichnung')
+        if bezeichnung and not re.match(r'^NST-\d{6}$', bezeichnung):
+            raise ValidationError(
+                'Ungültiges Format. Erwartetes Format: NST-000001 (3 Buchstaben, Bindestrich, 6 Ziffern)'
+            )
+        return bezeichnung

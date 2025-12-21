@@ -14,176 +14,245 @@
     </div>
 </div>
 
-<div style="max-width: 900px; margin: 0 auto;">
-    <!-- Info Card -->
-    <div class="card" style="margin-bottom: var(--spacing-lg); border-left: 4px solid var(--secondary-blue);">
-        <div class="card-body">
-            <div style="display: flex; align-items: start; gap: var(--spacing-md);">
-                <div style="color: var(--secondary-blue); font-size: 24px;">
-                    <i class="bi bi-info-circle"></i>
+<!-- Info Card -->
+<div class="card" style="margin-bottom: var(--spacing-lg); border-left: 4px solid var(--secondary-blue);">
+    <div class="card-body">
+        <div style="display: flex; align-items: start; gap: var(--spacing-md);">
+            <div style="color: var(--secondary-blue); font-size: 24px;">
+                <i class="bi bi-info-circle"></i>
+            </div>
+            <div>
+                <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">Workflow-Template</div>
+                <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+                    Ein Template definiert die Struktur und Schritte eines Workflows. Sie können aus diesem Template beliebig viele Workflow-Instanzen erstellen.
                 </div>
-                <div>
-                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">Workflow-Template</div>
-                    <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
-                        Ein Template definiert die Struktur und Schritte eines Workflows. Sie können aus diesem Template beliebig viele Workflow-Instanzen erstellen.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Layout -->
+<form method="post" id="templateForm">
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+
+        <!-- Left Column: Basis-Informationen -->
+        <div>
+            <div class="card" style="position: sticky; top: 20px;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--primary-color), #7BA8C4); color: white;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <i class="bi bi-info-square"></i>
+                        Basis-Informationen
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% csrf_token %}
+
+                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                        <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: block;">
+                            <i class="bi bi-tag" style="color: var(--primary-color);"></i>
+                            {{ form.name.label }} *
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                            {{ form.name.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                        <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: block;">
+                            <i class="bi bi-code-square" style="color: var(--primary-color);"></i>
+                            {{ form.kuerzel.label }} *
+                        </label>
+                        {{ form.kuerzel }}
+                        <small style="display: block; margin-top: 4px; font-size: 12px; color: var(--text-secondary);">
+                            <i class="bi bi-info-circle"></i> z.B. BES, BP, NOT
+                        </small>
+                        {% if form.kuerzel.errors %}
+                        <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                            {{ form.kuerzel.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                        <label class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: block;">
+                            <i class="bi bi-text-paragraph" style="color: var(--primary-color);"></i>
+                            {{ form.beschreibung.label }}
+                        </label>
+                        {{ form.beschreibung }}
+                        {% if form.beschreibung.errors %}
+                        <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
+                            {{ form.beschreibung.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div style="padding: var(--spacing-md); background: var(--background-hover); border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                        <div class="form-check">
+                            {{ form.ist_aktiv }}
+                            <label class="form-check-label" for="{{ form.ist_aktiv.id_for_label }}" style="font-weight: 500;">
+                                <i class="bi bi-toggle-on" style="color: var(--success-color);"></i>
+                                {{ form.ist_aktiv.label }}
+                            </label>
+                        </div>
+                        <small style="display: block; margin-top: 4px; margin-left: 24px; font-size: 12px; color: var(--text-secondary);">
+                            Aktive Templates können für neue Workflows verwendet werden
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Workflow-Schritte -->
+        <div>
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #28a745, #20c997); color: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="bi bi-list-check"></i>
+                            Workflow-Schritte
+                        </h3>
+                        <button type="button" class="btn btn-sm" onclick="openReorderModal()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.2s;">
+                            <i class="bi bi-arrow-down-up"></i>
+                            Reihenfolge ändern
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body" style="background: #f8f9fa;">
+                    <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm); background: white; border-left: 3px solid var(--primary-color); border-radius: 4px;">
+                        <div style="font-size: 13px; color: var(--text-secondary);">
+                            <i class="bi bi-lightbulb" style="color: #ffc107;"></i>
+                            <strong>Tipp:</strong> Klicken Sie auf "Reihenfolge ändern" um Schritte per Drag & Drop zu sortieren
+                        </div>
+                    </div>
+
+                    {{ formset.management_form }}
+
+                    <div id="schritte-formset">
+                        {% for schritt_form in formset %}
+                        <div class="schritt-form" data-index="{{ forloop.counter0 }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 2px solid #e9ecef; border-radius: 8px; background: white; transition: all 0.2s;">
+                            {{ schritt_form.id }}
+                            {{ schritt_form.reihenfolge }}
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 2px solid #f1f3f5;">
+                                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #28a745, #20c997); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px;">
+                                        <span class="schritt-nummer">{{ forloop.counter }}</span>
+                                    </div>
+                                    <strong style="color: var(--text-primary); font-size: 14px;">Schritt {{ forloop.counter }}</strong>
+                                </div>
+                                {% if formset.can_delete %}
+                                <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--danger-color); cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;">
+                                    {{ schritt_form.DELETE }}
+                                    <i class="bi bi-trash"></i>
+                                </label>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: var(--spacing-sm);">
+                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-pencil-square" style="color: #6c757d;"></i>
+                                    {{ schritt_form.name.label }} *
+                                </label>
+                                {{ schritt_form.name }}
+                                {% if schritt_form.name.errors %}
+                                <div style="color: var(--danger-color); font-size: 12px; margin-top: 4px;">
+                                    {{ schritt_form.name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: var(--spacing-sm);">
+                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-chat-text" style="color: #6c757d;"></i>
+                                    {{ schritt_form.beschreibung.label }}
+                                </label>
+                                {{ schritt_form.beschreibung }}
+                                {% if schritt_form.beschreibung.errors %}
+                                <div style="color: var(--danger-color); font-size: 12px; margin-top: 4px;">
+                                    {{ schritt_form.beschreibung.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Service-Auswahl -->
+                            <div class="form-group" style="margin-bottom: var(--spacing-sm);">
+                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-tools" style="color: #6c757d;"></i>
+                                    {{ schritt_form.service.label }}
+                                </label>
+                                {{ schritt_form.service }}
+                                {% if schritt_form.service.help_text %}
+                                <small style="display: block; margin-top: 4px; font-size: 12px; color: var(--text-secondary);">
+                                    <i class="bi bi-info-circle"></i> {{ schritt_form.service.help_text }}
+                                </small>
+                                {% endif %}
+                                {% if schritt_form.service.errors %}
+                                <div style="color: var(--danger-color); font-size: 12px; margin-top: 4px;">
+                                    {{ schritt_form.service.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- E-Mail-Vorlage-Auswahl -->
+                            <div class="form-group" style="margin-bottom: var(--spacing-sm);">
+                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-envelope" style="color: #6c757d;"></i>
+                                    {{ schritt_form.email_vorlage.label }}
+                                </label>
+                                {{ schritt_form.email_vorlage }}
+                                {% if schritt_form.email_vorlage.help_text %}
+                                <small style="display: block; margin-top: 4px; font-size: 12px; color: var(--text-secondary);">
+                                    <i class="bi bi-info-circle"></i> {{ schritt_form.email_vorlage.help_text }}
+                                </small>
+                                {% endif %}
+                                {% if schritt_form.email_vorlage.errors %}
+                                <div style="color: var(--danger-color); font-size: 12px; margin-top: 4px;">
+                                    {{ schritt_form.email_vorlage.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div style="padding: 8px 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <div class="form-check">
+                                    {{ schritt_form.ist_optional }}
+                                    <label class="form-check-label" for="{{ schritt_form.ist_optional.id_for_label }}" style="font-size: 13px; font-weight: 500; color: #6c757d;">
+                                        <i class="bi bi-check-circle"></i>
+                                        {{ schritt_form.ist_optional.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Schritt hinzufügen Button -->
+                    <div style="margin-top: var(--spacing-md); text-align: center;">
+                        <button type="button" class="btn btn-success" id="add-schritt-btn" style="padding: 10px 20px; font-weight: 500;">
+                            <i class="bi bi-plus-circle"></i> Schritt hinzufügen
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Form Card -->
+    <!-- Buttons -->
     <div class="card">
-        <div class="card-body">
-            <form method="post" id="templateForm">
-                {% csrf_token %}
-
-                <!-- Basis-Informationen -->
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                    Basis-Informationen
-                </h3>
-
-                <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                    <label class="form-label">{{ form.name.label }} *</label>
-                    {{ form.name }}
-                    {% if form.name.help_text %}
-                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
-                        {{ form.name.help_text }}
-                    </small>
-                    {% endif %}
-                    {% if form.name.errors %}
-                    <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
-                        {{ form.name.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                    <label class="form-label">{{ form.kuerzel.label }} *</label>
-                    {{ form.kuerzel }}
-                    {% if form.kuerzel.help_text %}
-                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
-                        {{ form.kuerzel.help_text }}
-                    </small>
-                    {% endif %}
-                    {% if form.kuerzel.errors %}
-                    <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
-                        {{ form.kuerzel.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                    <label class="form-label">{{ form.beschreibung.label }}</label>
-                    {{ form.beschreibung }}
-                    {% if form.beschreibung.help_text %}
-                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
-                        {{ form.beschreibung.help_text }}
-                    </small>
-                    {% endif %}
-                    {% if form.beschreibung.errors %}
-                    <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
-                        {{ form.beschreibung.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
-                    <div class="form-check">
-                        {{ form.ist_aktiv }}
-                        <label class="form-check-label" for="{{ form.ist_aktiv.id_for_label }}">
-                            {{ form.ist_aktiv.label }}
-                        </label>
-                    </div>
-                    {% if form.ist_aktiv.help_text %}
-                    <small style="display: block; margin-top: 4px; margin-left: 24px; font-size: 13px; color: var(--text-secondary);">
-                        {{ form.ist_aktiv.help_text }}
-                    </small>
-                    {% endif %}
-                </div>
-
-                <!-- Workflow-Schritte -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-                    <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm); flex: 1;">
-                        <i class="bi bi-list-check"></i> Workflow-Schritte
-                    </h3>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="openReorderModal()" style="margin-left: var(--spacing-md);">
-                        <i class="bi bi-arrow-down-up"></i>
-                        Reihenfolge ändern
-                    </button>
-                </div>
-
-                <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm); background: var(--background-hover); border-radius: var(--border-radius); font-size: 13px; color: var(--text-secondary);">
-                    <i class="bi bi-info-circle"></i> Definieren Sie die einzelnen Schritte des Workflows. Klicken Sie auf "Reihenfolge ändern" um die Schritte neu zu sortieren.
-                </div>
-
-                {{ formset.management_form }}
-
-                <div id="schritte-formset">
-                    {% for schritt_form in formset %}
-                    <div class="schritt-form" data-index="{{ forloop.counter0 }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--card-background);">
-                        {{ schritt_form.id }}
-                        {{ schritt_form.reihenfolge }}
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                            <strong style="color: var(--text-primary);" class="schritt-nummer">Schritt {{ forloop.counter }}</strong>
-                            <div>
-                                {% if formset.can_delete %}
-                                <label style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--danger-color); cursor: pointer;">
-                                    {{ schritt_form.DELETE }}
-                                    {% if schritt_form.instance.pk %}
-                                    Löschen
-                                    {% endif %}
-                                </label>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: var(--spacing-sm);">
-                            <label class="form-label">{{ schritt_form.name.label }} *</label>
-                            {{ schritt_form.name }}
-                            {% if schritt_form.name.errors %}
-                            <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
-                                {{ schritt_form.name.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: var(--spacing-sm);">
-                            <label class="form-label">{{ schritt_form.beschreibung.label }}</label>
-                            {{ schritt_form.beschreibung }}
-                            {% if schritt_form.beschreibung.errors %}
-                            <div style="color: var(--danger-color); font-size: 13px; margin-top: 4px;">
-                                {{ schritt_form.beschreibung.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <div class="form-check">
-                                {{ schritt_form.ist_optional }}
-                                <label class="form-check-label" for="{{ schritt_form.ist_optional.id_for_label }}">
-                                    {{ schritt_form.ist_optional.label }}
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Buttons -->
-                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
-                    <a href="{% if template %}{% url 'workflow_template_detail' template.id %}{% else %}{% url 'workflow_template_liste' %}{% endif %}" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Abbrechen
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check"></i> {{ submit_text }}
-                    </button>
-                </div>
-            </form>
+        <div class="card-body" style="background: #f8f9fa;">
+            <div style="display: flex; justify-content: space-between; gap: var(--spacing-md); align-items: center;">
+                <a href="{% if template %}{% url 'workflow_template_detail' template.id %}{% else %}{% url 'workflow_template_liste' %}{% endif %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Abbrechen
+                </a>
+                <button type="submit" class="btn btn-primary" style="padding: 12px 32px; font-size: 15px; font-weight: 600;">
+                    <i class="bi bi-check-circle"></i> {{ submit_text }}
+                </button>
+            </div>
         </div>
     </div>
-</div>
+</form>
 
 <!-- Reorder Modal -->
 <div id="reorderModal" class="modal-overlay" onclick="closeReorderModal(event)">
@@ -363,6 +432,70 @@
             transform: translateY(0);
         }
     }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1024px) {
+        /* Tablet: Collapse to single column */
+        form > div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Remove sticky positioning on smaller screens */
+        .card[style*="position: sticky"] {
+            position: static !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        /* Mobile: Smaller modal */
+        .modal-content {
+            width: 95%;
+            max-height: 90vh;
+        }
+
+        /* Smaller padding on cards */
+        .card-body {
+            padding: var(--spacing-md);
+        }
+
+        /* Smaller buttons in header */
+        .card-header button {
+            padding: 4px 8px !important;
+            font-size: 12px !important;
+        }
+
+        /* Stack buttons vertically */
+        div[style*="justify-content: space-between"] {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+    }
+
+    /* Service und E-Mail-Vorlagen Select Styling */
+    .form-group select[multiple] {
+        min-height: 80px;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 8px;
+    }
+
+    .form-group select[multiple] option {
+        padding: 6px 8px;
+        border-radius: 4px;
+        margin-bottom: 2px;
+    }
+
+    .form-group select[multiple] option:hover {
+        background-color: var(--background-hover);
+    }
+
+    .form-group select:not([multiple]) {
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 8px 12px;
+    }
 </style>
 {% endblock %}
 
@@ -497,10 +630,10 @@ function updateModalNumbers() {
 function updateReihenfolge() {
     const forms = document.querySelectorAll('.schritt-form');
     forms.forEach((form, index) => {
-        // Update die sichtbare Schritt-Nummer
+        // Update die sichtbare Schritt-Nummer im Badge
         const schrittNummer = form.querySelector('.schritt-nummer');
         if (schrittNummer) {
-            schrittNummer.textContent = `Schritt ${index + 1}`;
+            schrittNummer.textContent = index + 1;
         }
 
         // Update das versteckte reihenfolge-Feld
@@ -528,6 +661,76 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape') {
             closeReorderModal();
         }
+    });
+
+    // Schritt hinzufügen Funktion
+    document.getElementById('add-schritt-btn').addEventListener('click', function() {
+        const formsetContainer = document.getElementById('schritte-formset');
+        const totalFormsInput = document.querySelector('input[name="schritte-TOTAL_FORMS"]');
+        const currentFormCount = parseInt(totalFormsInput.value);
+
+        // Hole das letzte Formular als Template
+        const lastForm = formsetContainer.querySelector('.schritt-form:last-of-type');
+        if (!lastForm) return;
+
+        // Klone das letzte Formular
+        const newForm = lastForm.cloneNode(true);
+
+        // Update Form Index
+        const newIndex = currentFormCount;
+
+        // Ersetze alle Vorkommen des alten Index mit dem neuen Index
+        newForm.innerHTML = newForm.innerHTML.replace(
+            /schritte-\d+-/g,
+            `schritte-${newIndex}-`
+        );
+        newForm.innerHTML = newForm.innerHTML.replace(
+            /id_schritte-\d+-/g,
+            `id_schritte-${newIndex}-`
+        );
+
+        // Setze die Werte aller Inputs zurück (außer reihenfolge)
+        newForm.querySelectorAll('input:not([type="hidden"]), textarea, select').forEach(input => {
+            if (!input.name.includes('reihenfolge')) {
+                if (input.type === 'checkbox') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+            }
+        });
+
+        // Setze Reihenfolge
+        const reihenfolgeInput = newForm.querySelector('input[name$="-reihenfolge"]');
+        if (reihenfolgeInput) {
+            reihenfolgeInput.value = newIndex + 1;
+        }
+
+        // Update Schritt-Nummer in der Anzeige
+        const schrittNummer = newForm.querySelector('.schritt-nummer');
+        if (schrittNummer) {
+            schrittNummer.textContent = newIndex + 1;
+        }
+
+        const schrittHeader = newForm.querySelector('strong');
+        if (schrittHeader) {
+            schrittHeader.textContent = `Schritt ${newIndex + 1}`;
+        }
+
+        // Update data-index
+        newForm.setAttribute('data-index', newIndex);
+
+        // Füge das neue Formular hinzu
+        formsetContainer.appendChild(newForm);
+
+        // Erhöhe TOTAL_FORMS
+        totalFormsInput.value = newIndex + 1;
+
+        // Scroll zum neuen Formular
+        newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Highlight-Effekt
+        newForm.style.animation = 'slideIn 0.3s ease-out';
     });
 });
 </script>

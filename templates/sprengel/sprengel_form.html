@@ -1,0 +1,167 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-geo-alt"></i> {{ title }}
+            </h1>
+            {% if sprengel %}
+            <p class="page-subtitle">
+                <code style="font-size: 14px; font-weight: 600;">{{ sprengel.bezeichnung }}</code>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Bezeichnung -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label" for="id_bezeichnung">
+                        <i class="bi bi-tag"></i> Bezeichnung (Pflicht)
+                    </label>
+                    {{ form.bezeichnung }}
+                    {% if form.bezeichnung.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.bezeichnung.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        Format: SPR-000001 (wird automatisch generiert)
+                    </small>
+                </div>
+
+                <!-- Name -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label" for="id_name">
+                        <i class="bi bi-fonts"></i> Name (Pflicht)
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.name.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        z.B. "Sprengel Wien Innere Stadt"
+                    </small>
+                </div>
+
+                <!-- Gerichtsbezirk -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label" for="id_gerichtsbezirk">
+                        <i class="bi bi-bank"></i> Gerichtsbezirk (Pflicht)
+                    </label>
+                    {{ form.gerichtsbezirk }}
+                    {% if form.gerichtsbezirk.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.gerichtsbezirk.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        Zugehöriger Gerichtsbezirk
+                    </small>
+                </div>
+
+                <!-- Bundesland -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label" for="id_bundesland">
+                        <i class="bi bi-map"></i> Bundesland (Pflicht)
+                    </label>
+                    {{ form.bundesland }}
+                    {% if form.bundesland.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.bundesland.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Beschreibung -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label" for="id_beschreibung">
+                        <i class="bi bi-text-paragraph"></i> Beschreibung (Optional)
+                    </label>
+                    {{ form.beschreibung }}
+                    {% if form.beschreibung.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.beschreibung.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        Zusätzliche Informationen zum Sprengel
+                    </small>
+                </div>
+
+                <!-- Status -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        {{ form.ist_aktiv }}
+                        <label for="id_ist_aktiv" style="margin: 0; cursor: pointer;">
+                            <strong>Sprengel ist aktiv</strong>
+                        </label>
+                    </div>
+                    {% if form.ist_aktiv.errors %}
+                        <div class="invalid-feedback" style="display: block;">
+                            {{ form.ist_aktiv.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+                    {% if sprengel %}
+                    <a href="{% url 'sprengel_detail' sprengel.bezeichnung %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Abbrechen
+                    </a>
+                    {% else %}
+                    <a href="{% url 'sprengel_liste' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Abbrechen
+                    </a>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i>
+                        {% if sprengel %}Speichern{% else %}Erstellen{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Form styling */
+    .form-control {
+        width: 100%;
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .invalid-feedback {
+        color: var(--danger-color);
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    /* Checkbox styling */
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

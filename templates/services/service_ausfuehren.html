@@ -1,0 +1,170 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}{{ service.name }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>
+        <i class="bi bi-{{ service.icon }}"></i>
+        {{ service.name }}
+    </h1>
+    <p class="text-muted">{{ service.kategorie.name }}</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Service ausführen</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> Beschreibung</h6>
+                    <div style="white-space: pre-wrap;">{{ service.beschreibung }}</div>
+                </div>
+
+                {% if service.service_id == 'anwaerter_zu_notar_befoerdern' %}
+                <div class="alert alert-danger">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Warnung</h6>
+                    <strong>Diese Aktion kann nicht rückgängig gemacht werden!</strong>
+                    <p class="mb-0">Der Kandidat wird als inaktiv markiert und ein neuer Notar-Eintrag wird erstellt.</p>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Fehler:</strong>
+                        <ul class="mb-0">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Formular-Felder -->
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ field.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn {{ service.button_css_class }} btn-lg">
+                            <i class="bi bi-{{ service.icon }}"></i>
+                            {{ service.button_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Service-Information</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th>Service-ID:</th>
+                        <td><code>{{ service.service_id }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Kategorie:</th>
+                        <td>{{ service.kategorie.name }}</td>
+                    </tr>
+                    {% if service.erforderliche_rolle %}
+                    <tr>
+                        <th>Berechtigung:</th>
+                        <td>
+                            <span class="badge bg-warning text-dark">
+                                {{ service.erforderliche_rolle }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Aktiv:</th>
+                        <td>
+                            {% if service.ist_aktiv %}
+                            <span class="badge bg-success">Ja</span>
+                            {% else %}
+                            <span class="badge bg-danger">Nein</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+
+                {% if workflow_instanz %}
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-diagram-3"></i>
+                    <strong>Workflow-Kontext</strong>
+                    <p class="mb-0 small">
+                        Workflow: {{ workflow_instanz.name }}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">Ausführungs-Historie</h6>
+            </div>
+            <div class="card-body">
+                {% with service.ausfuehrungen.all|slice:":5" as letzte_ausfuehrungen %}
+                    {% if letzte_ausfuehrungen %}
+                    <ul class="list-unstyled small">
+                        {% for ausfuehrung in letzte_ausfuehrungen %}
+                        <li class="mb-2">
+                            {% if ausfuehrung.erfolgreich %}
+                            <span class="text-success">✓</span>
+                            {% else %}
+                            <span class="text-danger">✗</span>
+                            {% endif %}
+                            {{ ausfuehrung.erstellt_am|date:"d.m.Y H:i" }}
+                            <br>
+                            <small class="text-muted">{{ ausfuehrung.ausgefuehrt_von.get_full_name|default:ausfuehrung.ausgefuehrt_von.username }}</small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted small mb-0">Noch keine Ausführungen</p>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'service_katalog' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zum Katalog
+    </a>
+</div>
+{% endblock %}

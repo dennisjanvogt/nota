@@ -123,6 +123,28 @@
                                         {{ schritt.beschreibung }}
                                     </div>
                                     {% endif %}
+
+                                    {% if schritt.service %}
+                                    <div style="margin-top: 8px; padding: 8px 12px; background: #e7f3ff; border-left: 3px solid #0d6efd; border-radius: 4px;">
+                                        <div style="font-size: 12px; font-weight: 600; color: #0d6efd; margin-bottom: 2px;">
+                                            <i class="bi bi-{{ schritt.service.icon }}"></i> Service
+                                        </div>
+                                        <div style="font-size: 13px; color: #495057;">
+                                            {{ schritt.service.name }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if schritt.email_vorlage %}
+                                    <div style="margin-top: 8px; padding: 8px 12px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 4px;">
+                                        <div style="font-size: 12px; font-weight: 600; color: #856404; margin-bottom: 2px;">
+                                            <i class="bi bi-envelope"></i> E-Mail-Vorlage
+                                        </div>
+                                        <div style="font-size: 13px; color: #495057;">
+                                            {{ schritt.email_vorlage.name }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

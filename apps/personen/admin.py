@@ -1,5 +1,5 @@
 """
-Admin-Konfiguration für Personen (Notare und Notar-Anwärter).
+Admin-Konfiguration für Personen (Notare und Notariatskandidaten).
 """
 from django.contrib import admin
 from .models import Notar, NotarAnwaerter
@@ -10,7 +10,6 @@ class NotarAdmin(admin.ModelAdmin):
     """Admin für Notare."""
 
     list_display = [
-        'notar_id',
         'get_voller_name',
         'notarstelle',
         'bestellt_am',
@@ -44,6 +43,12 @@ class NotarAdmin(admin.ModelAdmin):
 
     readonly_fields = ['erstellt_am', 'aktualisiert_am']
 
+    def get_readonly_fields(self, request, obj=None):
+        """Macht notar_id read-only nach Erstellung."""
+        if obj:  # Bearbeiten
+            return self.readonly_fields + ['notar_id']
+        return self.readonly_fields
+
     def ist_aktiv_beschaeftigt(self, obj):
         """Zeigt ob Notar aktiv beschäftigt ist."""
         return obj.ist_aktiv_beschaeftigt()
@@ -51,17 +56,16 @@ class NotarAdmin(admin.ModelAdmin):
     ist_aktiv_beschaeftigt.boolean = True
 
     def anzahl_betreute_anwaerter(self, obj):
-        """Zeigt Anzahl der betreuten Anwärter."""
+        """Zeigt Anzahl der betreuten Kandidaten."""
         return obj.anzahl_betreute_anwaerter()
-    anzahl_betreute_anwaerter.short_description = 'Betreute Anwärter'
+    anzahl_betreute_anwaerter.short_description = 'Betreute Kandidaten'
 
 
 @admin.register(NotarAnwaerter)
 class NotarAnwaerterAdmin(admin.ModelAdmin):
-    """Admin für Notar-Anwärter."""
+    """Admin für Notariatskandidaten."""
 
     list_display = [
-        'anwaerter_id',
         'get_voller_name',
         'betreuender_notar',
         'notarstelle',
@@ -78,7 +82,7 @@ class NotarAnwaerterAdmin(admin.ModelAdmin):
         ('Persönliche Daten', {
             'fields': ('titel', 'vorname', 'nachname', 'email', 'telefon')
         }),
-        ('Anwärter-Daten', {
+        ('Kandidaten-Daten', {
             'fields': (
                 'anwaerter_id',
                 'betreuender_notar',
@@ -102,14 +106,20 @@ class NotarAnwaerterAdmin(admin.ModelAdmin):
 
     readonly_fields = ['erstellt_am', 'aktualisiert_am']
 
+    def get_readonly_fields(self, request, obj=None):
+        """Macht anwaerter_id read-only nach Erstellung."""
+        if obj:  # Bearbeiten
+            return self.readonly_fields + ['anwaerter_id']
+        return self.readonly_fields
+
     def ist_aktiv_beschaeftigt(self, obj):
-        """Zeigt ob Anwärter aktiv ist."""
+        """Zeigt ob Kandidat aktiv ist."""
         return obj.ist_aktiv_beschaeftigt()
     ist_aktiv_beschaeftigt.short_description = 'Aktiv'
     ist_aktiv_beschaeftigt.boolean = True
 
     def dauer_in_monaten(self, obj):
-        """Zeigt Dauer der Anwärterzeit."""
+        """Zeigt Dauer der Kandidatenzeit."""
         monate = obj.dauer_in_monaten()
         return f"{monate} Monate"
     dauer_in_monaten.short_description = 'Dauer'

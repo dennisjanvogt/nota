@@ -1,0 +1,70 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Zum Notar ernennen - {{ anwaerter.get_voller_name }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-person-badge"></i> Zum Notar ernennen
+            </h1>
+            <p class="page-subtitle">{{ anwaerter.get_voller_name }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Card -->
+<div class="card" style="max-width: 800px; margin: 0 auto; border-left: 4px solid var(--warning);">
+    <div class="card-header" style="background: linear-gradient(135deg, #FF9500, #FFCC00); color: white;">
+        <h2 class="card-title" style="color: white; margin: 0;">
+            <i class="bi bi-exclamation-triangle"></i> Bestätigung erforderlich
+        </h2>
+    </div>
+    <div class="card-body" style="padding: var(--spacing-xl);">
+        <div style="margin-bottom: var(--spacing-xl);">
+            <p style="font-size: 16px; line-height: 1.8; margin-bottom: var(--spacing-lg);">
+                Sie sind dabei, <strong>{{ anwaerter.get_voller_name }}</strong> zum Notar zu ernennen.
+            </p>
+
+            <div style="padding: var(--spacing-lg); background: var(--bg-primary); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg);">
+                <h3 style="font-size: 15px; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary);">
+                    Was passiert bei der Ernennung?
+                </h3>
+                <ul style="margin: 0; padding-left: 20px; line-height: 2;">
+                    <li>Eine neue Notar-ID wird automatisch generiert</li>
+                    <li>Alle Daten (Name, E-Mail, Telefon, Notarstelle) werden übernommen</li>
+                    <li>Der Notar wird als "war vorher Kandidat" markiert</li>
+                    <li>Der Kandidaten-Status wird auf "Inaktiv" gesetzt</li>
+                    <li>Eine Notiz über die Umwandlung wird hinzugefügt</li>
+                </ul>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label" style="font-weight: 600;">
+                        <i class="bi bi-calendar-event"></i> Bestellt am *
+                    </label>
+                    <input type="date" name="bestellt_am" class="form-control" required>
+                    <small style="display: block; margin-top: 4px; color: var(--text-secondary);">
+                        Datum der offiziellen Bestellung zum Notar
+                    </small>
+                </div>
+
+                <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end; padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+                    <a href="{% url 'anwaerter_detail' anwaerter.anwaerter_id %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Abbrechen
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Zum Notar ernennen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

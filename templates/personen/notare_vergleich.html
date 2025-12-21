@@ -98,7 +98,7 @@
                     </td>
                     {% for notar in notare %}
                     <td style="text-align: center;">
-                        <a href="{% url 'notarstelle_detail' notar.notarstelle.id %}">{{ notar.notarstelle.name }}</a>
+                        <a href="{% url 'notarstelle_detail' notar.notarstelle.bezeichnung %}">{{ notar.notarstelle.name }}</a>
                     </td>
                     {% endfor %}
                 </tr>
@@ -177,10 +177,10 @@
                     {% endfor %}
                 </tr>
 
-                <!-- War vorher Anwärter -->
+                <!-- War vorher Kandidat -->
                 <tr>
                     <td style="font-weight: 600; background: var(--bg-primary); position: sticky; left: 0; z-index: 5;">
-                        <i class="bi bi-arrow-up-circle"></i> War vorher Anwärter
+                        <i class="bi bi-arrow-up-circle"></i> War vorher Kandidat
                     </td>
                     {% for notar in notare %}
                     <td style="text-align: center;">

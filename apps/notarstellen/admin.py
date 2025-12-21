@@ -10,7 +10,6 @@ class NotarstelleAdmin(admin.ModelAdmin):
     """Admin für Notarstellen."""
 
     list_display = [
-        'notarnummer',
         'bezeichnung',
         'name',
         'stadt',
@@ -19,12 +18,12 @@ class NotarstelleAdmin(admin.ModelAdmin):
         'ist_aktiv'
     ]
     list_filter = ['ist_aktiv', 'bundesland', 'stadt']
-    search_fields = ['notarnummer', 'bezeichnung', 'name', 'stadt']
-    ordering = ['notarnummer']
+    search_fields = ['bezeichnung', 'name', 'stadt']
+    ordering = ['bezeichnung']
 
     fieldsets = (
         ('Grunddaten', {
-            'fields': ('notarnummer', 'bezeichnung', 'name', 'ist_aktiv')
+            'fields': ('bezeichnung', 'name', 'ist_aktiv')
         }),
         ('Adresse', {
             'fields': ('strasse', 'plz', 'stadt', 'bundesland')
@@ -44,12 +43,18 @@ class NotarstelleAdmin(admin.ModelAdmin):
 
     readonly_fields = ['erstellt_am', 'aktualisiert_am']
 
+    def get_readonly_fields(self, request, obj=None):
+        """Macht bezeichnung read-only nach Erstellung (ist PK!)."""
+        if obj:  # Bearbeiten
+            return self.readonly_fields + ['bezeichnung']
+        return self.readonly_fields
+
     def anzahl_notare(self, obj):
         """Zeigt Anzahl der Notare."""
         return obj.anzahl_notare()
     anzahl_notare.short_description = 'Notare'
 
     def anzahl_anwaerter(self, obj):
-        """Zeigt Anzahl der Anwärter."""
+        """Zeigt Anzahl der Kandidat."""
         return obj.anzahl_anwaerter()
-    anzahl_anwaerter.short_description = 'Anwärter'
+    anzahl_anwaerter.short_description = 'Kandidat'

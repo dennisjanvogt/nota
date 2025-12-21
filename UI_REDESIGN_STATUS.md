@@ -26,7 +26,7 @@ Die Hauptarbeit des UI-Redesigns ist fertig! Alle wichtigen Templates verwenden 
   - `notare_liste_view` - Liste mit Suche & Filter
   - `notar_detail_view` - Detail-Ansicht
 
-- ✅ **Notar-Anwärter** (`apps/personen/views.py` + `urls.py`):
+- ✅ **Notariatskandidat** (`apps/personen/views.py` + `urls.py`):
   - `anwaerter_liste_view` - Liste mit Suche & Filter
   - `anwaerter_detail_view` - Detail-Ansicht
 
@@ -36,7 +36,7 @@ Die Hauptarbeit des UI-Redesigns ist fertig! Alle wichtigen Templates verwenden 
 
 - ✅ **URL-Konfiguration** (`config/urls.py`):
   - `/personen/notare/` - Notare-Verwaltung
-  - `/personen/anwaerter/` - Anwärter-Verwaltung
+  - `/personen/anwaerter/` - Kandidaten-Verwaltung
   - `/notarstellen/` - Notarstellen-Verwaltung
 
 ### 4. Templates (Beispiele)
@@ -141,7 +141,7 @@ Die `notare_liste.html` dient als Vorlage. Für neue Templates:
 {% endblock %}
 ```
 
-3. **Anpassen** an spezifische Daten (z.B. Anwärter statt Notare)
+3. **Anpassen** an spezifische Daten (z.B. Kandidat statt Notare)
 
 ### Schritt 2: Bestehende Templates umstellen
 
@@ -296,7 +296,7 @@ Die folgenden Aufgaben wurden erfolgreich abgeschlossen:
 
 3. ✅ **Alle Listen-Templates erstellt**
    - `notare_liste.html` - Vollständiges Beispiel mit Filtern
-   - `anwaerter_liste.html` - Angepasst für Notar-Anwärter
+   - `anwaerter_liste.html` - Angepasst für Notariatskandidat
    - `notarstellen_liste.html` - Angepasst für Notarstellen
 
 4. 📝 **Detail-Templates** (Optional für später)

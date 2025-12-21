@@ -23,6 +23,15 @@ class EmailVorlage(models.Model):
         verbose_name='Name der Vorlage',
         help_text='z.B. "Anfrage Strafregisterauszug"'
     )
+    workflow_typ = models.ForeignKey(
+        'workflows.WorkflowTyp',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='email_vorlagen',
+        verbose_name='Workflow-Typ',
+        help_text='Zuordnung zu einem Workflow (leer = Allgemeine Vorlage)'
+    )
     kategorie = models.CharField(
         max_length=50,
         choices=KATEGORIE_CHOICES,
@@ -51,6 +60,16 @@ class EmailVorlage(models.Model):
         default=True,
         verbose_name='Aktiv'
     )
+
+    # Anhänge
+    standard_anhaenge = models.ManyToManyField(
+        'services.Dokument',
+        blank=True,
+        related_name='email_vorlagen',
+        verbose_name='Standard-Anhänge',
+        help_text='Dokumente die standardmäßig angehängt werden'
+    )
+
     erstellt_am = models.DateTimeField(auto_now_add=True)
     aktualisiert_am = models.DateTimeField(auto_now=True)
 
@@ -89,7 +108,7 @@ class GesendeteEmail(models.Model):
     betreff = models.CharField(max_length=200, verbose_name='Betreff')
     nachricht = models.TextField(verbose_name='Nachricht')
 
-    # Verlinkung zu Notar oder Anwärter
+    # Verlinkung zu Notar oder Kandidat
     notar = models.ForeignKey(
         'personen.Notar',
         on_delete=models.SET_NULL,
@@ -104,7 +123,23 @@ class GesendeteEmail(models.Model):
         null=True,
         blank=True,
         related_name='gesendete_emails',
-        verbose_name='Anwärter'
+        verbose_name='Kandidat'
+    )
+
+    # Anhänge und Service-Verknüpfung
+    anhaenge = models.ManyToManyField(
+        'services.Dokument',
+        blank=True,
+        related_name='versendungen',
+        verbose_name='Anhänge'
+    )
+    service_ausfuehrung = models.ForeignKey(
+        'services.ServiceAusfuehrung',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='gesendete_emails',
+        verbose_name='Service-Ausführung'
     )
 
     erfolgreich = models.BooleanField(

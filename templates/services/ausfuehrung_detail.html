@@ -1,0 +1,212 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}Service-Ausführung #{{ ausfuehrung.id }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>
+        {% if ausfuehrung.erfolgreich %}
+        <span class="text-success"><i class="bi bi-check-circle"></i></span>
+        {% else %}
+        <span class="text-danger"><i class="bi bi-x-circle"></i></span>
+        {% endif %}
+        Service-Ausführung #{{ ausfuehrung.id }}
+    </h1>
+    <p class="text-muted">{{ ausfuehrung.service.name }}</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Ergebnis -->
+        <div class="card mb-4">
+            <div class="card-header {% if ausfuehrung.erfolgreich %}bg-success{% else %}bg-danger{% endif %} text-white">
+                <h5 class="mb-0">
+                    {% if ausfuehrung.erfolgreich %}
+                    <i class="bi bi-check-circle"></i> Erfolgreich
+                    {% else %}
+                    <i class="bi bi-x-circle"></i> Fehlgeschlagen
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if ausfuehrung.erfolgreich %}
+                    <p class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Der Service wurde erfolgreich ausgeführt.
+                    </p>
+
+                    {% if ausfuehrung.ergebnis_daten %}
+                    <hr>
+                    <h6>Ergebnis-Daten</h6>
+                    <pre class="bg-light p-3 rounded" style="max-height: 400px; overflow: auto; white-space: pre-wrap; word-wrap: break-word;"><code>{{ ausfuehrung.ergebnis_daten|safe }}</code></pre>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-danger mb-0">
+                        <h6><i class="bi bi-exclamation-triangle"></i> Fehler</h6>
+                        <pre class="mb-0">{{ ausfuehrung.fehlermeldung }}</pre>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Generierte Dokumente -->
+        {% if dokumente %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-files"></i> Generierte Dokumente ({{ dokumente.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for dokument in dokumente %}
+                    <a href="{{ dokument.datei.url }}" target="_blank" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="bi bi-file-earmark-pdf text-danger"></i>
+                                {{ dokument.titel }}
+                            </h6>
+                            <small>{{ dokument.dateigroesse_mb }} MB</small>
+                        </div>
+                        <p class="mb-1 small">{{ dokument.beschreibung }}</p>
+                        <small class="text-muted">{{ dokument.get_dokument_typ_display }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Gesendete E-Mails -->
+        {% if emails %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-envelope"></i> Gesendete E-Mails ({{ emails.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for email in emails %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                {% if email.erfolgreich %}
+                                <span class="text-success"><i class="bi bi-check-circle"></i></span>
+                                {% else %}
+                                <span class="text-danger"><i class="bi bi-x-circle"></i></span>
+                                {% endif %}
+                                {{ email.betreff }}
+                            </h6>
+                            <small>{{ email.gesendet_am|date:"d.m.Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1">
+                            <strong>An:</strong> {{ email.empfaenger }}
+                            {% if email.cc_empfaenger %}
+                            <br><strong>CC:</strong> {{ email.cc_empfaenger }}
+                            {% endif %}
+                        </p>
+                        {% if email.anhaenge.count > 0 %}
+                        <p class="mb-1 small">
+                            <i class="bi bi-paperclip"></i>
+                            {{ email.anhaenge.count }} Anhang{{ email.anhaenge.count|pluralize:"e" }}
+                        </p>
+                        {% endif %}
+                        {% if not email.erfolgreich %}
+                        <div class="alert alert-danger small mt-2 mb-0">
+                            <strong>Fehler:</strong> {{ email.fehler }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- Service-Details -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">Ausführungs-Details</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th>Service:</th>
+                        <td>{{ ausfuehrung.service.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Kategorie:</th>
+                        <td>{{ ausfuehrung.service.kategorie.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Ausgeführt von:</th>
+                        <td>{{ ausfuehrung.ausgefuehrt_von.get_full_name|default:ausfuehrung.ausgefuehrt_von.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Datum:</th>
+                        <td>{{ ausfuehrung.erstellt_am|date:"d.m.Y H:i:s" }}</td>
+                    </tr>
+                    {% if ausfuehrung.dauer_sekunden %}
+                    <tr>
+                        <th>Dauer:</th>
+                        <td>{{ ausfuehrung.dauer_sekunden }} Sekunden</td>
+                    </tr>
+                    {% endif %}
+                    {% if ausfuehrung.workflow_instanz %}
+                    <tr>
+                        <th>Workflow:</th>
+                        <td>
+                            <a href="{% url 'workflow_detail' ausfuehrung.workflow_instanz.id %}">
+                                {{ ausfuehrung.workflow_instanz.name }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Performance -->
+        {% if ausfuehrung.dauer_sekunden %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">Performance</h6>
+            </div>
+            <div class="card-body">
+                {% if ausfuehrung.dauer_sekunden < 1 %}
+                <div class="alert alert-success mb-0">
+                    <i class="bi bi-speedometer2"></i> Sehr schnell (&lt; 1s)
+                </div>
+                {% elif ausfuehrung.dauer_sekunden < 5 %}
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-speedometer"></i> Schnell (&lt; 5s)
+                </div>
+                {% elif ausfuehrung.dauer_sekunden < 30 %}
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-hourglass-split"></i> Normal (&lt; 30s)
+                </div>
+                {% else %}
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-hourglass"></i> Langsam ({{ ausfuehrung.dauer_sekunden }}s)
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    {% if ausfuehrung.workflow_instanz %}
+    <a href="{% url 'workflow_detail' ausfuehrung.workflow_instanz.id %}" class="btn btn-primary">
+        <i class="bi bi-diagram-3"></i> Zum Workflow
+    </a>
+    {% endif %}
+    <a href="{% url 'service_katalog' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zum Katalog
+    </a>
+</div>
+{% endblock %}

@@ -31,8 +31,7 @@ Dieser Workflow führt durch den gesamten Prozess:
 
 Das Verfahren generiert automatisch eine Geschäftszahl (z.B. BES-2025-0001).''',
                 'ist_aktiv': True,
-                'erlaube_parallele_schritte': False,
-                'erfordert_sequentielle_abarbeitung': True,
+                'kuerzel': 'BP',
             }
         )
 
@@ -52,21 +51,17 @@ Aufgaben:
 - Bewerbungsunterlagen einscannen (falls Original)
 - PDF-Dateien hochladen
 - Checkbox abhaken wenn alle Bewerbungen abgelegt sind''',
-                'geschaetzte_dauer_tage': 5,
-                'standard_zustaendige_rolle': 'sachbearbeiter',
                 'ist_optional': False,
             },
             {
                 'reihenfolge': 2,
                 'name': 'Bewerber auswählen',
-                'beschreibung': '''Aus allen eingegangenen Bewerbungen werden 3 Anwärter für das Verfahren ausgewählt.
+                'beschreibung': '''Aus allen eingegangenen Bewerbungen werden 3 Kandidat für das Verfahren ausgewählt.
 
 Aufgaben:
 - Bewerbungen sichten
 - 3 geeignete Kandidaten auswählen
 - Als "ausgewählt" markieren''',
-                'geschaetzte_dauer_tage': 3,
-                'standard_zustaendige_rolle': 'sachbearbeiter',
                 'ist_optional': False,
             },
             {
@@ -78,8 +73,6 @@ Aufgaben:
 - Vergleichsansicht öffnen (Button)
 - Stammblätter prüfen
 - Notizen zu jedem Bewerber machen''',
-                'geschaetzte_dauer_tage': 2,
-                'standard_zustaendige_rolle': 'sachbearbeiter',
                 'ist_optional': False,
             },
             {
@@ -91,8 +84,6 @@ Aufgaben:
 - E-Mail-Vorlage "Strafregisterauszug" nutzen
 - An alle 3 Bewerber senden
 - Eingang der Auszüge prüfen''',
-                'geschaetzte_dauer_tage': 14,  # Wartezeit auf Behörde
-                'standard_zustaendige_rolle': 'sachbearbeiter',
                 'ist_optional': False,
             },
             {
@@ -103,8 +94,6 @@ Aufgaben:
 Aufgaben:
 - E-Mail-Vorlage "Auswahl Besetzungsverfahren" nutzen
 - An alle 3 Bewerber senden''',
-                'geschaetzte_dauer_tage': 1,
-                'standard_zustaendige_rolle': 'sachbearbeiter',
                 'ist_optional': False,
             },
             {
@@ -116,8 +105,6 @@ Aufgaben:
 - Termin für Kammer-Sitzung festlegen
 - E-Mail-Vorlage "Einladung Kammer-Sitzung" nutzen
 - An alle 3 Bewerber senden''',
-                'geschaetzte_dauer_tage': 7,
-                'standard_zustaendige_rolle': 'sachbearbeiter',
                 'ist_optional': False,
             },
             {
@@ -129,8 +116,6 @@ Aufgaben:
 - Für jeden der 3 Bewerber Checkbox abhaken wenn Präsentation vorbereitet
 - Unterlagen zusammenstellen
 - Präsentationsfolien erstellen (optional)''',
-                'geschaetzte_dauer_tage': 5,
-                'standard_zustaendige_rolle': 'sachbearbeiter',
                 'ist_optional': False,
             },
             {
@@ -142,8 +127,6 @@ Aufgaben:
 - Bewerber vorstellen
 - Ranking festlegen (1., 2., 3. Platz)
 - Protokoll erstellen''',
-                'geschaetzte_dauer_tage': 1,
-                'standard_zustaendige_rolle': 'leitung',  # Präsident/Kammer
                 'ist_optional': False,
             },
             {
@@ -155,8 +138,6 @@ Aufgaben:
 - E-Mail an 1. Platz: "Bestellung erfolgt"
 - E-Mail an 2./3. Platz und andere: "Absage"
 - Weitere Schritte kommunizieren''',
-                'geschaetzte_dauer_tage': 1,
-                'standard_zustaendige_rolle': 'sachbearbeiter',
                 'ist_optional': False,
             },
             {
@@ -167,10 +148,8 @@ Aufgaben:
 Aufgaben:
 - Notarstelle zuweisen
 - Bestellungsdatum festlegen
-- Im System: Anwärter → Notar transformieren
+- Im System: Kandidat → Notar transformieren
 - Bestellungsurkunde ausstellen''',
-                'geschaetzte_dauer_tage': 7,
-                'standard_zustaendige_rolle': 'leitung',
                 'ist_optional': False,
             },
         ]
@@ -183,8 +162,6 @@ Aufgaben:
                 defaults={
                     'name': schritt_data['name'],
                     'beschreibung': schritt_data['beschreibung'],
-                    'geschaetzte_dauer_tage': schritt_data['geschaetzte_dauer_tage'],
-                    'standard_zustaendige_rolle': schritt_data['standard_zustaendige_rolle'],
                     'ist_optional': schritt_data['ist_optional'],
                 }
             )

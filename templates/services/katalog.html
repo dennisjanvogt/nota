@@ -1,0 +1,81 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}Service-Katalog - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="bi bi-tools"></i> Service-Katalog</h1>
+            <p class="text-muted">Verfügbare Services und Automatisierungen ({{ anzahl_services }} Services)</p>
+        </div>
+        <div>
+            <a href="{% url 'service_historie' %}" class="btn btn-outline-primary">
+                <i class="bi bi-clock-history"></i> Historie anzeigen
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if kategorien_mit_services %}
+    {% for item in kategorien_mit_services %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-{{ item.kategorie.icon|default:'folder' }}"></i>
+                {{ item.kategorie.name }}
+                <span class="badge bg-light text-dark float-end">{{ item.services|length }}</span>
+            </h5>
+            {% if item.kategorie.beschreibung %}
+            <small>{{ item.kategorie.beschreibung }}</small>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for service in item.services %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="bi bi-{{ service.icon }}"></i>
+                                {{ service.name }}
+                            </h6>
+                            <p class="card-text small text-muted">
+                                {{ service.beschreibung|truncatewords:20 }}
+                            </p>
+                            {% if service.erforderliche_rolle %}
+                            <p class="small">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-shield-lock"></i>
+                                    Berechtigung: {{ service.erforderliche_rolle }}
+                                </span>
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{% url 'service_ausfuehren' service.service_id %}"
+                               class="btn {{ service.button_css_class }} btn-sm w-100">
+                                <i class="bi bi-{{ service.icon }}"></i>
+                                {{ service.button_text }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        Keine Services verfügbar oder keine Berechtigung.
+    </div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zum Dashboard
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}DMS - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>
+        <i class="bi bi-folder2-open"></i>
+        Dokumentenmanagementsystem (DMS)
+    </h1>
+    <p class="text-muted">Zentrale Ablage für alle durch Services und Berichte erstellten Dokumente</p>
+</div>
+
+<!-- Kompakte Info -->
+<div class="alert alert-info mb-4">
+    <i class="bi bi-info-circle"></i>
+    <strong>Hinweis:</strong> Hier finden Sie alle automatisch generierten Dokumente aus Services (Stammblätter, Besetzungsvorschläge, etc.) und Berichten.
+</div>
+
+<!-- Dokumente-Liste -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-files"></i> Dokumente
+            <span class="badge bg-primary float-end">{{ page_obj.paginator.count }}</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Titel</th>
+                        <th>Typ</th>
+                        <th>Service</th>
+                        <th>Erstellt von</th>
+                        <th>Datum</th>
+                        <th style="width: 120px;">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dokument in page_obj %}
+                    <tr>
+                        <td>
+                            <i class="bi bi-file-earmark-pdf text-danger"></i>
+                            <strong>{{ dokument.titel }}</strong>
+                            {% if dokument.beschreibung %}
+                            <br>
+                            <small class="text-muted">{{ dokument.beschreibung|truncatewords:10 }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                {{ dokument.get_dokument_typ_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if dokument.generiert_von_service %}
+                            {{ dokument.generiert_von_service.service.name }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if dokument.generiert_von_service %}
+                            {{ dokument.generiert_von_service.ausgefuehrt_von.get_full_name|default:dokument.generiert_von_service.ausgefuehrt_von.username }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ dokument.erstellt_am|date:"d.m.Y H:i" }}
+                            <br>
+                            <small class="text-muted">{{ dokument.erstellt_am|timesince }} her</small>
+                        </td>
+                        <td style="white-space: nowrap;">
+                            <button type="button" class="btn btn-sm btn-primary" title="Vorschau" style="margin-right: 4px;" onclick="showPdfPreview('{{ dokument.datei.url }}', '{{ dokument.titel|escapejs }}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <a href="{{ dokument.datei.url }}" download class="btn btn-sm btn-secondary" title="Herunterladen">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 48px; color: #ccc;"></i>
+            <p class="text-muted mt-3">Noch keine Dokumente vorhanden.</p>
+            <p class="small text-muted">
+                Dokumente werden automatisch erstellt, wenn Sie Services ausführen.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zum Dashboard
+    </a>
+</div>
+
+<!-- PDF Preview Modal -->
+<div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfPreviewModalLabel">
+                    <i class="bi bi-file-earmark-pdf"></i> <span id="pdfTitle">Dokument</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="pdfFrame" style="width: 100%; height: 100%; border: none;" src="about:blank"></iframe>
+            </div>
+            <div class="modal-footer">
+                <a id="pdfDownloadBtn" href="" download class="btn btn-primary">
+                    <i class="bi bi-download"></i> Herunterladen
+                </a>
+                <a id="pdfOpenBtn" href="" target="_blank" class="btn btn-secondary">
+                    <i class="bi bi-box-arrow-up-right"></i> In neuem Tab öffnen
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showPdfPreview(pdfUrl, title) {
+    console.log('showPdfPreview called with:', pdfUrl, title);
+
+    // Modal-Elemente holen
+    const modalElement = document.getElementById('pdfPreviewModal');
+    const pdfFrame = document.getElementById('pdfFrame');
+    const pdfTitle = document.getElementById('pdfTitle');
+    const pdfDownloadBtn = document.getElementById('pdfDownloadBtn');
+    const pdfOpenBtn = document.getElementById('pdfOpenBtn');
+
+    console.log('Modal element:', modalElement);
+    console.log('Bootstrap:', typeof bootstrap);
+
+    // Daten setzen
+    pdfTitle.textContent = title;
+    pdfFrame.src = pdfUrl;
+    pdfDownloadBtn.href = pdfUrl;
+    pdfOpenBtn.href = pdfUrl;
+
+    // Modal anzeigen
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    console.log('Modal should be visible now');
+}
+
+// PDF aus iframe entfernen wenn Modal geschlossen wird (Performance)
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('pdfPreviewModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('pdfFrame').src = '';
+    });
+});
+</script>
+{% endblock %}

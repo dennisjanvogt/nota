@@ -20,12 +20,11 @@ def notarstellen_liste_view(request):
     # Basis-Queryset
     notarstellen = Notarstelle.objects.annotate(
         anzahl_notare=Count('notare', filter=Q(notare__ist_aktiv=True))
-    ).order_by('notarnummer')
+    ).order_by('bezeichnung')
 
     # Suche
     if search:
         notarstellen = notarstellen.filter(
-            Q(notarnummer__icontains=search) |
             Q(bezeichnung__icontains=search) |
             Q(name__icontains=search) |
             Q(stadt__icontains=search)
@@ -67,11 +66,11 @@ def notarstellen_liste_view(request):
 
 
 @login_required
-def notarstelle_detail_view(request, notarstelle_id):
+def notarstelle_detail_view(request, bezeichnung):
     """Detail-Ansicht einer Notarstelle."""
-    notarstelle = get_object_or_404(Notarstelle, id=notarstelle_id)
+    notarstelle = get_object_or_404(Notarstelle, bezeichnung=bezeichnung)
 
-    # Notare und Anwärter dieser Notarstelle
+    # Notare und Kandidat dieser Notarstelle
     notare = notarstelle.notare.filter(ist_aktiv=True).order_by('nachname', 'vorname')
     anwaerter = notarstelle.anwaerter.filter(ist_aktiv=True).order_by('nachname', 'vorname')
 
@@ -92,7 +91,7 @@ def notarstelle_erstellen_view(request):
         if form.is_valid():
             notarstelle = form.save()
             messages.success(request, f'Notarstelle "{notarstelle.name}" wurde erfolgreich erstellt.')
-            return redirect('notarstelle_detail', notarstelle_id=notarstelle.id)
+            return redirect('notarstelle_detail', bezeichnung=notarstelle.bezeichnung)
     else:
         form = NotarstelleForm()
 
@@ -105,16 +104,16 @@ def notarstelle_erstellen_view(request):
 
 
 @login_required
-def notarstelle_bearbeiten_view(request, notarstelle_id):
+def notarstelle_bearbeiten_view(request, bezeichnung):
     """Bearbeiten einer Notarstelle."""
-    notarstelle = get_object_or_404(Notarstelle, id=notarstelle_id)
+    notarstelle = get_object_or_404(Notarstelle, bezeichnung=bezeichnung)
 
     if request.method == 'POST':
         form = NotarstelleForm(request.POST, instance=notarstelle)
         if form.is_valid():
             notarstelle = form.save()
             messages.success(request, f'Notarstelle "{notarstelle.name}" wurde erfolgreich aktualisiert.')
-            return redirect('notarstelle_detail', notarstelle_id=notarstelle.id)
+            return redirect('notarstelle_detail', bezeichnung=notarstelle.bezeichnung)
     else:
         form = NotarstelleForm(instance=notarstelle)
 
@@ -128,9 +127,9 @@ def notarstelle_bearbeiten_view(request, notarstelle_id):
 
 
 @login_required
-def notarstelle_loeschen_view(request, notarstelle_id):
+def notarstelle_loeschen_view(request, bezeichnung):
     """Löschen einer Notarstelle."""
-    notarstelle = get_object_or_404(Notarstelle, id=notarstelle_id)
+    notarstelle = get_object_or_404(Notarstelle, bezeichnung=bezeichnung)
 
     if request.method == 'POST':
         name = notarstelle.name

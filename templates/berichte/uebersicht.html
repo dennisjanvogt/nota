@@ -4,63 +4,65 @@
 {% block title %}Berichte & Exports - Notariatskammer{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header">
-    <div class="page-header-top">
-        <div>
-            <h1 class="page-title">
-                <i class="bi bi-file-earmark-bar-graph"></i> Berichte & Exports
-            </h1>
-            <p class="page-subtitle">Exportieren Sie Daten in verschiedenen Formaten</p>
-        </div>
-    </div>
-</div>
-
-<!-- Info Card -->
-<div class="card" style="margin-bottom: var(--spacing-lg); border-left: 4px solid var(--secondary-blue);">
-    <div class="card-body">
-        <div style="display: flex; align-items: start; gap: var(--spacing-md);">
-            <div style="color: var(--secondary-blue); font-size: 24px;">
-                <i class="bi bi-info-circle"></i>
-            </div>
+<!-- Header & Info Card Combined -->
+<div class="card" style="margin-bottom: var(--spacing-2xl); border-left: 4px solid var(--secondary-blue);">
+    <div class="card-body" style="padding: var(--spacing-xl);">
+        <div style="display: grid; grid-template-columns: 1fr auto; gap: var(--spacing-2xl); align-items: start;">
+            <!-- Left: Title Section -->
             <div>
-                <div style="font-weight: 600; font-size: 15px; margin-bottom: 8px;">Verfügbare Export-Formate</div>
-                <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
-                    <div style="margin-bottom: 4px;">
-                        <strong>CSV:</strong> Für einfache Datenverarbeitung in Excel oder anderen Tools (Semikolon-getrennt, UTF-8)
-                    </div>
-                    <div style="margin-bottom: 4px;">
-                        <strong>Excel:</strong> Formatierte Excel-Datei mit Kopfzeilen und Auto-Breite (XLSX-Format)
-                    </div>
-                    <div style="margin-bottom: 4px;">
-                        <strong>PDF:</strong> Druckbare PDF-Datei im Querformat mit Tabellen-Layout
-                    </div>
+                <h1 style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin: 0 0 var(--spacing-sm) 0; display: flex; align-items: center; gap: var(--spacing-md);">
+                    <i class="bi bi-file-earmark-bar-graph" style="color: var(--secondary-blue);"></i>
+                    Berichte & Exports
+                </h1>
+                <p style="font-size: 16px; color: var(--text-secondary); margin: 0;">
+                    Exportieren Sie Daten in verschiedenen Formaten
+                </p>
+            </div>
+
+            <!-- Right: Export Formats Section -->
+            <div style="background: var(--bg-primary); padding: var(--spacing-lg); border-radius: var(--border-radius); border: 1px solid var(--border-color); min-width: 400px;">
+                <div style="font-weight: 600; font-size: 15px; margin-bottom: var(--spacing-md); color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm);">
+                    <i class="bi bi-info-circle" style="color: var(--secondary-blue);"></i>
+                    Verfügbare Export-Formate
                 </div>
-                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-secondary);">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    Alle Exporte enthalten die aktuellen Daten zum Zeitpunkt des Exports. Änderungen nach dem Export sind nicht enthalten.
+                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.7;">
+                    <div style="margin-bottom: var(--spacing-sm);">
+                        <strong style="color: var(--text-primary);">CSV:</strong> Für einfache Datenverarbeitung in Excel oder anderen Tools (Semikolon-getrennt, UTF-8)
+                    </div>
+                    <div style="margin-bottom: var(--spacing-sm);">
+                        <strong style="color: var(--text-primary);">Excel:</strong> Formatierte Excel-Datei mit Kopfzeilen und Auto-Breite (XLSX-Format)
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-primary);">PDF:</strong> Druckbare PDF-Datei im Querformat mit Tabellen-Layout
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Bottom Warning -->
+        <div style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-secondary);">
+            <i class="bi bi-exclamation-triangle"></i>
+            Alle Exporte enthalten die aktuellen Daten zum Zeitpunkt des Exports. Änderungen nach dem Export sind nicht enthalten.
         </div>
     </div>
 </div>
 
 <!-- Berichte-Karten -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--spacing-lg);">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: var(--spacing-xl);">
     {% for bericht in berichte %}
-    <div class="card" style="display: flex; flex-direction: column;">
-        <div class="card-header" style="background: linear-gradient(135deg, var(--primary-color), #7BA8C4); color: white;">
-            <h2 class="card-title" style="color: white; margin: 0;">
+    <div class="card" style="display: flex; flex-direction: column; transition: all 0.3s ease;">
+        <div class="card-header" style="background: linear-gradient(135deg, var(--primary-color), #7BA8C4); color: white; padding: var(--spacing-lg);">
+            <h2 class="card-title" style="color: white; margin: 0; font-size: 18px; font-weight: 600;">
                 <i class="bi bi-file-earmark-text"></i> {{ bericht.titel }}
             </h2>
         </div>
-        <div class="card-body" style="flex: 1;">
-            <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;">
+        <div class="card-body" style="flex: 1; padding: var(--spacing-xl);">
+            <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.8; margin: 0;">
                 {{ bericht.beschreibung }}
             </p>
         </div>
-        <div style="padding: var(--spacing-md); background: var(--bg-primary); border-top: 1px solid var(--border-color);">
-            <a href="{% url bericht.filter_url %}" class="btn btn-primary" style="width: 100%; text-align: center;">
+        <div style="padding: var(--spacing-lg); background: var(--bg-primary); border-top: 1px solid var(--border-color);">
+            <a href="{% url bericht.filter_url %}" class="btn btn-primary" style="width: 100%; text-align: center; padding: 12px; font-weight: 500;">
                 <i class="bi bi-funnel"></i> Filtern & Exportieren
             </a>
         </div>
@@ -86,6 +88,16 @@
 
 {% block extra_css %}
 <style>
+    /* Card hover effects for premium feel */
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
     .btn-success {
         background: #34C759;
         color: white;

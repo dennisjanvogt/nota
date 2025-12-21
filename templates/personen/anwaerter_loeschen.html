@@ -1,14 +1,14 @@
 {% extends 'base_modern.html' %}
 {% load static %}
 
-{% block title %}Notar-Anwärter löschen - Notariatskammer{% endblock %}
+{% block title %}Notariatskandidat löschen - Notariatskammer{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div class="page-header-top">
         <div>
             <h1 class="page-title">
-                <i class="bi bi-trash"></i> Notar-Anwärter löschen
+                <i class="bi bi-trash"></i> Notariatskandidat löschen
             </h1>
         </div>
     </div>
@@ -23,7 +23,7 @@
             </div>
 
             <p style="margin-bottom: var(--spacing-md); font-size: 15px;">
-                Möchten Sie den folgenden Notar-Anwärter wirklich löschen?
+                Möchten Sie den folgenden Notariatskandidat wirklich löschen?
             </p>
 
             <div style="padding: var(--spacing-lg); background: var(--bg-primary); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg); border-left: 4px solid var(--danger);">
@@ -44,7 +44,7 @@
                         </div>
                         {% endif %}
                         <div style="font-size: 14px; color: var(--text-secondary);">
-                            <i class="bi bi-hash"></i> Anwärter-ID: {{ anwaerter.anwaerter_id }}
+                            <i class="bi bi-hash"></i> Kandidaten-ID: {{ anwaerter.anwaerter_id }}
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
 
             <div class="alert alert-danger" style="margin-bottom: var(--spacing-lg);">
                 <i class="bi bi-info-circle"></i>
-                <strong>Hinweis:</strong> Wenn für diesen Anwärter Workflows oder andere Verknüpfungen existieren,
+                <strong>Hinweis:</strong> Wenn für diesen Kandidat Workflows oder andere Verknüpfungen existieren,
                 kann er möglicherweise nicht gelöscht werden. Sie müssen zuerst alle Verknüpfungen entfernen.
             </div>
 
