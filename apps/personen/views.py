@@ -690,6 +690,7 @@ from django.views.decorators.http import require_http_methods
 import json
 import base64
 import re
+import os
 import requests
 
 @login_required
@@ -713,7 +714,13 @@ def ai_extract_cv_data(request):
         pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
 
         api_url = "https://openrouter.ai/api/v1/chat/completions"
-        api_key = "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"
+        api_key = os.environ.get('OPENROUTER_API_KEY')
+
+        if not api_key:
+            return JsonResponse({
+                'error': 'OpenRouter API-Key nicht konfiguriert',
+                'message': 'Bitte OPENROUTER_API_KEY in .env Datei setzen'
+            }, status=500)
 
         headers = {
             "Authorization": f"Bearer {api_key}",
