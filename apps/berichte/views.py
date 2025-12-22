@@ -147,7 +147,7 @@ def export_notare_view(request):
         ('vorname', 'Vorname'),
         ('nachname', 'Nachname'),
         ('notarstelle__name', 'Notarstelle'),
-        ('notarstelle__notarnummer', 'Notarnummer'),
+        ('notarstelle__bezeichnung', 'Notarstellen-Bezeichnung'),
         ('email', 'E-Mail'),
         ('telefon', 'Telefon'),
         ('bestellt_am', 'Bestellt am'),
@@ -279,7 +279,7 @@ def export_notarstellen_view(request):
     format_typ = request.GET.get('format', 'csv')
 
     # Basis-Queryset
-    queryset = Notarstelle.objects.all().order_by('notarnummer')
+    queryset = Notarstelle.objects.all().order_by('bezeichnung')
 
     # Filter anwenden
     form = NotarstellenFilterForm(request.GET)
@@ -289,7 +289,6 @@ def export_notarstellen_view(request):
             queryset = queryset.filter(
                 Q(name__icontains=search) |
                 Q(bezeichnung__icontains=search) |
-                Q(notarnummer__icontains=search) |
                 Q(stadt__icontains=search)
             )
 
@@ -304,7 +303,6 @@ def export_notarstellen_view(request):
             queryset = queryset.filter(bundesland=form.cleaned_data['bundesland'])
 
     spalten = [
-        ('notarnummer', 'Notarnummer'),
         ('bezeichnung', 'Bezeichnung'),
         ('name', 'Name'),
         ('strasse', 'Straße'),
@@ -380,7 +378,7 @@ def notarstellen_filter_view(request):
     form = NotarstellenFilterForm(request.GET or None)
 
     # Basis-Queryset
-    queryset = Notarstelle.objects.all().order_by('notarnummer')
+    queryset = Notarstelle.objects.all().order_by('bezeichnung')
 
     # Filter anwenden
     if form.is_valid():
@@ -389,7 +387,6 @@ def notarstellen_filter_view(request):
             queryset = queryset.filter(
                 Q(name__icontains=search) |
                 Q(bezeichnung__icontains=search) |
-                Q(notarnummer__icontains=search) |
                 Q(stadt__icontains=search)
             )
 

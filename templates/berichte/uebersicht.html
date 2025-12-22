@@ -51,17 +51,17 @@
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: var(--spacing-xl);">
     {% for bericht in berichte %}
     <div class="card" style="display: flex; flex-direction: column; transition: all 0.3s ease;">
-        <div class="card-header" style="background: linear-gradient(135deg, var(--primary-color), #7BA8C4); color: white; padding: var(--spacing-lg);">
+        <div class="card-header" style="background: linear-gradient(135deg, var(--primary-color), #7BA8C4); color: white; padding: 12px 16px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
             <h2 class="card-title" style="color: white; margin: 0; font-size: 18px; font-weight: 600;">
                 <i class="bi bi-file-earmark-text"></i> {{ bericht.titel }}
             </h2>
         </div>
-        <div class="card-body" style="flex: 1; padding: var(--spacing-xl);">
+        <div class="card-body" style="flex: 1; padding: 16px;">
             <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.8; margin: 0;">
                 {{ bericht.beschreibung }}
             </p>
         </div>
-        <div style="padding: var(--spacing-lg); background: var(--bg-primary); border-top: 1px solid var(--border-color);">
+        <div style="padding: 12px 16px; background: var(--bg-primary); border-top: 1px solid var(--border-color); margin: 0 calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)); border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
             <a href="{% url bericht.filter_url %}" class="btn btn-primary" style="width: 100%; text-align: center; padding: 12px; font-weight: 500;">
                 <i class="bi bi-funnel"></i> Filtern & Exportieren
             </a>

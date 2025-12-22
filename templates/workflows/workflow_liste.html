@@ -5,24 +5,24 @@
 
 {% block content %}
 <!-- Page Header -->
-<div class="page-header">
-    <div class="page-header-top">
+<div class="page-header" style="padding: 16px 24px; margin-bottom: 20px;">
+    <div class="page-header-top" style="gap: 16px;">
         <div>
-            <h1 class="page-title">
+            <h1 class="page-title" style="margin-bottom: 4px;">
                 <i class="bi bi-diagram-3"></i> Workflows
             </h1>
-            <p class="page-subtitle">Übersicht aller Workflow-Instanzen</p>
+            <p class="page-subtitle" style="margin: 0;">Übersicht aller Workflow-Instanzen</p>
         </div>
-        <div class="page-actions">
-            <button type="button" class="btn btn-secondary" onclick="openFilterModal()">
+        <div class="page-actions" style="gap: 8px;">
+            <button type="button" class="btn btn-secondary" style="padding: 8px 16px;" onclick="openFilterModal()">
                 <i class="bi bi-funnel"></i>
                 <span id="filterButtonText">Filter</span>
             </button>
-            <a href="{% url 'workflow_template_liste' %}" class="btn btn-outline-primary">
+            <a href="{% url 'workflow_template_liste' %}" class="btn btn-outline-primary" style="padding: 8px 16px;">
                 <i class="bi bi-collection"></i>
                 Templates
             </a>
-            <a href="{% url 'workflow_erstellen' %}" class="btn btn-primary">
+            <a href="{% url 'workflow_erstellen' %}" class="btn btn-primary" style="padding: 8px 16px;">
                 <i class="bi bi-plus-lg"></i>
                 Neuer Workflow
             </a>

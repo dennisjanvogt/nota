@@ -229,3 +229,19 @@ def gesendete_emails_view(request):
         'stats': stats,
     }
     return render(request, 'emails/gesendete_emails.html', context)
+
+
+@login_required
+def gesendete_email_detail_view(request, email_id):
+    """Detail-Ansicht einer gesendeten E-Mail."""
+    email = get_object_or_404(
+        GesendeteEmail.objects.select_related(
+            'vorlage', 'gesendet_von', 'notar', 'anwaerter'
+        ).prefetch_related('anhaenge'),
+        id=email_id
+    )
+
+    context = {
+        'email': email,
+    }
+    return render(request, 'emails/gesendete_email_detail.html', context)

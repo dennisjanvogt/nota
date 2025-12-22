@@ -5,20 +5,17 @@
 
 {% block content %}
 <!-- Page Header -->
-<div class="page-header">
-    <div class="page-header-top">
-        <div>
-            <h1 class="page-title">
-                <i class="bi bi-envelope"></i> E-Mail-Vorlagen
-            </h1>
-            <p class="page-subtitle">Verwalten Sie Standard-E-Mail-Vorlagen</p>
-        </div>
-        <div class="page-actions">
-            <a href="{% url 'vorlage_erstellen' %}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i>
-                Neue Vorlage
-            </a>
-        </div>
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0; margin-bottom: 24px;">
+    <div>
+        <h1 style="font-size: 24px; font-weight: 600; margin: 0;">
+            <i class="bi bi-envelope-paper"></i> E-Mail-Vorlagen
+        </h1>
+    </div>
+    <div>
+        <a href="{% url 'vorlage_erstellen' %}" class="btn btn-primary" style="padding: 8px 16px;">
+            <i class="bi bi-plus-lg"></i>
+            Neue Vorlage
+        </a>
     </div>
 </div>
 

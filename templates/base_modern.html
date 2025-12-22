@@ -69,6 +69,25 @@
                 </ul>
             </div>
 
+            <!-- Kommunikation -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-section-title">Kommunikation</div>
+                <ul>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'vorlagen_liste' %}" class="sidebar-nav-link {% if 'vorlagen' in request.path %}active{% endif %}">
+                            <i class="bi bi-envelope-paper"></i>
+                            <span>E-Mail-Vorlagen</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{% url 'gesendete_emails' %}" class="sidebar-nav-link {% if 'gesendete_emails' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="bi bi-envelope-check"></i>
+                            <span>Versendete E-Mails</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
             <!-- Verwaltung -->
             <div class="sidebar-nav-section">
                 <div class="sidebar-nav-section-title">Verwaltung</div>
@@ -83,12 +102,6 @@
                         <a href="/dms/" class="sidebar-nav-link {% if 'dms' in request.path %}active{% endif %}">
                             <i class="bi bi-folder2-open"></i>
                             <span>DMS</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-nav-item">
-                        <a href="{% url 'vorlagen_liste' %}" class="sidebar-nav-link {% if 'emails' in request.path %}active{% endif %}">
-                            <i class="bi bi-envelope"></i>
-                            <span>E-Mail-Vorlagen</span>
                         </a>
                     </li>
                     <li class="sidebar-nav-item">

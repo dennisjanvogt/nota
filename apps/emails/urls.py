@@ -17,4 +17,5 @@ urlpatterns = [
 
     # Gesendete E-Mails
     path('gesendet/', views.gesendete_emails_view, name='gesendete_emails'),
+    path('gesendet/<int:email_id>/', views.gesendete_email_detail_view, name='gesendete_email_detail'),
 ]

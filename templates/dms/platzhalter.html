@@ -3,29 +3,71 @@
 {% block title %}DMS - Notariatskammer{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1>
-        <i class="bi bi-folder2-open"></i>
-        Dokumentenmanagementsystem (DMS)
-    </h1>
-    <p class="text-muted">Zentrale Ablage für alle durch Services und Berichte erstellten Dokumente</p>
+<!-- Page Header -->
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0; margin-bottom: 24px;">
+    <div>
+        <h1 style="font-size: 24px; font-weight: 600; margin: 0;">
+            <i class="bi bi-folder2-open"></i> Dokumentenmanagementsystem (DMS)
+        </h1>
+    </div>
 </div>
 
-<!-- Kompakte Info -->
-<div class="alert alert-info mb-4">
-    <i class="bi bi-info-circle"></i>
-    <strong>Hinweis:</strong> Hier finden Sie alle automatisch generierten Dokumente aus Services (Stammblätter, Besetzungsvorschläge, etc.) und Berichten.
+<!-- Filter Modal -->
+<div id="filterModal" class="modal" onclick="closeFilterModal(event)">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Filter & Suche</h2>
+            <button type="button" class="btn-close" onclick="closeFilterModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form method="get" id="filterForm">
+                <div class="form-group">
+                    <label class="form-label">Suche</label>
+                    <input type="text" name="suche" class="form-control"
+                           placeholder="Titel..." value="{{ suche }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dokumenttyp</label>
+                    <select name="typ" class="form-control">
+                        <option value="">Alle</option>
+                        <option value="brief" {% if typ_filter == 'brief' %}selected{% endif %}>Brief</option>
+                        <option value="beschluss" {% if typ_filter == 'beschluss' %}selected{% endif %}>Beschluss</option>
+                        <option value="protokoll" {% if typ_filter == 'protokoll' %}selected{% endif %}>Protokoll</option>
+                        <option value="sonstiges" {% if typ_filter == 'sonstiges' %}selected{% endif %}>Sonstiges</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="{% url 'dms' %}" class="btn btn-secondary">
+                <i class="bi bi-x"></i>
+                Zurücksetzen
+            </a>
+            <button type="submit" form="filterForm" class="btn btn-primary">
+                <i class="bi bi-search"></i>
+                Filtern
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Dokumente-Liste -->
 <div class="card">
-    <div class="card-header">
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; justify-content: space-between; align-items: center;">
         <h5 class="mb-0">
             <i class="bi bi-files"></i> Dokumente
-            <span class="badge bg-primary float-end">{{ page_obj.paginator.count }}</span>
         </h5>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openFilterModal()">
+                <i class="bi bi-funnel"></i>
+                <span id="filterButtonText">Filter</span>
+            </button>
+            <span class="badge bg-primary" style="font-size: 14px; padding: 6px 12px;">{{ page_obj.paginator.count }}</span>
+        </div>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-0" style="margin: 0 calc(-1 * var(--spacing-xl));">
         {% if page_obj %}
         <div class="table-responsive">
             <table class="table table-hover mb-0">
@@ -90,7 +132,7 @@
 
         <!-- Pagination -->
         {% if page_obj.has_other_pages %}
-        <div class="card-footer">
+        <div class="card-footer" style="margin: 0 calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)); border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
             <nav>
                 <ul class="pagination justify-content-center mb-0">
                     {% if page_obj.has_previous %}
@@ -130,7 +172,7 @@
         {% endif %}
 
         {% else %}
-        <div class="card-body text-center py-5">
+        <div style="text-align: center; padding: var(--spacing-2xl);">
             <i class="bi bi-inbox" style="font-size: 48px; color: #ccc;"></i>
             <p class="text-muted mt-3">Noch keine Dokumente vorhanden.</p>
             <p class="small text-muted">
@@ -173,7 +215,148 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.show {
+        display: flex;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-lg);
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: var(--spacing-lg);
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .modal-footer {
+        padding: var(--spacing-lg);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        color: var(--text-secondary);
+    }
+
+    .btn-close:hover {
+        color: var(--text-primary);
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
 <script>
+// Filter Modal Functions
+function openFilterModal() {
+    document.getElementById('filterModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFilterModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('filterModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function updateFilterButtonText() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeFilters = 0;
+
+    if (urlParams.get('suche')) activeFilters++;
+    if (urlParams.get('typ')) activeFilters++;
+
+    const buttonText = document.getElementById('filterButtonText');
+    if (activeFilters > 0) {
+        buttonText.textContent = `Filter (${activeFilters})`;
+    } else {
+        buttonText.textContent = 'Filter';
+    }
+}
+
+// Initial update
+document.addEventListener('DOMContentLoaded', function() {
+    updateFilterButtonText();
+});
+
+// ESC key to close modal
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeFilterModal();
+    }
+});
+
+// PDF Preview Functions
 function showPdfPreview(pdfUrl, title) {
     console.log('showPdfPreview called with:', pdfUrl, title);
 

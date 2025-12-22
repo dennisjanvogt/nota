@@ -64,6 +64,15 @@
                             <li><a class="dropdown-item" href="{% url 'admin:personen_notaranwaerter_changelist' %}">Notariatskandidaten</a></li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'emails' in request.path or 'vorlagen' in request.path or 'gesendete_emails' in request.resolver_match.url_name %}active{% endif %}" href="#" id="emailsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-envelope"></i> E-Mails
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'vorlagen_liste' %}"><i class="bi bi-envelope-paper"></i> E-Mail-Vorlagen</a></li>
+                            <li><a class="dropdown-item" href="{% url 'gesendete_emails' %}"><i class="bi bi-envelope-check"></i> Versendete E-Mails</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link {% if 'berichte' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'berichte_uebersicht' %}">
                             <i class="bi bi-file-earmark-bar-graph"></i> Berichte

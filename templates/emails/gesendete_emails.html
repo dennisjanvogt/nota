@@ -1,0 +1,141 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Versendete E-Mails - Notariatskammer Verwaltung{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0; margin-bottom: 24px;">
+    <div>
+        <h1 style="font-size: 24px; font-weight: 600; margin: 0;">
+            <i class="bi bi-envelope-check"></i> Versendete E-Mails
+        </h1>
+    </div>
+    <div>
+        <a href="{% url 'vorlagen_liste' %}" class="btn btn-secondary" style="padding: 8px 16px;">
+            <i class="bi bi-envelope-paper"></i>
+            E-Mail-Vorlagen
+        </a>
+    </div>
+</div>
+
+<!-- E-Mails Table -->
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Datum/Zeit</th>
+                <th>Empfänger</th>
+                <th>Betreff</th>
+                <th>Vorlage</th>
+                <th>Versendet von</th>
+                <th>Bezug</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if emails %}
+                {% for email in emails %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">
+                            {{ email.gesendet_am|date:"d.m.Y" }}
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            {{ email.gesendet_am|date:"H:i" }} Uhr
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500;">
+                            {{ email.empfaenger }}
+                        </div>
+                        {% if email.cc_empfaenger %}
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            <i class="bi bi-envelope-plus"></i> CC: {{ email.cc_empfaenger|truncatechars:30 }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="max-width: 300px;">
+                            <a href="{% url 'gesendete_email_detail' email_id=email.id %}" style="text-decoration: none; color: var(--primary-color); font-weight: 500;">
+                                {{ email.betreff|truncatechars:60 }}
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        {% if email.vorlage %}
+                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
+                                <i class="bi bi-file-text"></i>
+                                {{ email.vorlage.name }}
+                            </span>
+                        {% else %}
+                            <span style="color: var(--text-secondary); font-size: 13px;">
+                                <i class="bi bi-pencil"></i> Manuell
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), #7BA8C4); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">
+                                {{ email.gesendet_von.first_name.0|default:email.gesendet_von.username.0|upper }}{{ email.gesendet_von.last_name.0|default:""|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight: 500; font-size: 14px;">
+                                    {{ email.gesendet_von.get_full_name|default:email.gesendet_von.username }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if email.notar %}
+                            <a href="{% url 'notar_detail' notar_id=email.notar.notar_id %}" style="display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <i class="bi bi-person-badge" style="color: var(--primary-orange);"></i>
+                                <span>{{ email.notar.vorname }} {{ email.notar.nachname }}</span>
+                            </a>
+                        {% elif email.anwaerter %}
+                            <a href="{% url 'anwaerter_detail' anwaerter_id=email.anwaerter.anwaerter_id %}" style="display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <i class="bi bi-person" style="color: var(--secondary-blue);"></i>
+                                <span>{{ email.anwaerter.vorname }} {{ email.anwaerter.nachname }}</span>
+                            </a>
+                        {% else %}
+                            <span style="color: var(--text-secondary); font-size: 13px;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if email.erfolgreich %}
+                            <span class="badge bg-success" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="bi bi-check-circle"></i> Erfolgreich
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger" style="display: inline-flex; align-items: center; gap: 4px;" {% if email.fehler %}title="{{ email.fehler }}" data-bs-toggle="tooltip"{% endif %}>
+                                <i class="bi bi-x-circle"></i> Fehlgeschlagen
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px;">
+                        <div style="color: var(--text-secondary);">
+                            <i class="bi bi-envelope" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                            <p style="font-size: 16px;">Noch keine E-Mails versendet.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Bootstrap Tooltips initialisieren
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+{% endblock %}

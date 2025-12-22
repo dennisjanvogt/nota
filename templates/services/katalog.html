@@ -20,7 +20,7 @@
 {% if kategorien_mit_services %}
     {% for item in kategorien_mit_services %}
     <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white" style="margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
             <h5 class="mb-0">
                 <i class="bi bi-{{ item.kategorie.icon|default:'folder' }}"></i>
                 {{ item.kategorie.name }}
@@ -30,12 +30,12 @@
             <small>{{ item.kategorie.beschreibung }}</small>
             {% endif %}
         </div>
-        <div class="card-body">
+        <div class="card-body" style="margin: 0 calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)); padding: var(--spacing-xl);">
             <div class="row">
                 {% for service in item.services %}
                 <div class="col-md-6 col-lg-4 mb-3">
                     <div class="card h-100">
-                        <div class="card-body">
+                        <div class="card-body" style="padding: 32px 24px 24px 24px;">
                             <h6 class="card-title">
                                 <i class="bi bi-{{ service.icon }}"></i>
                                 {{ service.name }}
