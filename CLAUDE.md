@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Projektziel
 
-Notariatskammer-Verwaltungssoftware zur Verwaltung von Notaren, Notariatskandidatn und Notarstellen durch die Notariatskammer.
+Notariatskammer-Verwaltungssoftware zur Verwaltung von Notaren, Notariatskandidaten und Notarstellen durch die Notariatskammer.
 
 ## Tech Stack
 
@@ -20,54 +20,34 @@ Notariatskammer-Verwaltungssoftware zur Verwaltung von Notaren, Notariatskandida
 
 ### Setup
 ```bash
-# Virtual environment aktivieren
 source venv/bin/activate
-
-# Dependencies installieren
 pip install -r requirements.txt
-
-# Datenbank migrieren
 python manage.py migrate
-
-# Superuser erstellen
 python manage.py createsuperuser
 ```
 
 ### Custom Management Commands
 ```bash
-# Bestellungsprozess-Workflow anlegen
-python manage.py bestellungsprozess_anlegen
-
-# Besetzungsverfahren-Workflow anlegen
-python manage.py besetzungsverfahren_anlegen
-
-# Testdaten erstellen (Notarstellen, Notare, Kandidat)
-python manage.py testdaten_erstellen
-
-# Notare importieren
-python manage.py import_notare
-
-# E-Mail Vorlagen erstellen
-python manage.py standard_vorlagen_erstellen
-
-# E-Mail Test versenden
-python manage.py test_email
-
-# Workflow-Schritte reparieren (bei Problemen)
-python manage.py workflow_schritte_reparieren
+python manage.py bestellungsprozess_anlegen    # Bestellungsprozess-Workflow anlegen
+python manage.py besetzungsverfahren_anlegen   # Besetzungsverfahren-Workflow anlegen
+python manage.py testdaten_erstellen           # Testdaten erstellen
+python manage.py import_notare                  # Notare importieren
+python manage.py standard_vorlagen_erstellen   # E-Mail Vorlagen erstellen
+python manage.py test_email                     # E-Mail Test versenden
+python manage.py workflow_schritte_reparieren  # Workflow-Schritte reparieren
 ```
 
 ### Development
 ```bash
-# Development Server
 python manage.py runserver
-
-# Django Shell
 python manage.py shell
+```
 
-# Tests ausführen
-python manage.py test                    # Alle Tests
-python manage.py test apps.workflows     # Nur Workflow-Tests
+### Tests
+```bash
+python manage.py test                           # Alle Tests
+python manage.py test apps.workflows            # Nur Workflow-Tests
+python manage.py test apps.workflows.tests.WorkflowServiceTests.test_workflow_erstellen  # Einzelner Test
 ```
 
 ### Migrations
@@ -108,7 +88,9 @@ apps/
 ├── personen/       # Notare & Notariatskandidat (erbt von PersonBasis)
 ├── workflows/      # Dynamisches Workflow-System mit State Machine
 ├── emails/         # E-Mail Templates & Versand (UnverifiedSSLEmailBackend für Dev)
-└── berichte/       # Exports (CSV UTF-8 BOM, Excel, PDF)
+├── berichte/       # Exports (CSV UTF-8 BOM, Excel, PDF)
+├── services/       # Service-System & DMS (Dokument-Management)
+└── sprengel/       # Notarsprengel / Amtsbezirke
 ```
 
 ### Basis-Models (apps.kern)
@@ -168,6 +150,21 @@ Alle Models erben von:
 - CSV: UTF-8 mit BOM, Semikolon-getrennt
 - Excel: XLSX mit Auto-Spaltenbreite
 - PDF: Querformat mit ReportLab
+
+### Service-System (apps.services)
+
+**Models:**
+- **ServiceKategorie**: Kategorie für Services (Dokumenten-Management, E-Mail, Berichte)
+- **ServiceDefinition**: Service-Definition mit ID, UI-Integration und Berechtigungen
+- **ServiceAusfuehrung**: Protokoll/Audit-Log einer Service-Ausführung
+- **Dokument**: DMS - zentrale Dokumentenverwaltung (Stammblatt, Gutachten, Beschluss, etc.)
+
+### Sprengel (apps.sprengel)
+
+**Models:**
+- **Sprengel**: Notarsprengel/Amtssprengel - gerichtlicher Zuständigkeitsbereich
+- Verknüpft mit Bundesland und Gerichtsbezirk
+- ID-Format: `SPR-000001`
 
 ## Login & URLs
 
