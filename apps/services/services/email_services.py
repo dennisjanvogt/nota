@@ -12,11 +12,12 @@ from apps.personen.models import NotarAnwaerter, Notar
 logger = logging.getLogger(__name__)
 
 
-@service(
-    kategorie='kommunikation',
-    icon='envelope',
-    button_text='Strafregisterauszug anfordern'
-)
+# Service deaktiviert - nicht mehr benötigt
+# @service(
+#     kategorie='kommunikation',
+#     icon='envelope',
+#     button_text='Strafregisterauszug anfordern'
+# )
 class StrafregisterauszugAnfordernService(BaseService):
     """Fordert Strafregisterauszug bei einem Notariatskandidat per E-Mail an."""
 

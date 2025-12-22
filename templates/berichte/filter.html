@@ -24,8 +24,10 @@
 
 <!-- Filter Card -->
 <div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Filteroptionen</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-sliders"></i> Filteroptionen
+        </h5>
     </div>
     <div class="card-body">
         <form method="get" class="row g-3">
@@ -96,8 +98,10 @@
 <!-- Vorschau (optional) -->
 {% if anzahl > 0 and anzahl <= 10 %}
 <div class="card" style="margin-top: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Vorschau der gefilterten Daten</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-eye"></i> Vorschau der gefilterten Daten
+        </h5>
     </div>
     <div class="card-body">
         <div class="table-container">

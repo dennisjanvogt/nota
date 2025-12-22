@@ -18,6 +18,7 @@ urlpatterns = [
     # Schritt-Aktionen
     path('schritte/<int:schritt_id>/abschliessen/', views.schritt_abschliessen_view, name='schritt_abschliessen'),
     path('schritte/<int:schritt_id>/rueckgaengig/', views.schritt_rueckgaengig_machen_view, name='schritt_rueckgaengig'),
+    path('schritte/<int:schritt_id>/toggle/', views.schritt_toggle_view, name='schritt_toggle'),
 
     # Workflow-Aktionen
     path('workflows/<int:workflow_id>/starten/', views.workflow_starten_view, name='workflow_starten'),

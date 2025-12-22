@@ -22,6 +22,11 @@
                 {{ workflow.workflow_typ.name }}
             </p>
         </div>
+        <div>
+            <a href="{% url 'workflow_loeschen' workflow.id %}" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Workflow löschen
+            </a>
+        </div>
     </div>
 </div>
 
@@ -174,8 +179,8 @@
                     <div class="progress" style="flex: 1; height: 24px;">
                         <div class="progress-bar" style="width: {{ workflow.fortschritt_prozent }}%;"></div>
                     </div>
-                    <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); min-width: 45px;">
-                        {{ workflow.fortschritt_prozent }}%
+                    <div id="fortschritt-prozent-text" style="font-size: 16px; font-weight: 600; color: var(--text-primary); min-width: 45px;">
+                        {{ workflow.fortschritt_prozent|floatformat:0 }}%
                     </div>
                 </div>
                 <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
@@ -263,23 +268,22 @@
                             {% endif %}
                         </div>
 
-                        <!-- Aktionen -->
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            {% if schritt.status == 'pending' %}
-                                <a href="{% url 'schritt_abschliessen' schritt.id %}" class="btn btn-success btn-sm">
-                                    <i class="bi bi-check"></i> Abhaken
-                                </a>
-                            {% elif schritt.status == 'completed' %}
-                                <span class="badge badge-success" style="margin-bottom: 4px;">
-                                    <i class="bi bi-check-circle"></i> Erledigt
-                                </span>
-                                <form method="post" action="{% url 'schritt_rueckgaengig' schritt.id %}" style="margin: 0;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Schritt wirklich rückgängig machen?')">
-                                        <i class="bi bi-arrow-counterclockwise"></i> Rückgängig
-                                    </button>
-                                </form>
-                            {% endif %}
+                        <!-- Checkbox -->
+                        <div class="d-flex flex-column align-items-center" style="gap: 8px;">
+                            <label for="schritt-{{ schritt.id }}" style="cursor: pointer;">
+                                {% if schritt.status == 'completed' %}
+                                    <span class="badge bg-success">Erledigt</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Ausstehend</span>
+                                {% endif %}
+                            </label>
+                            <input
+                                type="checkbox"
+                                class="schritt-checkbox"
+                                id="schritt-{{ schritt.id }}"
+                                data-schritt-id="{{ schritt.id }}"
+                                {% if schritt.status == 'completed' %}checked{% endif %}
+                                style="cursor: pointer; width: 24px; height: 24px;">
                         </div>
                     </div>
                 </div>
@@ -418,58 +422,194 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Alle Schritte abhaken
+// ===== BULK-AKTIONEN MIT MODAL =====
+
+// Globale Variable für Pending-Action
+let pendingBulkAction = null;
+
+function showBulkModal(title, message, action) {
+    const modal = new bootstrap.Modal(document.getElementById('bulkActionModal'));
+    document.getElementById('bulkActionModalTitle').textContent = title;
+    document.getElementById('bulkActionModalBody').innerHTML = message;
+
+    // Action speichern für Confirm-Button
+    pendingBulkAction = action;
+
+    modal.show();
+}
+
+// Confirm-Button Handler (nach DOM-Load)
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmBtn = document.getElementById('bulkActionConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (pendingBulkAction) {
+                pendingBulkAction();
+            }
+
+            // Modal schließen
+            const modal = bootstrap.Modal.getInstance(document.getElementById('bulkActionModal'));
+            modal.hide();
+
+            pendingBulkAction = null;
+        });
+    }
+});
+
 function alleAbhaken() {
-    if (!confirm('Möchten Sie wirklich alle Schritte als erledigt markieren?')) {
+    const anzahlPending = document.querySelectorAll('.schritt-checkbox:not(:checked)').length;
+
+    if (anzahlPending === 0) {
+        alert('Alle Schritte sind bereits abgehakt.');
         return;
     }
 
-    fetch('{% url "workflow_alle_abhaken" workflow.id %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+    showBulkModal(
+        'Alle Schritte abhaken',
+        `<p>Möchten Sie wirklich <strong>${anzahlPending} ausstehende Schritte</strong> als erledigt markieren?</p>
+         <p class="text-muted mb-0">Diese Aktion kann rückgängig gemacht werden.</p>`,
+        function() {
+            executeBulkAction('{% url "workflow_alle_abhaken" workflow.id %}', 'Alle Schritte erfolgreich abgehakt.');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Fehler beim Abhaken der Schritte');
-    });
+    );
 }
 
-// Alle Schritte zurücksetzen
 function alleZuruecksetzen() {
-    if (!confirm('Möchten Sie wirklich alle Schritte zurücksetzen?')) {
+    const anzahlCompleted = document.querySelectorAll('.schritt-checkbox:checked').length;
+
+    if (anzahlCompleted === 0) {
+        alert('Es gibt keine abgehakten Schritte zum Zurücksetzen.');
         return;
     }
 
-    fetch('{% url "workflow_alle_zuruecksetzen" workflow.id %}', {
+    showBulkModal(
+        'Alle Schritte zurücksetzen',
+        `<p>Möchten Sie wirklich <strong>${anzahlCompleted} erledigte Schritte</strong> zurücksetzen?</p>
+         <p class="text-muted mb-0">Alle Schritte werden wieder als "Ausstehend" markiert.</p>`,
+        function() {
+            executeBulkAction('{% url "workflow_alle_zuruecksetzen" workflow.id %}', 'Alle Schritte erfolgreich zurückgesetzt.');
+        }
+    );
+}
+
+function executeBulkAction(url, successMessage) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(url, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
+            'X-CSRFToken': csrfToken,
             'Content-Type': 'application/json',
         },
+        credentials: 'same-origin'
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Erfolg: Seite neu laden für vollständige Aktualisierung
+            alert(successMessage + `\n${data.anzahl} Schritte betroffen.`);
             location.reload();
         } else {
-            alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+            alert('Fehler: ' + data.message);
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Fehler beim Zurücksetzen der Schritte');
+        console.error('Fehler:', error);
+        alert('Netzwerkfehler beim Ausführen der Aktion.');
     });
 }
+
+// ===== CHECKBOX TOGGLE (AJAX) =====
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxen = document.querySelectorAll('.schritt-checkbox');
+
+    checkboxen.forEach(checkbox => {
+        checkbox.addEventListener('change', function(e) {
+            const schrittId = this.dataset.schrittId;
+            const isChecked = this.checked;
+
+            // Checkbox temporär disablen während Request
+            this.disabled = true;
+
+            // CSRF Token holen
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // AJAX Request
+            fetch(`/schritte/${schrittId}/toggle/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Status-Badge aktualisieren (Label ist jetzt VOR der Checkbox)
+                    const label = this.previousElementSibling;
+                    const badge = label.querySelector('.badge');
+
+                    if (data.status === 'completed') {
+                        badge.className = 'badge bg-success';
+                        badge.textContent = 'Erledigt';
+                    } else {
+                        badge.className = 'badge bg-secondary';
+                        badge.textContent = 'Ausstehend';
+                    }
+
+                    // Fortschrittsbalken und Prozent-Text aktualisieren
+                    const progressBar = document.querySelector('.progress-bar');
+                    const prozentText = document.getElementById('fortschritt-prozent-text');
+
+                    if (progressBar) {
+                        progressBar.style.width = data.fortschritt_prozent + '%';
+                    }
+
+                    if (prozentText) {
+                        prozentText.textContent = Math.round(data.fortschritt_prozent) + '%';
+                    }
+
+                    // Falls Workflow archiviert wurde
+                    if (data.workflow_status === 'archiviert') {
+                        location.reload(); // Seite neu laden für vollständige Ansicht
+                    }
+                } else {
+                    // Fehler: Checkbox zurücksetzen
+                    alert('Fehler beim Aktualisieren: ' + data.error);
+                    this.checked = !isChecked;
+                }
+            })
+            .catch(error => {
+                console.error('AJAX Error:', error);
+                alert('Netzwerkfehler beim Aktualisieren');
+                this.checked = !isChecked;
+            })
+            .finally(() => {
+                // Checkbox wieder aktivieren
+                this.disabled = false;
+            });
+        });
+    });
+});
 </script>
+
+<!-- Bestätigungs-Modal für Bulk-Aktionen -->
+<div class="modal fade" id="bulkActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkActionModalTitle">Aktion bestätigen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="bulkActionModalBody">
+                <!-- Dynamischer Text wird hier eingefügt -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" id="bulkActionConfirmBtn">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

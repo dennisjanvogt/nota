@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from django.db.models import Count, Q
 from django.utils import timezone
 from .models import WorkflowInstanz, WorkflowSchrittInstanz, WorkflowTyp, WorkflowSchritt
@@ -243,6 +244,49 @@ def schritt_rueckgaengig_machen_view(request, schritt_id):
         'schritt': schritt,
     }
     return render(request, 'workflows/schritt_rueckgaengig.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def schritt_toggle_view(request, schritt_id):
+    """
+    AJAX-Endpoint: Toggle Schritt-Status (pending ↔ completed).
+
+    Returns JSON:
+    {
+        "success": true,
+        "status": "completed",  # neuer Status
+        "fortschritt_prozent": 75,
+        "workflow_status": "aktiv"  # kann zu "archiviert" wechseln
+    }
+    """
+    try:
+        schritt = get_object_or_404(WorkflowSchrittInstanz, pk=schritt_id)
+        workflow = schritt.workflow_instanz
+
+        # Status togglen
+        if schritt.status == 'pending':
+            WorkflowService.schritt_abschliessen(schritt, notizen='')
+            neuer_status = 'completed'
+        else:
+            WorkflowService.schritt_rueckgaengig_machen(schritt)
+            neuer_status = 'pending'
+
+        # Workflow neu laden (könnte archiviert worden sein)
+        workflow.refresh_from_db()
+
+        return JsonResponse({
+            'success': True,
+            'status': neuer_status,
+            'fortschritt_prozent': workflow.fortschritt_prozent,
+            'workflow_status': workflow.status
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 
 # ===== CRUD Views für Workflow-Instanzen =====
