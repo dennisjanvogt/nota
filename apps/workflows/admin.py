@@ -170,7 +170,6 @@ class WorkflowInstanzAdmin(admin.ModelAdmin):
     def status_display(self, obj):
         """Zeigt Status mit farbiger Badge."""
         farben = {
-            'entwurf': '#6c757d',
             'aktiv': '#0d6efd',
             'archiviert': '#198754',
         }

@@ -131,21 +131,33 @@ class WorkflowSchrittForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Nur aktive Services anzeigen
-        self.fields['service'].queryset = ServiceDefinition.objects.filter(
-            ist_aktiv=True
-        ).select_related('kategorie').order_by('kategorie__name', 'name')
+        # Service QuerySet: Nur aktive Services anzeigen
+        service_qs = ServiceDefinition.objects.filter(ist_aktiv=True)
 
-        # Service-Feld optional machen
+        # Falls bestehender Schritt einen inaktiven Service hat, füge ihn hinzu
+        if self.instance and self.instance.pk and self.instance.service:
+            if not self.instance.service.ist_aktiv:
+                service_qs = ServiceDefinition.objects.filter(
+                    Q(ist_aktiv=True) | Q(id=self.instance.service.id)
+                )
+
+        self.fields['service'].queryset = service_qs.select_related('kategorie').order_by('kategorie__name', 'name')
         self.fields['service'].required = False
+        self.fields['service'].empty_label = "---------"  # Explizit leere Option
 
-        # E-Mail-Vorlage-Feld: Nur aktive Vorlagen
-        self.fields['email_vorlage'].queryset = EmailVorlage.objects.filter(
-            ist_aktiv=True
-        ).order_by('kategorie', 'name')
+        # E-Mail-Vorlage QuerySet: Nur aktive Vorlagen anzeigen
+        email_qs = EmailVorlage.objects.filter(ist_aktiv=True)
 
-        # E-Mail-Vorlage optional
+        # Falls bestehender Schritt eine inaktive E-Mail-Vorlage hat, füge sie hinzu
+        if self.instance and self.instance.pk and self.instance.email_vorlage:
+            if not self.instance.email_vorlage.ist_aktiv:
+                email_qs = EmailVorlage.objects.filter(
+                    Q(ist_aktiv=True) | Q(id=self.instance.email_vorlage.id)
+                )
+
+        self.fields['email_vorlage'].queryset = email_qs.order_by('kategorie', 'name')
         self.fields['email_vorlage'].required = False
+        self.fields['email_vorlage'].empty_label = "---------"  # Explizit leere Option
 
 
 # Formset für Workflow-Schritte
@@ -153,7 +165,7 @@ WorkflowSchrittFormSet = inlineformset_factory(
     WorkflowTyp,
     WorkflowSchritt,
     form=WorkflowSchrittForm,
-    extra=1,  # Eine leere Form zum Hinzufügen
+    extra=0,  # KEIN extra-Formular (Nutzer klickt "Schritt hinzufügen" Button)
     can_delete=True,
     min_num=1,  # Mindestens ein Schritt erforderlich
     validate_min=True,

@@ -32,7 +32,7 @@ class WorkflowService:
         workflow = WorkflowInstanz.objects.create(
             workflow_typ=workflow_typ,
             name=name,
-            status='entwurf',
+            status='aktiv',
             erstellt_von=erstellt_von
         )
 
@@ -49,7 +49,7 @@ class WorkflowService:
     @staticmethod
     def workflow_starten(workflow_instanz):
         """
-        Setzt Workflow-Status von 'entwurf' auf 'aktiv'.
+        Setzt Workflow-Status auf 'aktiv' (falls noch nicht aktiv).
 
         Args:
             workflow_instanz: Die Workflow-Instanz
@@ -145,6 +145,8 @@ class WorkflowService:
             Q(notizen__icontains=suchbegriff)
         ).select_related(
             'workflow_typ',
-            'erstellt_von',
-            'betroffene_person'
+            'erstellt_von'
+        ).prefetch_related(
+            'betroffene_notare',
+            'betroffene_kandidaten'
         ).order_by('-erstellt_am')

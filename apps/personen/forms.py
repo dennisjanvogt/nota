@@ -28,7 +28,7 @@ class NotarForm(forms.ModelForm):
             'notiz',
         ]
         widgets = {
-            'notar_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NOT-000001'}),
+            'notar_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NOT-000001', 'readonly': 'readonly'}),
             'vorname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Maria'}),
             'nachname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Hofer'}),
             'titel': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dr.'}),
@@ -73,7 +73,7 @@ class NotarAnwaerterForm(forms.ModelForm):
             'notiz',
         ]
         widgets = {
-            'anwaerter_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NKA-000001'}),
+            'anwaerter_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NKA-000001', 'readonly': 'readonly'}),
             'vorname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Lisa'}),
             'nachname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Schöller'}),
             'titel': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Mag.'}),

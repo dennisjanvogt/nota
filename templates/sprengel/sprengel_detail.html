@@ -26,10 +26,10 @@
 
 <!-- Sprengel-Informationen -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
             <i class="bi bi-info-circle"></i> Sprengel-Informationen
-        </h2>
+        </h5>
     </div>
     <div class="card-body">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-lg);">
@@ -94,13 +94,13 @@
 
 <!-- Notarstellen in diesem Sprengel -->
 <div class="card">
-    <div class="card-header">
-        <h2 class="card-title">
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
             <i class="bi bi-building"></i> Notarstellen in diesem Sprengel
-        </h2>
-        {% if notarstellen %}
-        <span class="badge badge-success">{{ notarstellen.count }}</span>
-        {% endif %}
+            {% if notarstellen %}
+            <span class="badge badge-success" style="margin-left: 8px;">{{ notarstellen.count }}</span>
+            {% endif %}
+        </h5>
     </div>
     <div class="card-body" style="padding: 0;">
         {% if notarstellen %}

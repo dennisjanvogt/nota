@@ -97,11 +97,11 @@ class WorkflowInstanzModelTest(TestCase):
         workflow = WorkflowInstanz.objects.create(
             workflow_typ=self.workflow_typ,
             name='Mein Test-Workflow',
-            status='entwurf',
+            status='aktiv',
             erstellt_von=self.benutzer
         )
         self.assertEqual(workflow.name, 'Mein Test-Workflow')
-        self.assertEqual(workflow.status, 'entwurf')
+        self.assertEqual(workflow.status, 'aktiv')
 
     def test_workflow_fortschritt_prozent(self):
         """Test der Fortschrittsberechnung."""
@@ -160,7 +160,7 @@ class WorkflowServiceTest(TestCase):
         )
 
         self.assertEqual(workflow.name, 'Test')
-        self.assertEqual(workflow.status, 'entwurf')
+        self.assertEqual(workflow.status, 'aktiv')
         self.assertEqual(workflow.schritt_instanzen.count(), 2)
 
         # Alle Schritte sollten initial 'pending' sein

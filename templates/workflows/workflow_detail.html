@@ -104,9 +104,7 @@
             <!-- Status -->
             <div>
                 <strong style="display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px;">Status:</strong>
-                {% if workflow.status == 'entwurf' %}
-                    <span class="badge badge-secondary">{{ workflow.get_status_display }}</span>
-                {% elif workflow.status == 'aktiv' %}
+                {% if workflow.status == 'aktiv' %}
                     <span class="badge badge-success">{{ workflow.get_status_display }}</span>
                 {% elif workflow.status == 'archiviert' %}
                     <span class="badge badge-primary">{{ workflow.get_status_display }}</span>
@@ -194,10 +192,19 @@
 
         <!-- Workflow-Schritte Card -->
         <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">
+            <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h5 class="mb-0">
                     <i class="bi bi-list-check"></i> Workflow-Schritte
-                </h2>
+                </h5>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="alleAbhaken()" title="Alle Schritte als erledigt markieren">
+                        <i class="bi bi-check-all"></i> Alle abhaken
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="alleZuruecksetzen()" title="Alle Schritte zurücksetzen">
+                        <i class="bi bi-arrow-counterclockwise"></i> Alle zurücksetzen
+                    </button>
+                    <span class="badge bg-primary" style="font-size: 14px; padding: 6px 12px;">{{ schritte|length }}</span>
+                </div>
             </div>
             <div class="card-body" style="padding: 0;">
                 {% for schritt in schritte %}
@@ -220,6 +227,25 @@
                                 {{ schritt.workflow_schritt.beschreibung|truncatewords:15 }}
                             </div>
                             {% endif %}
+
+                            <!-- Service und E-Mail-Vorlage Links -->
+                            {% if schritt.workflow_schritt.service or schritt.workflow_schritt.email_vorlage %}
+                            <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+                                {% if schritt.workflow_schritt.service %}
+                                <a href="{% url 'service_ausfuehren' schritt.workflow_schritt.service.service_id %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(13, 110, 253, 0.1); color: #0d6efd; border: 1px solid rgba(13, 110, 253, 0.3); border-radius: 6px; font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='rgba(13, 110, 253, 0.2)'" onmouseout="this.style.background='rgba(13, 110, 253, 0.1)'">
+                                    <i class="bi bi-tools"></i>
+                                    Service: {{ schritt.workflow_schritt.service.name }}
+                                </a>
+                                {% endif %}
+                                {% if schritt.workflow_schritt.email_vorlage %}
+                                <a href="{% url 'vorlage_detail' schritt.workflow_schritt.email_vorlage.id %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(25, 135, 84, 0.1); color: #198754; border: 1px solid rgba(25, 135, 84, 0.3); border-radius: 6px; font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='rgba(25, 135, 84, 0.2)'" onmouseout="this.style.background='rgba(25, 135, 84, 0.1)'">
+                                    <i class="bi bi-envelope"></i>
+                                    E-Mail: {{ schritt.workflow_schritt.email_vorlage.name }}
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
                             <div style="display: flex; gap: var(--spacing-md); align-items: center; font-size: 13px;">
                                 <!-- Status Badge -->
                                 <div>
@@ -391,5 +417,59 @@ document.addEventListener('keydown', function(e) {
         closeEditDatumModal();
     }
 });
+
+// Alle Schritte abhaken
+function alleAbhaken() {
+    if (!confirm('Möchten Sie wirklich alle Schritte als erledigt markieren?')) {
+        return;
+    }
+
+    fetch('{% url "workflow_alle_abhaken" workflow.id %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Fehler beim Abhaken der Schritte');
+    });
+}
+
+// Alle Schritte zurücksetzen
+function alleZuruecksetzen() {
+    if (!confirm('Möchten Sie wirklich alle Schritte zurücksetzen?')) {
+        return;
+    }
+
+    fetch('{% url "workflow_alle_zuruecksetzen" workflow.id %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Fehler beim Zurücksetzen der Schritte');
+    });
+}
 </script>
 {% endblock %}

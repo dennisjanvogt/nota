@@ -23,39 +23,23 @@ class AnwaerterZuNotarBefoerdernService(BaseService):
     """
     Befördert einen Notariatskandidat zum Notar.
 
-    ⚠️ **WICHTIG: Diese Aktion kann nicht rückgängig gemacht werden!**
-
-    Der Kandidat wird:
-    - Als inaktiv markiert (NICHT gelöscht)
-    - Ein neuer Notar-Eintrag wird erstellt
-    - Der Notarstelle zugeordnet
-    - Historie wird beibehalten
-
-    **Parameter:**
-    - anwaerter_id: ID des Anwärters (required)
-    - notarstelle_id: ID der Notarstelle (required)
-    - bestellt_am: Datum der Bestellung (optional, default: heute)
-    - workflow_instanz: Optional - Workflow-Zuordnung
+    ⚠️ WICHTIG: Diese Aktion kann nicht rückgängig gemacht werden!
     """
 
     service_id = 'anwaerter_zu_notar_befoerdern'
     name = 'Kandidat zum Notar befördern'
     beschreibung = """
-    Befördert einen Notariatskandidat zum Notar.
+    Befördert einen Notariatskandidat zum Notar und ordnet ihn einer Notarstelle zu.
 
     ⚠️ **WICHTIG: Diese Aktion kann nicht rückgängig gemacht werden!**
 
-    Der Service:
-    1. Erstellt einen neuen Notar mit allen Daten des Anwärters
-    2. Ordnet den Notar der Notarstelle zu
-    3. Markiert den Kandidat als inaktiv (bleibt für Historie erhalten)
-    4. Verknüpft Notar und Kandidat für Nachverfolgbarkeit
+    Bei der Beförderung wird:
+    - Ein neuer Notar-Eintrag mit allen Daten des Kandidaten erstellt
+    - Der Notar der ausgewählten Notarstelle zugeordnet
+    - Der Kandidat als inaktiv markiert (bleibt für die Historie erhalten)
+    - Die Verknüpfung zwischen Kandidat und Notar hergestellt
 
-    **Parameter:**
-    - anwaerter_id: ID des Anwärters
-    - notarstelle_id: ID der Notarstelle
-    - bestellt_am: Datum der Bestellung (optional)
-    - workflow_instanz: Workflow-Zuordnung (optional)
+    Dieser Service ist nur für Benutzer mit Leitungsberechtigung verfügbar.
     """
 
     # Erfordert höhere Berechtigung

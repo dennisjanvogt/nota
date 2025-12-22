@@ -178,7 +178,8 @@ def notar_erstellen_view(request):
             messages.success(request, f'Notar "{notar.get_voller_name()}" wurde erfolgreich erstellt.')
             return redirect('notar_detail', notar_id=notar.notar_id)
     else:
-        form = NotarForm()
+        # Automatische ID-Generierung
+        form = NotarForm(initial={'notar_id': Notar.generate_next_id()})
 
     context = {
         'form': form,
@@ -240,7 +241,9 @@ def anwaerter_erstellen_view(request):
             messages.success(request, f'Notariatskandidat "{anwaerter.get_voller_name()}" wurde erfolgreich erstellt.')
             return redirect('anwaerter_detail', anwaerter_id=anwaerter.anwaerter_id)
     else:
-        form = NotarAnwaerterForm()
+        # Automatisch die nächste ID generieren
+        next_id = NotarAnwaerter.generate_next_id()
+        form = NotarAnwaerterForm(initial={'anwaerter_id': next_id})
 
     context = {
         'form': form,
@@ -678,3 +681,136 @@ def anwaerter_vergleich_pdf_export(request, anwaerter):
     response.write(pdf)
 
     return response
+
+
+# ===== AI Agent für Lebenslauf-Analyse =====
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+import json
+import base64
+import re
+import requests
+
+@login_required
+@require_http_methods(["POST"])
+def ai_extract_cv_data(request):
+    """
+    Extrahiert Daten aus einem Lebenslauf-PDF mittels OpenRouter AI.
+
+    Erwartet: PDF-Datei als multipart/form-data
+    Gibt zurück: JSON mit extrahierten Feldern
+    """
+    try:
+        # PDF-Datei aus Request holen
+        if 'pdf_file' not in request.FILES:
+            return JsonResponse({'error': 'Keine PDF-Datei hochgeladen'}, status=400)
+
+        pdf_file = request.FILES['pdf_file']
+
+        # PDF zu Base64 konvertieren
+        pdf_content = pdf_file.read()
+        pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
+
+        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        api_key = "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"
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:8000",
+            "X-Title": "Notariatskammer Verwaltung - CV Extraktion",
+        }
+
+        # Prompt für die AI
+        prompt = """Analysiere diesen Lebenslauf und extrahiere die folgenden Informationen im JSON-Format:
+
+{
+  "titel": "Akademischer Titel (z.B. Dr., Mag., Prof. Dr.)",
+  "vorname": "Vorname",
+  "nachname": "Nachname",
+  "email": "E-Mail-Adresse",
+  "telefon": "Telefonnummer",
+  "zugelassen_am": "Datum der Zulassung als Notariatskandidat (Format: YYYY-MM-DD)",
+  "beginn_datum": "Beginn der Tätigkeit (Format: YYYY-MM-DD)"
+}
+
+Wichtig:
+- Gib NUR das JSON-Objekt zurück, keine zusätzlichen Erklärungen
+- Falls eine Information nicht gefunden wurde, setze den Wert auf null
+- Datumsangaben immer im Format YYYY-MM-DD
+- Telefonnummer im Format: +43 ... (österreichisches Format)
+"""
+
+        payload = {
+            "model": "google/gemini-2.5-flash",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:application/pdf;base64,{pdf_base64}"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        response = requests.post(api_url, headers=headers, json=payload, timeout=30)
+
+        if response.status_code != 200:
+            error_details = response.text
+            try:
+                error_json = response.json()
+                error_message = error_json.get('error', {}).get('message', error_details)
+            except:
+                error_message = error_details
+
+            return JsonResponse({
+                'error': f'OpenRouter API Fehler: {response.status_code}',
+                'message': error_message,
+                'details': error_details[:500]  # Nur ersten 500 Zeichen
+            }, status=500)
+
+        result = response.json()
+
+        # AI-Antwort extrahieren
+        ai_response = result['choices'][0]['message']['content']
+
+        # JSON aus der Antwort extrahieren
+        # Manchmal gibt die AI zusätzlichen Text zurück, also suchen wir nach dem JSON-Block
+        json_match = re.search(r'\{[\s\S]*\}', ai_response)
+
+        if json_match:
+            extracted_data = json.loads(json_match.group())
+        else:
+            extracted_data = json.loads(ai_response)
+
+        return JsonResponse({
+            'success': True,
+            'data': extracted_data
+        })
+
+    except json.JSONDecodeError as e:
+        return JsonResponse({
+            'error': 'Fehler beim Parsen der AI-Antwort',
+            'details': str(e),
+            'raw_response': ai_response if 'ai_response' in locals() else None
+        }, status=500)
+    except requests.RequestException as e:
+        return JsonResponse({
+            'error': 'Fehler bei der Kommunikation mit OpenRouter',
+            'details': str(e)
+        }, status=500)
+    except Exception as e:
+        return JsonResponse({
+            'error': 'Unerwarteter Fehler',
+            'details': str(e)
+        }, status=500)

@@ -129,7 +129,6 @@ class WorkflowInstanz(ZeitstempelModel):
     """
 
     STATUS_CHOICES = [
-        ('entwurf', 'Entwurf'),
         ('aktiv', 'Aktiv'),
         ('archiviert', 'Archiviert'),
     ]
@@ -148,7 +147,7 @@ class WorkflowInstanz(ZeitstempelModel):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='entwurf',
+        default='aktiv',
         verbose_name='Status'
     )
     erstellt_von = models.ForeignKey(

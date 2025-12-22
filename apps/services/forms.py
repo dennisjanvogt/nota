@@ -22,33 +22,55 @@ class StammblattPDFEinzelnForm(forms.Form):
 
 class StammblattPDFMassenForm(forms.Form):
     """Form für Stammblatt-PDF Masse Service."""
-    anwaerter = forms.ModelMultipleChoiceField(
-        queryset=NotarAnwaerter.objects.filter(ist_aktiv=True),
-        label='Notariatskandidat',
-        help_text='Wählen Sie mehrere Kandidat aus (Strg/Cmd + Klick)',
-        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '10'})
+    anwaerter_ids = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput(),
+        label='Notariatskandidat'
     )
+
+    def clean_anwaerter_ids(self):
+        """Parse und validiere kandidat IDs aus dem Autocomplete-Format."""
+        encoded = self.cleaned_data.get('anwaerter_ids', '')
+
+        if not encoded:
+            raise forms.ValidationError('Bitte wählen Sie mindestens einen Kandidat aus.')
+
+        # Parse "kandidat:ID,kandidat:ID,..." Format
+        anwaerter_ids = []
+        for item in encoded.split(','):
+            if ':' not in item:
+                continue
+            typ, person_id = item.split(':', 1)
+
+            # Nur Kandidaten erlaubt
+            if typ != 'kandidat':
+                raise forms.ValidationError('Es können nur Notariatskandidaten ausgewählt werden.')
+
+            anwaerter_ids.append(person_id)
+
+        if len(anwaerter_ids) == 0:
+            raise forms.ValidationError('Bitte wählen Sie mindestens einen Kandidat aus.')
+
+        # Validiere dass alle IDs existieren und hole die numerischen Datenbank-IDs
+        kandidaten = NotarAnwaerter.objects.filter(
+            anwaerter_id__in=anwaerter_ids,
+            ist_aktiv=True
+        )
+
+        if kandidaten.count() != len(anwaerter_ids):
+            raise forms.ValidationError('Einer oder mehrere ausgewählte Kandidaten existieren nicht oder sind inaktiv.')
+
+        # Rückgabe: Liste der numerischen Datenbank-IDs (nicht anwaerter_id!)
+        return list(kandidaten.values_list('id', flat=True))
 
 
 class BesetzungsvorschlagForm(forms.Form):
     """Form für Besetzungsvorschlag Service."""
-    anwaerter_1 = forms.ModelChoiceField(
-        queryset=NotarAnwaerter.objects.filter(ist_aktiv=True),
-        label='1. Priorität',
-        help_text='Erster Kandidat',
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    anwaerter_2 = forms.ModelChoiceField(
-        queryset=NotarAnwaerter.objects.filter(ist_aktiv=True),
-        label='2. Priorität',
-        help_text='Zweiter Kandidat',
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    anwaerter_3 = forms.ModelChoiceField(
-        queryset=NotarAnwaerter.objects.filter(ist_aktiv=True),
-        label='3. Priorität',
-        help_text='Dritter Kandidat',
-        widget=forms.Select(attrs={'class': 'form-select'})
+    kandidaten_ids = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput(),
+        label='Kandidaten (genau 3 in Prioritätsreihenfolge)',
+        help_text='Wählen Sie genau 3 Kandidaten in Prioritätsreihenfolge'
     )
     notarstelle = forms.ModelChoiceField(
         queryset=Notarstelle.objects.filter(ist_aktiv=True),
@@ -62,23 +84,48 @@ class BesetzungsvorschlagForm(forms.Form):
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5})
     )
 
-    def clean(self):
-        """Validiert dass alle 3 Kandidat unterschiedlich sind."""
-        cleaned_data = super().clean()
-        anwaerter_1 = cleaned_data.get('anwaerter_1')
-        anwaerter_2 = cleaned_data.get('anwaerter_2')
-        anwaerter_3 = cleaned_data.get('anwaerter_3')
+    def clean_kandidaten_ids(self):
+        """Parse und validiere exakt 3 Kandidaten-IDs in Prioritätsreihenfolge."""
+        encoded = self.cleaned_data.get('kandidaten_ids', '')
 
-        if anwaerter_1 and anwaerter_2 and anwaerter_1 == anwaerter_2:
-            raise forms.ValidationError('Die ersten beiden Kandidaten dürfen nicht identisch sein.')
+        if not encoded:
+            raise forms.ValidationError('Bitte wählen Sie genau 3 Kandidaten in Prioritätsreihenfolge aus.')
 
-        if anwaerter_1 and anwaerter_3 and anwaerter_1 == anwaerter_3:
-            raise forms.ValidationError('Der erste und dritte Kandidat dürfen nicht identisch sein.')
+        # Parse "kandidat:ID,kandidat:ID,kandidat:ID" Format
+        anwaerter_ids = []
+        for item in encoded.split(','):
+            if ':' not in item:
+                continue
+            typ, person_id = item.split(':', 1)
 
-        if anwaerter_2 and anwaerter_3 and anwaerter_2 == anwaerter_3:
-            raise forms.ValidationError('Der zweite und dritte Kandidat dürfen nicht identisch sein.')
+            # Nur Kandidaten erlaubt
+            if typ != 'kandidat':
+                raise forms.ValidationError('Es können nur Notariatskandidaten ausgewählt werden.')
 
-        return cleaned_data
+            anwaerter_ids.append(person_id)
+
+        # Validiere exakt 3 Kandidaten
+        if len(anwaerter_ids) != 3:
+            raise forms.ValidationError(f'Sie müssen genau 3 Kandidaten auswählen (aktuell: {len(anwaerter_ids)}).')
+
+        # Validiere keine Duplikate
+        if len(anwaerter_ids) != len(set(anwaerter_ids)):
+            raise forms.ValidationError('Sie können nicht denselben Kandidat mehrfach auswählen.')
+
+        # Kandidaten in der richtigen Reihenfolge laden
+        kandidaten_dict = {
+            k.anwaerter_id: k.id
+            for k in NotarAnwaerter.objects.filter(
+                anwaerter_id__in=anwaerter_ids,
+                ist_aktiv=True
+            )
+        }
+
+        if len(kandidaten_dict) != 3:
+            raise forms.ValidationError('Einer oder mehrere ausgewählte Kandidaten existieren nicht oder sind inaktiv.')
+
+        # Rückgabe: Liste der numerischen IDs IN DER GLEICHEN REIHENFOLGE
+        return [kandidaten_dict[anwaerter_id] for anwaerter_id in anwaerter_ids]
 
 
 # --- E-Mail-Services ---

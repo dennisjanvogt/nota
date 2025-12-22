@@ -178,5 +178,9 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Die Notariatskammer - WNB <nota@dennis24.com>')
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'Die Notariatskammer - WNB <nota@dennis24.com>')
 
+# E-Mail Branding (Logo URL für HTML-E-Mails)
+# Kann in .env überschrieben werden mit EMAIL_LOGO_URL
+EMAIL_LOGO_URL = os.getenv('EMAIL_LOGO_URL', 'https://www.notar.at/fileadmin/templates/images/logo.png')
+
 # E-Mail Timeout Einstellungen
 EMAIL_TIMEOUT = 10

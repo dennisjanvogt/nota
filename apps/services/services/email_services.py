@@ -18,24 +18,16 @@ logger = logging.getLogger(__name__)
     button_text='Strafregisterauszug anfordern'
 )
 class StrafregisterauszugAnfordernService(BaseService):
-    """
-    Fordert Strafregisterauszug bei einem Notariatskandidat an.
-
-    **Parameter:**
-    - anwaerter_id: ID des Anwärters (required)
-    - vorlage_id: ID der E-Mail-Vorlage (optional, default: automatisch nach Kategorie)
-    - workflow_instanz: Optional - Workflow-Zuordnung
-    """
+    """Fordert Strafregisterauszug bei einem Notariatskandidat per E-Mail an."""
 
     service_id = 'strafregisterauszug_anfordern'
     name = 'Strafregisterauszug anfordern'
     beschreibung = """
     Sendet eine E-Mail an einen Notariatskandidat zur Anforderung des Strafregisterauszugs.
 
-    **Parameter:**
-    - anwaerter_id: ID des Anwärters
-    - vorlage_id: ID der E-Mail-Vorlage (optional)
-    - workflow_instanz: Optional - Workflow-Zuordnung
+    Die E-Mail wird automatisch mit den persönlichen Daten des Kandidaten befüllt und an
+    die hinterlegte E-Mail-Adresse versendet. Es wird eine passende E-Mail-Vorlage verwendet
+    oder Sie können eine eigene Vorlage auswählen.
     """
 
     def validiere_parameter(self) -> None:
@@ -142,28 +134,16 @@ class StrafregisterauszugAnfordernService(BaseService):
     button_text='Unterlagen an Referenten senden'
 )
 class UnterlagenAnReferentenSendenService(BaseService):
-    """
-    Sendet Unterlagen (Dokumente) an alle Referenten eines Workflows.
-
-    **Parameter:**
-    - workflow_instanz: Workflow-Instanz mit Referenten (required)
-    - dokument_ids: Liste von Dokument-IDs zum Anhängen (required)
-    - vorlage_id: ID der E-Mail-Vorlage (optional)
-    - betreff: Eigener Betreff (optional, überschreibt Vorlage)
-    - nachricht: Eigene Nachricht (optional, überschreibt Vorlage)
-    """
+    """Sendet Unterlagen (Dokumente) an alle Referenten eines Workflows per E-Mail."""
 
     service_id = 'unterlagen_an_referenten_senden'
     name = 'Unterlagen an Referenten senden'
     beschreibung = """
     Sendet Dokumente an alle Referenten eines Workflows per E-Mail.
 
-    **Parameter:**
-    - workflow_instanz: Workflow-Instanz (required)
-    - dokument_ids: Liste von Dokument-IDs (required)
-    - vorlage_id: E-Mail-Vorlage (optional)
-    - betreff: Eigener Betreff (optional)
-    - nachricht: Eigene Nachricht (optional)
+    Alle im Workflow hinterlegten Referenten erhalten automatisch eine E-Mail mit den
+    ausgewählten Dokumenten als Anhang. Sie können eine vordefinierte E-Mail-Vorlage
+    verwenden oder Betreff und Nachricht individuell anpassen.
     """
 
     def validiere_parameter(self) -> None:

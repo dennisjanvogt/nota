@@ -21,4 +21,7 @@ urlpatterns = [
     path('anwaerter/<str:anwaerter_id>/bearbeiten/', views.anwaerter_bearbeiten_view, name='anwaerter_bearbeiten'),
     path('anwaerter/<str:anwaerter_id>/loeschen/', views.anwaerter_loeschen_view, name='anwaerter_loeschen'),
     path('anwaerter/<str:anwaerter_id>/zu-notar/', views.anwaerter_zu_notar_view, name='anwaerter_zu_notar'),
+
+    # AI Agent
+    path('api/ai-extract-cv/', views.ai_extract_cv_data, name='ai_extract_cv_data'),
 ]

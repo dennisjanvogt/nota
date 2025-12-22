@@ -50,7 +50,6 @@
                     <label class="form-label">Status</label>
                     <select name="status" class="form-control">
                         <option value="">Alle</option>
-                        <option value="entwurf" {% if status_filter == 'entwurf' %}selected{% endif %}>Entwurf</option>
                         <option value="aktiv" {% if status_filter == 'aktiv' %}selected{% endif %}>Aktiv</option>
                         <option value="archiviert" {% if status_filter == 'archiviert' %}selected{% endif %}>Archiviert</option>
                     </select>
@@ -134,9 +133,7 @@
                         <span class="badge badge-primary">{{ workflow.workflow_typ.name }}</span>
                     </td>
                     <td>
-                        {% if workflow.status == 'entwurf' %}
-                            <span class="badge badge-secondary">{{ workflow.get_status_display }}</span>
-                        {% elif workflow.status == 'aktiv' %}
+                        {% if workflow.status == 'aktiv' %}
                             <span class="badge badge-success">{{ workflow.get_status_display }}</span>
                         {% elif workflow.status == 'archiviert' %}
                             <span class="badge badge-primary">{{ workflow.get_status_display }}</span>

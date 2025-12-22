@@ -11,6 +11,14 @@
                 <i class="bi bi-mortarboard"></i> {{ title }}
             </h1>
         </div>
+        {% if title == 'Neuer Notariatskandidat' %}
+        <div>
+            <button type="button" id="ai-assistant-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-robot"></i>
+                <span>KI Assistent</span>
+            </button>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -30,7 +38,7 @@
                     {{ form.anwaerter_id }}
                     {% if form.anwaerter_id.help_text %}
                     <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
-                        {{ form.anwaerter_id.help_text }}
+                        {{ form.anwaerter_id.help_text }} (Wird automatisch vergeben)
                     </small>
                     {% endif %}
                     {% if form.anwaerter_id.errors %}
@@ -154,4 +162,343 @@
         </div>
     </div>
 </div>
+
+<!-- KI Assistent Modal -->
+<div id="ai-modal" class="ai-modal" style="display: none;">
+    <div class="ai-modal-backdrop" onclick="closeAiModal()"></div>
+    <div class="ai-modal-content">
+        <div class="ai-modal-header">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                <i class="bi bi-robot" style="font-size: 24px;"></i>
+                KI Assistent
+            </h3>
+            <button type="button" class="ai-modal-close" onclick="closeAiModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="ai-modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
+                Lade einen Lebenslauf als PDF hoch. Die KI extrahiert automatisch alle relevanten Daten und füllt das Formular aus.
+            </p>
+
+            <!-- Drag & Drop Area -->
+            <div id="drop-zone" class="drop-zone">
+                <i class="bi bi-cloud-upload" style="font-size: 48px; color: var(--primary-color); margin-bottom: var(--spacing-md);"></i>
+                <p style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">PDF hier ablegen</p>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--spacing-md);">oder</p>
+                <label for="cv-upload" class="btn btn-primary" style="cursor: pointer;">
+                    <i class="bi bi-file-earmark-pdf"></i> PDF auswählen
+                </label>
+                <input type="file" id="cv-upload" accept="application/pdf" style="display: none;">
+            </div>
+
+            <!-- Status -->
+            <div id="ai-status" style="display: none; margin-top: var(--spacing-lg); padding: var(--spacing-md); border-radius: var(--border-radius); background: var(--bg-secondary);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="spinner" id="ai-spinner" style="display: none;"></div>
+                    <i class="bi bi-check-circle-fill" id="ai-success-icon" style="display: none; font-size: 24px; color: var(--success);"></i>
+                    <i class="bi bi-exclamation-triangle-fill" id="ai-error-icon" style="display: none; font-size: 24px; color: var(--danger);"></i>
+                    <div style="flex: 1;">
+                        <div id="ai-status-text" style="font-weight: 500;"></div>
+                        <div id="ai-status-detail" style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modal Styles */
+.ai-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+}
+
+.ai-modal-content {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+.ai-modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ai-modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.ai-modal-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.ai-modal-body {
+    padding: 24px;
+}
+
+/* Drop Zone */
+.drop-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    transition: all 0.3s;
+    background: var(--bg-secondary);
+}
+
+.drop-zone:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-primary);
+}
+
+.drop-zone.drag-over {
+    border-color: var(--primary-color);
+    background: rgba(var(--primary-rgb), 0.05);
+    transform: scale(1.02);
+}
+
+/* Spinner */
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Modal Funktionen
+function openAiModal() {
+    const modal = document.getElementById('ai-modal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAiModal() {
+    const modal = document.getElementById('ai-modal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+
+    // Status zurücksetzen
+    const aiStatus = document.getElementById('ai-status');
+    aiStatus.style.display = 'none';
+}
+
+// Drag & Drop + Upload Funktionalität
+document.addEventListener('DOMContentLoaded', function() {
+    const aiBtn = document.getElementById('ai-assistant-btn');
+    const cvUpload = document.getElementById('cv-upload');
+    const dropZone = document.getElementById('drop-zone');
+    const aiStatus = document.getElementById('ai-status');
+    const aiStatusText = document.getElementById('ai-status-text');
+    const aiStatusDetail = document.getElementById('ai-status-detail');
+    const aiSpinner = document.getElementById('ai-spinner');
+    const aiSuccessIcon = document.getElementById('ai-success-icon');
+    const aiErrorIcon = document.getElementById('ai-error-icon');
+
+    // Modal öffnen
+    if (aiBtn) {
+        aiBtn.addEventListener('click', openAiModal);
+    }
+
+    // ESC-Taste zum Schließen
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAiModal();
+        }
+    });
+
+    // Drag & Drop Events
+    if (dropZone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.add('drag-over');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('drag-over');
+            });
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+    }
+
+    // File Input Change
+    if (cvUpload) {
+        cvUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+    }
+
+    // Datei verarbeiten
+    async function handleFile(file) {
+        // Validierung: Nur PDF
+        if (file.type !== 'application/pdf') {
+            showStatus('error', 'Ungültiger Dateityp', 'Bitte laden Sie eine PDF-Datei hoch.');
+            return;
+        }
+
+        // Status anzeigen
+        showStatus('loading', 'Analysiere Lebenslauf...', 'Die KI extrahiert die Daten aus dem PDF.');
+
+        try {
+            // FormData für Upload erstellen
+            const formData = new FormData();
+            formData.append('pdf_file', file);
+
+            // CSRF Token holen
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // API-Aufruf
+            const response = await fetch('{% url "ai_extract_cv_data" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Daten in Formular eintragen
+                const data = result.data;
+
+                if (data.titel) document.getElementById('id_titel').value = data.titel;
+                if (data.vorname) document.getElementById('id_vorname').value = data.vorname;
+                if (data.nachname) document.getElementById('id_nachname').value = data.nachname;
+                if (data.email) document.getElementById('id_email').value = data.email;
+                if (data.telefon) document.getElementById('id_telefon').value = data.telefon;
+                if (data.zugelassen_am) document.getElementById('id_zugelassen_am').value = data.zugelassen_am;
+                if (data.beginn_datum) document.getElementById('id_beginn_datum').value = data.beginn_datum;
+
+                showStatus('success', 'Daten erfolgreich extrahiert!', 'Das Formular wurde automatisch ausgefüllt.');
+
+                // Modal nach 2 Sekunden schließen
+                setTimeout(() => {
+                    closeAiModal();
+                }, 2000);
+            } else {
+                const errorMsg = result.message || result.error || 'Unbekannter Fehler';
+                const errorDetail = result.details || '';
+                showStatus('error', 'Fehler bei der Analyse', errorMsg);
+                console.error('AI Fehler:', result);
+            }
+        } catch (error) {
+            showStatus('error', 'Verbindungsfehler', error.message);
+            console.error('Upload Fehler:', error);
+        }
+
+        // File Input zurücksetzen
+        if (cvUpload) {
+            cvUpload.value = '';
+        }
+    }
+
+    // Status anzeigen
+    function showStatus(type, message, detail) {
+        aiStatus.style.display = 'block';
+        aiStatusText.textContent = message;
+        aiStatusDetail.textContent = detail || '';
+
+        // Icons zurücksetzen
+        aiSpinner.style.display = 'none';
+        aiSuccessIcon.style.display = 'none';
+        aiErrorIcon.style.display = 'none';
+
+        // Entsprechendes Icon anzeigen
+        if (type === 'loading') {
+            aiSpinner.style.display = 'block';
+        } else if (type === 'success') {
+            aiSuccessIcon.style.display = 'block';
+        } else if (type === 'error') {
+            aiErrorIcon.style.display = 'block';
+        }
+    }
+});
+</script>
 {% endblock %}

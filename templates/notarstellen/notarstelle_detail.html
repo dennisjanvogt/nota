@@ -38,8 +38,10 @@
 
 <!-- Grunddaten -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Grunddaten</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-building"></i> Grunddaten
+        </h5>
     </div>
     <div class="card-body">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
@@ -71,8 +73,10 @@
 
 <!-- Adresse & Kontakt -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Adresse & Kontakt</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-geo-alt"></i> Adresse & Kontakt
+        </h5>
     </div>
     <div class="card-body">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
@@ -108,8 +112,10 @@
 <!-- Notiz -->
 {% if notarstelle.notiz %}
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Notizen</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-sticky"></i> Notizen
+        </h5>
     </div>
     <div class="card-body">
         <div style="white-space: pre-wrap; font-size: 15px; line-height: 1.6;">{{ notarstelle.notiz }}</div>
@@ -119,10 +125,10 @@
 
 <!-- Zugeordnete Notare -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 class="card-title">Zugeordnete Notare ({{ notare.count }})</h2>
-        </div>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-person-badge"></i> Zugeordnete Notare ({{ notare.count }})
+        </h5>
     </div>
     <div class="card-body">
         {% if notare %}
@@ -166,10 +172,10 @@
 
 <!-- Zugeordnete Notariatskandidat -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 class="card-title">Zugeordnete Notariatskandidat ({{ anwaerter.count }})</h2>
-        </div>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-mortarboard"></i> Zugeordnete Notariatskandidat ({{ anwaerter.count }})
+        </h5>
     </div>
     <div class="card-body">
         {% if anwaerter %}

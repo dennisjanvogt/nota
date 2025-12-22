@@ -71,6 +71,8 @@ def dashboard_view(request):
 def workflow_liste_view(request):
     """
     Liste aller Workflow-Instanzen mit Filterung.
+
+    Archivierte Workflows werden standardmäßig ausgeblendet.
     """
     workflows = WorkflowInstanz.objects.select_related(
         'workflow_typ',
@@ -83,7 +85,11 @@ def workflow_liste_view(request):
     # Filter nach Status
     status_filter = request.GET.get('status')
     if status_filter:
+        # Expliziter Status-Filter (inkl. archiviert)
         workflows = workflows.filter(status=status_filter)
+    else:
+        # Standard: Nur aktive Workflows anzeigen (archivierte ausblenden)
+        workflows = workflows.exclude(status='archiviert')
 
     # Filter nach Workflow-Typ
     typ_filter = request.GET.get('typ')
@@ -435,6 +441,18 @@ def workflow_template_erstellen_view(request):
         form = WorkflowTypForm(request.POST)
         formset = WorkflowSchrittFormSet(request.POST)
 
+        # DEBUG: Ausgabe der Formular-Fehler
+        if not form.is_valid():
+            print("=== FORM ERRORS (ERSTELLEN) ===")
+            print(form.errors)
+
+        if not formset.is_valid():
+            print("=== FORMSET ERRORS (ERSTELLEN) ===")
+            for i, form_in_set in enumerate(formset):
+                if form_in_set.errors:
+                    print(f"Form {i}: {form_in_set.errors}")
+            print(f"Formset non-form errors: {formset.non_form_errors()}")
+
         if form.is_valid() and formset.is_valid():
             # Template speichern
             template = form.save()
@@ -468,8 +486,57 @@ def workflow_template_bearbeiten_view(request, template_id):
     template = get_object_or_404(WorkflowTyp, id=template_id)
 
     if request.method == 'POST':
+        # === NEUE DEBUG-AUSGABEN VOR FORM-VALIDIERUNG ===
+        print("\n" + "="*80)
+        print("=== WORKFLOW TEMPLATE BEARBEITEN - POST REQUEST ===")
+        print("="*80)
+
+        # 1. Management Form Daten
+        print("\n--- FORMSET MANAGEMENT FORM ---")
+        print(f"TOTAL_FORMS: {request.POST.get('schritte-TOTAL_FORMS')}")
+        print(f"INITIAL_FORMS: {request.POST.get('schritte-INITIAL_FORMS')}")
+        print(f"MIN_NUM_FORMS: {request.POST.get('schritte-MIN_NUM_FORMS')}")
+        print(f"MAX_NUM_FORMS: {request.POST.get('schritte-MAX_NUM_FORMS')}")
+
+        # 2. Alle Formulare durchgehen
+        total_forms = int(request.POST.get('schritte-TOTAL_FORMS', 0))
+        print(f"\n--- ANALYZING {total_forms} FORM(S) ---")
+
+        for i in range(total_forms):
+            print(f"\nForm {i}:")
+            print(f"  - id: {request.POST.get(f'schritte-{i}-id', 'MISSING')}")
+            print(f"  - name: {request.POST.get(f'schritte-{i}-name', 'MISSING')}")
+            print(f"  - reihenfolge: {request.POST.get(f'schritte-{i}-reihenfolge', 'MISSING')}")
+            print(f"  - service: {request.POST.get(f'schritte-{i}-service', 'MISSING')}")
+            print(f"  - email_vorlage: {request.POST.get(f'schritte-{i}-email_vorlage', 'MISSING')}")
+            print(f"  - DELETE: {request.POST.get(f'schritte-{i}-DELETE', 'MISSING')}")
+
+        # 3. Aktuelle Schritte in DB
+        actual_schritte = template.schritte.count()
+        print(f"\n--- DATABASE STATE ---")
+        print(f"Actual schritte in DB: {actual_schritte}")
+
+        print("\n" + "="*80 + "\n")
+
+        # Jetzt Forms erstellen
         form = WorkflowTypForm(request.POST, instance=template)
         formset = WorkflowSchrittFormSet(request.POST, instance=template)
+
+        # DEBUG: Ausgabe der Formular-Fehler
+        if not form.is_valid():
+            print("=== FORM ERRORS ===")
+            print(form.errors)
+
+        if not formset.is_valid():
+            print("=== FORMSET ERRORS ===")
+            print(f"Formset is_valid: {formset.is_valid()}")
+            print(f"Management form is_valid: {formset.management_form.is_valid()}")
+            print(f"Management form errors: {formset.management_form.errors}")
+
+            for i, form_in_set in enumerate(formset):
+                if form_in_set.errors:
+                    print(f"Form {i}: {form_in_set.errors}")
+            print(f"Formset non-form errors: {formset.non_form_errors()}")
 
         if form.is_valid() and formset.is_valid():
             template = form.save()
@@ -535,52 +602,121 @@ def workflow_template_loeschen_view(request, template_id):
 
 
 @login_required
+def workflow_alle_schritte_abhaken_view(request, workflow_id):
+    """
+    Markiert alle Schritte eines Workflows als abgeschlossen.
+    """
+    if request.method == 'POST':
+        workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
+
+        # Alle pending Schritte holen
+        pending_schritte = workflow.schritt_instanzen.filter(status='pending')
+        anzahl = pending_schritte.count()
+
+        # Alle Schritte abschließen
+        for schritt in pending_schritte:
+            try:
+                WorkflowService.schritt_abschliessen(schritt, notizen='')
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Fehler beim Abschließen: {str(e)}'
+                })
+
+        return JsonResponse({
+            'success': True,
+            'anzahl': anzahl,
+            'message': f'{anzahl} Schritt(e) wurden als erledigt markiert.'
+        })
+
+    return JsonResponse({'success': False, 'error': 'Nur POST-Anfragen erlaubt'})
+
+
+@login_required
+def workflow_alle_schritte_zuruecksetzen_view(request, workflow_id):
+    """
+    Setzt alle Schritte eines Workflows auf pending zurück.
+    """
+    if request.method == 'POST':
+        workflow = get_object_or_404(WorkflowInstanz, id=workflow_id)
+
+        # Alle completed Schritte holen
+        completed_schritte = workflow.schritt_instanzen.filter(status='completed')
+        anzahl = completed_schritte.count()
+
+        # Alle Schritte zurücksetzen
+        for schritt in completed_schritte:
+            try:
+                WorkflowService.schritt_rueckgaengig_machen(schritt)
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Fehler beim Zurücksetzen: {str(e)}'
+                })
+
+        return JsonResponse({
+            'success': True,
+            'anzahl': anzahl,
+            'message': f'{anzahl} Schritt(e) wurden zurückgesetzt.'
+        })
+
+    return JsonResponse({'success': False, 'error': 'Nur POST-Anfragen erlaubt'})
+
+
+@login_required
 def personen_autocomplete_api(request):
     """
     API-Endpoint für Autocomplete-Suche von Notaren und Kandidaten.
 
+    Query-Parameter:
+        - q: Suchbegriff (min. 2 Zeichen)
+        - typ: Optional 'notar' oder 'kandidat' zum Filtern
+
     Returns JSON: [
-        {"id": "NOT-000001", "name": "Max Mustermann", "typ": "notar"},
-        {"id": "NKA-000005", "name": "Anna Schmidt", "typ": "kandidat"},
+        {"id": "NOT-000001", "name": "Max Mustermann", "typ": "notar", "zusatz": "..."},
+        {"id": "NKA-000005", "name": "Anna Schmidt", "typ": "kandidat", "zusatz": "..."},
     ]
     """
     query = request.GET.get('q', '').strip()
+    typ_filter = request.GET.get('typ', '').strip()
 
     if len(query) < 2:
         return JsonResponse([], safe=False)
 
     results = []
 
-    # Notare durchsuchen
-    notare = Notar.objects.filter(
-        Q(vorname__icontains=query) |
-        Q(nachname__icontains=query) |
-        Q(notar_id__icontains=query),
-        ist_aktiv=True
-    )[:10]
+    # Notare durchsuchen (nur wenn kein Filter oder Filter = 'notar')
+    if not typ_filter or typ_filter == 'notar':
+        notare = Notar.objects.filter(
+            Q(vorname__icontains=query) |
+            Q(nachname__icontains=query) |
+            Q(notar_id__icontains=query),
+            ist_aktiv=True
+        )[:10]
 
-    for notar in notare:
-        results.append({
-            'id': notar.notar_id,
-            'name': notar.get_voller_name(),
-            'typ': 'notar',
-            'zusatz': notar.notarstelle.name if notar.notarstelle else ''
-        })
+        for notar in notare:
+            results.append({
+                'id': notar.notar_id,
+                'name': notar.get_voller_name(),
+                'typ': 'notar',
+                'zusatz': notar.notarstelle.name if notar.notarstelle else ''
+            })
 
-    # Kandidaten durchsuchen
-    kandidaten = NotarAnwaerter.objects.filter(
-        Q(vorname__icontains=query) |
-        Q(nachname__icontains=query) |
-        Q(anwaerter_id__icontains=query),
-        ist_aktiv=True
-    )[:10]
+    # Kandidaten durchsuchen (nur wenn kein Filter oder Filter = 'kandidat')
+    if not typ_filter or typ_filter == 'kandidat':
+        kandidaten = NotarAnwaerter.objects.filter(
+            Q(vorname__icontains=query) |
+            Q(nachname__icontains=query) |
+            Q(anwaerter_id__icontains=query),
+            ist_aktiv=True
+        )[:10]
 
-    for kandidat in kandidaten:
-        results.append({
-            'id': kandidat.anwaerter_id,
-            'name': kandidat.get_voller_name(),
-            'typ': 'kandidat',
-            'zusatz': f'bei {kandidat.betreuender_notar.get_voller_name()}' if kandidat.betreuender_notar else ''
-        })
+        for kandidat in kandidaten:
+            results.append({
+                'id': kandidat.anwaerter_id,
+                'name': kandidat.get_voller_name(),
+                'typ': 'kandidat',
+                'zusatz': f'bei {kandidat.betreuender_notar.get_voller_name()}' if kandidat.betreuender_notar else ''
+            })
 
     return JsonResponse(results, safe=False)

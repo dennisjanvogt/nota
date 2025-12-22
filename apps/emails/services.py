@@ -2,9 +2,10 @@
 E-Mail-Service für das Versenden von E-Mails mit Anhängen.
 """
 from typing import List, Optional, Dict, Any
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
 import logging
 
 from apps.emails.models import EmailVorlage, GesendeteEmail
@@ -24,6 +25,33 @@ class EmailService:
     - Versand
     - Protokollierung
     """
+
+    @staticmethod
+    def _render_html_email(betreff: str, nachricht: str) -> str:
+        """
+        Rendert eine E-Mail als HTML mit Branding.
+
+        Args:
+            betreff: E-Mail-Betreff
+            nachricht: E-Mail-Nachricht (Plain Text)
+
+        Returns:
+            HTML-String der E-Mail
+        """
+        # Logo URL - kann in settings konfiguriert werden
+        logo_url = getattr(
+            settings,
+            'EMAIL_LOGO_URL',
+            'https://www.notar.at/fileadmin/templates/images/logo.png'
+        )
+
+        context = {
+            'betreff': betreff,
+            'nachricht': nachricht,
+            'logo_url': logo_url,
+        }
+
+        return render_to_string('emails/email_template.html', context)
 
     @staticmethod
     def email_mit_anhaengen_senden(
@@ -82,13 +110,19 @@ class EmailService:
         # Für jeden Empfänger E-Mail erstellen und senden
         for empfaenger in empfaenger_liste:
             try:
-                # E-Mail erstellen
-                email = EmailMessage(
+                # HTML-Version der E-Mail erstellen
+                html_content = EmailService._render_html_email(betreff, nachricht)
+
+                # E-Mail erstellen mit Plain Text und HTML
+                email = EmailMultiAlternatives(
                     subject=betreff,
-                    body=nachricht,
+                    body=nachricht,  # Plain text version als Fallback
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     to=[empfaenger],
                 )
+
+                # HTML-Alternative hinzufügen
+                email.attach_alternative(html_content, "text/html")
 
                 # CC-Empfänger hinzufügen
                 if vorlage.cc_empfaenger:
@@ -201,13 +235,19 @@ class EmailService:
         Raises:
             Exception: Bei Versandfehlern
         """
-        # E-Mail erstellen
-        email = EmailMessage(
+        # HTML-Version der E-Mail erstellen
+        html_content = EmailService._render_html_email(betreff, nachricht)
+
+        # E-Mail erstellen mit Plain Text und HTML
+        email = EmailMultiAlternatives(
             subject=betreff,
-            body=nachricht,
+            body=nachricht,  # Plain text version als Fallback
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[empfaenger],
         )
+
+        # HTML-Alternative hinzufügen
+        email.attach_alternative(html_content, "text/html")
 
         # CC-Empfänger hinzufügen
         if cc_empfaenger:

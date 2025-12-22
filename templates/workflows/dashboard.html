@@ -76,10 +76,13 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);" class="dashboard-grid">
         <!-- Tortendiagramm: Workflows nach Deadline -->
         <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">
+            <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h5 class="mb-0">
                     <i class="bi bi-pie-chart-fill"></i> Workflows nach Deadline
-                </h2>
+                </h5>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span class="badge bg-primary" style="font-size: 14px; padding: 6px 12px;">{{ statistiken.workflows_offen }}</span>
+                </div>
             </div>
             <div class="card-body">
                 <div style="position: relative; height: 300px; display: flex; align-items: center; justify-content: center;">
@@ -109,47 +112,67 @@
 
         <!-- Quick Stats -->
         <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">
+            <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h5 class="mb-0">
                     <i class="bi bi-speedometer2"></i> Schnellübersicht
-                </h2>
+                </h5>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span class="badge bg-primary" style="font-size: 14px; padding: 6px 12px;">{{ statistiken.workflows_gesamt }}</span>
+                </div>
             </div>
             <div class="card-body">
-                <div style="display: flex; flex-direction: column; gap: var(--spacing-md); height: 100%;">
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
                     <!-- Total Workflows -->
-                    <div style="padding: var(--spacing-md); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--border-radius); color: white;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Gesamt Workflows</div>
-                                <div style="font-size: 32px; font-weight: 700;">{{ statistiken.workflows_gesamt }}</div>
+                    <div class="stats-item">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-sm);">
+                            <div class="stats-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <i class="bi bi-diagram-3-fill"></i>
                             </div>
-                            <i class="bi bi-diagram-3-fill" style="font-size: 48px; opacity: 0.3;"></i>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">Gesamt Workflows</div>
+                                <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1;">{{ statistiken.workflows_gesamt }}</div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Completion Rate -->
-                    <div style="padding: var(--spacing-md); background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: var(--border-radius); color: white;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Abschlussrate</div>
-                                <div style="font-size: 32px; font-weight: 700;">
+                    <div class="stats-item">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-sm);">
+                            <div class="stats-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">Abschlussrate</div>
+                                <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1;">
                                     {% widthratio statistiken.workflows_abgeschlossen statistiken.workflows_gesamt 100 %}%
                                 </div>
                             </div>
-                            <i class="bi bi-check-circle-fill" style="font-size: 48px; opacity: 0.3;"></i>
+                        </div>
+                        <div style="height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%); width: {% widthratio statistiken.workflows_abgeschlossen statistiken.workflows_gesamt 100 %}%; transition: width 0.5s ease;"></div>
                         </div>
                     </div>
 
                     <!-- Active Users -->
-                    <div style="padding: var(--spacing-md); background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: var(--border-radius); color: white;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Gesamte Personen</div>
-                                <div style="font-size: 32px; font-weight: 700;">
+                    <div class="stats-item">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                            <div class="stats-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">Gesamte Personen</div>
+                                <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1;">
                                     {{ statistiken.notare_gesamt|add:statistiken.anwaerter_gesamt }}
                                 </div>
                             </div>
-                            <i class="bi bi-people-fill" style="font-size: 48px; opacity: 0.3;"></i>
+                        </div>
+                        <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-sm); font-size: 12px; color: var(--text-secondary);">
+                            <div style="flex: 1; padding: 6px; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
+                                <i class="bi bi-person-badge"></i> {{ statistiken.notare_gesamt }} Notare
+                            </div>
+                            <div style="flex: 1; padding: 6px; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
+                                <i class="bi bi-mortarboard"></i> {{ statistiken.anwaerter_gesamt }} Kandidaten
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -208,6 +231,32 @@
         }
     }
 
+    /* Schnellübersicht Stats */
+    .stats-item {
+        padding: var(--spacing-md);
+        border-radius: 8px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .stats-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .stats-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
 </style>
 {% endblock %}
 
@@ -241,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         const config = {
-            type: 'doughnut',
+            type: 'pie',
             data: data,
             options: {
                 responsive: true,
@@ -271,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 },
-                cutout: '60%',  // Donut-Stil
                 animation: {
                     animateRotate: true,
                     animateScale: true,

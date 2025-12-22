@@ -24,52 +24,68 @@
 
 {% for kategorie_gruppe in vorlagen_kategorien %}
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; justify-content: space-between; align-items: center;">
+        <h5 class="mb-0">
             <i class="bi bi-envelope"></i> {{ kategorie_gruppe.list.0.get_kategorie_display }}
-        </h2>
+        </h5>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <span class="badge bg-primary" style="font-size: 14px; padding: 6px 12px;">{{ kategorie_gruppe.list|length }}</span>
+        </div>
     </div>
-    <div class="card-body">
+    <div class="card-body" style="margin: 0 calc(-1 * var(--spacing-xl));">
+        <div style="padding: 0 var(--spacing-xl);">
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--spacing-md);">
             {% for vorlage in kategorie_gruppe.list %}
-            <div class="card" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
-                <div class="card-body">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-sm);">
-                        <h3 style="font-size: 16px; font-weight: 600; margin: 0;">
-                            {{ vorlage.name }}
-                        </h3>
-                        {% if vorlage.ist_aktiv %}
-                        <span class="badge badge-success">Aktiv</span>
-                        {% else %}
-                        <span class="badge badge-secondary">Inaktiv</span>
-                        {% endif %}
+            <div class="card" style="background: var(--bg-primary); border: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; transition: all 0.2s;">
+                <div class="card-body" style="display: flex; flex-direction: column; padding: 16px; height: 100%;">
+                    <!-- Header -->
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h3 style="font-size: 15px; font-weight: 600; margin: 0; color: var(--text-primary);">
+                                {{ vorlage.name }}
+                            </h3>
+                            {% if vorlage.ist_aktiv %}
+                            <span class="badge badge-success" style="font-size: 11px;">Aktiv</span>
+                            {% else %}
+                            <span class="badge badge-secondary" style="font-size: 11px;">Inaktiv</span>
+                            {% endif %}
+                        </div>
                     </div>
 
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                    <!-- Info -->
+                    <div style="flex: 1; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
                         {% if vorlage.workflow_typ %}
-                        <div style="margin-bottom: 4px;">
-                            <i class="bi bi-diagram-3"></i> {{ vorlage.workflow_typ.name }}
+                        <div style="margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                            <i class="bi bi-diagram-3" style="color: var(--primary-color);"></i>
+                            <span>{{ vorlage.workflow_typ.name }}</span>
                         </div>
                         {% endif %}
-                        <div style="margin-bottom: 4px;">
-                            <i class="bi bi-envelope"></i> An: {{ vorlage.standard_empfaenger }}
+                        <div style="margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                            <i class="bi bi-envelope" style="color: var(--primary-color);"></i>
+                            <span>{{ vorlage.standard_empfaenger }}</span>
                         </div>
-                        <div>
-                            <i class="bi bi-chat-left-text"></i> {{ vorlage.betreff }}
+                        <div style="display: flex; align-items: start; gap: 6px;">
+                            <i class="bi bi-chat-left-text" style="color: var(--primary-color); margin-top: 2px;"></i>
+                            <span style="flex: 1;">{{ vorlage.betreff }}</span>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 8px;">
-                        <a href="{% url 'vorlage_detail' vorlage.id %}" class="btn btn-secondary btn-sm">
+                    <!-- Buttons -->
+                    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                        <a href="{% url 'email_vorbereiten' vorlage.id %}" class="btn btn-primary btn-sm" style="font-size: 12px; padding: 6px 8px;">
+                            <i class="bi bi-send"></i> Senden
+                        </a>
+                        <a href="{% url 'vorlage_detail' vorlage.id %}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 6px 8px;">
                             <i class="bi bi-eye"></i> Details
                         </a>
-                        <a href="{% url 'vorlage_bearbeiten' vorlage.id %}" class="btn btn-secondary btn-sm">
+                        <a href="{% url 'vorlage_bearbeiten' vorlage.id %}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 6px 8px;">
                             <i class="bi bi-pencil"></i> Bearbeiten
                         </a>
                     </div>
                 </div>
             </div>
             {% endfor %}
+        </div>
         </div>
     </div>
 </div>

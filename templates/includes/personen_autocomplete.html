@@ -1,0 +1,259 @@
+{% if not help_text %}
+    {% with help_text="Tippen Sie, um zu suchen..." %}
+    {% endwith %}
+{% endif %}
+
+{% if not placeholder %}
+    {% with placeholder="🔍 Person suchen und hinzufügen..." %}
+    {% endwith %}
+{% endif %}
+
+<div class="form-group" style="margin-bottom: var(--spacing-lg);">
+    <label class="form-label">
+        {{ label }}{% if required %} <span style="color: var(--danger);">*</span>{% endif %}
+    </label>
+
+    <!-- Suchfeld mit Autocomplete -->
+    <div style="position: relative;">
+        <input
+            type="text"
+            id="{{ field_id }}-search"
+            class="form-control"
+            placeholder="{{ placeholder|default:'🔍 Person suchen und hinzufügen...' }}"
+            autocomplete="off"
+        >
+        <div
+            id="{{ field_id }}-results"
+            style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-top: 4px; max-height: 200px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        </div>
+    </div>
+
+    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+        {{ help_text|default:"Tippen Sie, um zu suchen..." }}
+    </small>
+</div>
+
+<!-- Ausgewählte Personen (Chips) -->
+<div
+    id="{{ field_id }}-selected"
+    style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--spacing-lg); min-height: 40px; padding: 12px; background: var(--bg-primary); border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
+    <span style="color: var(--text-secondary); font-size: 14px; align-self: center;">Keine Personen ausgewählt</span>
+</div>
+
+<!-- Hidden Input für encoded IDs -->
+<input type="hidden" id="{{ field_id }}-hidden" name="{{ field_name }}" value="">
+
+<!-- JavaScript für Autocomplete -->
+<script>
+(function() {
+    const fieldId = '{{ field_id }}';
+    const searchInput = document.getElementById(fieldId + '-search');
+    const resultsDiv = document.getElementById(fieldId + '-results');
+    const selectedDiv = document.getElementById(fieldId + '-selected');
+    const hiddenInput = document.getElementById(fieldId + '-hidden');
+
+    const config = {
+        apiUrl: '{{ api_url }}',
+        filterTyp: {% if filter_typ %}'{{ filter_typ }}'{% else %}null{% endif %},
+        maxSelections: {{ max_selections|default:"null" }},
+        showOrderIndicators: {{ show_order_indicators|default:"false"|lower }},
+        required: {{ required|default:"false"|lower }}
+    };
+
+    let selectedPersons = [];
+    let searchTimeout = null;
+
+    // Order indicators (emojis)
+    const orderEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+
+    // Suchfeld Event-Handler
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+
+        clearTimeout(searchTimeout);
+
+        if (query.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        // Check if max selections reached
+        if (config.maxSelections && selectedPersons.length >= config.maxSelections) {
+            resultsDiv.innerHTML = '<div style="padding: 12px 16px; color: var(--text-secondary); font-size: 14px;">Maximale Anzahl erreicht</div>';
+            resultsDiv.style.display = 'block';
+            return;
+        }
+
+        searchTimeout = setTimeout(() => {
+            let url = config.apiUrl + '?q=' + encodeURIComponent(query);
+
+            // Add filter if specified
+            if (config.filterTyp) {
+                url += '&typ=' + config.filterTyp;
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    showResults(data);
+                })
+                .catch(error => {
+                    console.error('Autocomplete error:', error);
+                });
+        }, 300);
+    });
+
+    // Suchergebnisse anzeigen
+    function showResults(results) {
+        if (results.length === 0) {
+            resultsDiv.innerHTML = '<div style="padding: 12px 16px; color: var(--text-secondary); font-size: 14px;">Keine Ergebnisse gefunden</div>';
+            resultsDiv.style.display = 'block';
+            return;
+        }
+
+        resultsDiv.innerHTML = '';
+
+        results.forEach(person => {
+            // Skip if already selected
+            if (selectedPersons.find(p => p.id === person.id)) {
+                return;
+            }
+
+            // Apply filter_typ if set
+            if (config.filterTyp && person.typ !== config.filterTyp) {
+                return;
+            }
+
+            const item = document.createElement('div');
+            item.style.cssText = 'padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px;';
+            item.innerHTML = `
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: ${person.typ === 'notar' ? 'var(--primary-orange)' : 'var(--secondary-blue)'}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">
+                    ${person.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 500; font-size: 14px;">${person.name}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">
+                        ${person.typ === 'notar' ? '🟠 Notar' : '🔵 Kandidat'}
+                        ${person.zusatz ? ' • ' + person.zusatz : ''}
+                    </div>
+                </div>
+            `;
+
+            item.addEventListener('mouseenter', function() {
+                this.style.background = 'var(--bg-primary)';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.background = 'white';
+            });
+            item.addEventListener('click', function() {
+                addPerson(person);
+            });
+
+            resultsDiv.appendChild(item);
+        });
+
+        resultsDiv.style.display = 'block';
+    }
+
+    // Person hinzufügen
+    function addPerson(person) {
+        // Check if already added
+        if (selectedPersons.find(p => p.id === person.id)) {
+            return;
+        }
+
+        // Check max selections
+        if (config.maxSelections && selectedPersons.length >= config.maxSelections) {
+            alert('Sie können maximal ' + config.maxSelections + ' Personen auswählen.');
+            return;
+        }
+
+        selectedPersons.push(person);
+        renderSelectedPersons();
+        updateHiddenInput();
+
+        // Clear search
+        searchInput.value = '';
+        resultsDiv.style.display = 'none';
+    }
+
+    // Person entfernen
+    function removePerson(personId) {
+        selectedPersons = selectedPersons.filter(p => p.id !== personId);
+        renderSelectedPersons();
+        updateHiddenInput();
+    }
+
+    // Ausgewählte Personen rendern
+    function renderSelectedPersons() {
+        if (selectedPersons.length === 0) {
+            selectedDiv.innerHTML = '<span style="color: var(--text-secondary); font-size: 14px; align-self: center;">Keine Personen ausgewählt</span>';
+            return;
+        }
+
+        selectedDiv.innerHTML = '';
+
+        selectedPersons.forEach((person, index) => {
+            const chip = document.createElement('div');
+            chip.style.cssText = `
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 12px;
+                background: ${person.typ === 'notar' ? 'var(--primary-orange)' : 'var(--secondary-blue)'};
+                color: white;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 500;
+            `;
+
+            // Build chip content
+            let chipContent = '';
+
+            // Add order indicator if enabled
+            if (config.showOrderIndicators && index < orderEmojis.length) {
+                chipContent += orderEmojis[index] + ' ';
+            }
+
+            // Add person type emoji and name
+            chipContent += (person.typ === 'notar' ? '🟠' : '🔵') + ' ' + person.name;
+
+            chip.innerHTML = `
+                <span>${chipContent}</span>
+                <button type="button" onclick="event.preventDefault()" style="background: none; border: none; color: white; cursor: pointer; padding: 0; margin: 0; font-size: 16px; line-height: 1;">×</button>
+            `;
+
+            const removeBtn = chip.querySelector('button');
+            removeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                removePerson(person.id);
+            });
+
+            selectedDiv.appendChild(chip);
+        });
+    }
+
+    // Hidden input aktualisieren
+    function updateHiddenInput() {
+        const ids = selectedPersons.map(p => `${p.typ}:${p.id}`).join(',');
+        hiddenInput.value = ids;
+    }
+
+    // Click outside schließt Autocomplete
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+
+    // Initialize with initial_persons if provided
+    {% if initial_persons %}
+    const initialPersons = {{ initial_persons|safe }};
+    if (initialPersons && initialPersons.length > 0) {
+        selectedPersons = initialPersons;
+        renderSelectedPersons();
+        updateHiddenInput();
+    }
+    {% endif %}
+})();
+</script>

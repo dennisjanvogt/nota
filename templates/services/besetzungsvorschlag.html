@@ -1,0 +1,92 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}{{ service.name }} - Notariatskammer{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; padding-top: var(--spacing-xl);">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: var(--spacing-xl);">
+        <div class="page-header-top">
+            <div>
+                <h1 class="page-title">
+                    <i class="bi bi-{{ service.icon }}"></i> {{ service.name }}
+                </h1>
+                <p class="page-subtitle">{{ service.kategorie_display }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Beschreibung -->
+    {% if service.beschreibung %}
+    <div class="alert alert-info" style="margin-bottom: var(--spacing-lg);">
+        <i class="bi bi-info-circle"></i>
+        <div style="white-space: pre-wrap; margin-top: 8px;">{{ service.beschreibung }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Service Form -->
+    <div class="card">
+        <div class="card-body" style="padding: var(--spacing-xl);">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Autocomplete für Kandidatenauswahl mit Priorität -->
+                {% include 'includes/personen_autocomplete.html' with field_id="kandidaten-autocomplete" field_name="kandidaten_ids" filter_typ="kandidat" label="Kandidaten (genau 3 in Prioritätsreihenfolge)" required=True max_selections=3 show_order_indicators=True api_url="/api/personen-autocomplete/" help_text="Wählen Sie genau 3 Kandidaten aus. Die Reihenfolge entspricht der Priorität (1. = höchste Priorität)" placeholder="🔍 Kandidat suchen..." %}
+
+                <!-- Notarstelle -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">
+                        {{ form.notarstelle.label }} <span style="color: var(--danger);">*</span>
+                    </label>
+                    {{ form.notarstelle }}
+                    {% if form.notarstelle.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ form.notarstelle.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Empfehlung -->
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">{{ form.empfehlung.label }}</label>
+                    {{ form.empfehlung }}
+                    {% if form.empfehlung.help_text %}
+                    <small style="display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+                        {{ form.empfehlung.help_text }}
+                    </small>
+                    {% endif %}
+                    {% if form.empfehlung.errors %}
+                    <div style="color: var(--danger); font-size: 13px; margin-top: 4px;">
+                        {{ form.empfehlung.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" style="margin-top: var(--spacing-lg);">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                {% if form.kandidaten_ids.errors %}
+                <div class="alert alert-danger" style="margin-top: var(--spacing-lg);">
+                    {{ form.kandidaten_ids.errors }}
+                </div>
+                {% endif %}
+
+                <!-- Buttons -->
+                <div style="display: flex; justify-content: space-between; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+                    <a href="{% url 'service_katalog' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Abbrechen
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> Service ausführen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

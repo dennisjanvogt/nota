@@ -23,6 +23,8 @@ urlpatterns = [
     path('workflows/<int:workflow_id>/starten/', views.workflow_starten_view, name='workflow_starten'),
     path('workflows/<int:workflow_id>/name-aendern/', views.workflow_name_aendern_view, name='workflow_name_aendern'),
     path('workflows/<int:workflow_id>/datum-aendern/', views.workflow_datum_aendern_view, name='workflow_datum_aendern'),
+    path('workflows/<int:workflow_id>/alle-abhaken/', views.workflow_alle_schritte_abhaken_view, name='workflow_alle_abhaken'),
+    path('workflows/<int:workflow_id>/alle-zuruecksetzen/', views.workflow_alle_schritte_zuruecksetzen_view, name='workflow_alle_zuruecksetzen'),
 
     # Template-Verwaltung
     path('templates/', views.workflow_template_liste_view, name='workflow_template_liste'),

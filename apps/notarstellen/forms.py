@@ -26,7 +26,7 @@ class NotarstelleForm(forms.ModelForm):
             'notiz',
         ]
         widgets = {
-            'bezeichnung': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NST-000001'}),
+            'bezeichnung': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NST-000001', 'readonly': 'readonly'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'z.B. Notariat Wien 1'}),
             'strasse': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'z.B. Stephansplatz 3'}),
             'plz': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'z.B. 1010'}),

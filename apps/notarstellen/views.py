@@ -93,7 +93,8 @@ def notarstelle_erstellen_view(request):
             messages.success(request, f'Notarstelle "{notarstelle.name}" wurde erfolgreich erstellt.')
             return redirect('notarstelle_detail', bezeichnung=notarstelle.bezeichnung)
     else:
-        form = NotarstelleForm()
+        # Automatische Bezeichnung-Generierung
+        form = NotarstelleForm(initial={'bezeichnung': Notarstelle.generate_next_id()})
 
     context = {
         'form': form,

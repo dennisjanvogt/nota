@@ -653,7 +653,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Vor dem Submit nochmal updaten
     document.getElementById('templateForm').addEventListener('submit', function(e) {
+        // === NEUE DEBUG-AUSGABEN ===
+        console.group('📋 FORM SUBMIT DIAGNOSTICS');
+
+        // 1. Management Form Werte
+        const totalForms = document.querySelector('input[name="schritte-TOTAL_FORMS"]');
+        const initialForms = document.querySelector('input[name="schritte-INITIAL_FORMS"]');
+        const minForms = document.querySelector('input[name="schritte-MIN_NUM_FORMS"]');
+        const maxForms = document.querySelector('input[name="schritte-MAX_NUM_FORMS"]');
+
+        console.log('Management Form:');
+        console.log(`  TOTAL_FORMS: ${totalForms ? totalForms.value : 'MISSING'}`);
+        console.log(`  INITIAL_FORMS: ${initialForms ? initialForms.value : 'MISSING'}`);
+        console.log(`  MIN_NUM_FORMS: ${minForms ? minForms.value : 'MISSING'}`);
+        console.log(`  MAX_NUM_FORMS: ${maxForms ? maxForms.value : 'MISSING'}`);
+
+        // 2. Alle Schritt-Formulare
+        const forms = document.querySelectorAll('.schritt-form');
+        console.log(`\nTotal schritt-forms in DOM: ${forms.length}`);
+
+        forms.forEach((form, index) => {
+            console.group(`Form ${index}:`);
+
+            const idInput = form.querySelector('input[name$="-id"]');
+            const nameInput = form.querySelector('input[name$="-name"]');
+            const reihenfolgeInput = form.querySelector('input[name$="-reihenfolge"]');
+            const serviceSelect = form.querySelector('select[name$="-service"]');
+            const emailSelect = form.querySelector('select[name$="-email_vorlage"]');
+            const deleteCheckbox = form.querySelector('input[name$="-DELETE"]');
+
+            console.log(`  id: ${idInput ? idInput.value : 'MISSING'}`);
+            console.log(`  name: ${nameInput ? nameInput.value : 'MISSING'}`);
+            console.log(`  reihenfolge: ${reihenfolgeInput ? reihenfolgeInput.value : 'MISSING'}`);
+            console.log(`  service: ${serviceSelect ? serviceSelect.value : 'MISSING'} (selected: ${serviceSelect ? serviceSelect.selectedIndex : 'N/A'})`);
+            console.log(`  email_vorlage: ${emailSelect ? emailSelect.value : 'MISSING'} (selected: ${emailSelect ? emailSelect.selectedIndex : 'N/A'})`);
+            console.log(`  DELETE: ${deleteCheckbox ? deleteCheckbox.checked : 'MISSING'}`);
+
+            console.groupEnd();
+        });
+
+        console.groupEnd();
+        // === ENDE DEBUG-AUSGABEN ===
+
         updateReihenfolge();
+
+        // === NEU: Bereinige SELECT-Felder vor Submit ===
+        document.querySelectorAll('.schritt-form').forEach(form => {
+            // Service SELECT
+            const serviceSelect = form.querySelector('select[name$="-service"]');
+            if (serviceSelect && (serviceSelect.value === '0' || serviceSelect.value === 'null')) {
+                console.warn(`Bereinige ungültigen service-Wert: "${serviceSelect.value}" → ""`);
+                serviceSelect.value = '';
+            }
+
+            // E-Mail-Vorlage SELECT
+            const emailSelect = form.querySelector('select[name$="-email_vorlage"]');
+            if (emailSelect && (emailSelect.value === '0' || emailSelect.value === 'null')) {
+                console.warn(`Bereinige ungültigen email_vorlage-Wert: "${emailSelect.value}" → ""`);
+                emailSelect.value = '';
+            }
+        });
     });
 
     // ESC key to close modal
@@ -679,19 +738,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update Form Index
         const newIndex = currentFormCount;
 
-        // Ersetze alle Vorkommen des alten Index mit dem neuen Index
-        newForm.innerHTML = newForm.innerHTML.replace(
-            /schritte-\d+-/g,
-            `schritte-${newIndex}-`
-        );
-        newForm.innerHTML = newForm.innerHTML.replace(
-            /id_schritte-\d+-/g,
-            `id_schritte-${newIndex}-`
-        );
-
-        // Setze die Werte aller Inputs zurück (außer reihenfolge)
-        newForm.querySelectorAll('input:not([type="hidden"]), textarea, select').forEach(input => {
-            if (!input.name.includes('reihenfolge')) {
+        // WICHTIG: Erst die Werte zurücksetzen BEVOR innerHTML manipuliert wird
+        // Setze die Werte aller Inputs zurück (außer reihenfolge und hidden)
+        newForm.querySelectorAll('input:not([type="hidden"]), textarea').forEach(input => {
+            if (!input.name.includes('reihenfolge') && !input.name.includes('id')) {
                 if (input.type === 'checkbox') {
                     input.checked = false;
                 } else {
@@ -700,10 +750,32 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // SELECT-Felder separat behandeln (explizit auf leeren String setzen)
+        newForm.querySelectorAll('select').forEach(select => {
+            select.value = '';  // Explizit auf leeren String setzen (nicht selectedIndex!)
+        });
+
+        // Update alle name und id Attribute (ohne innerHTML zu verwenden)
+        newForm.querySelectorAll('[name^="schritte-"]').forEach(element => {
+            element.name = element.name.replace(/schritte-\d+-/, `schritte-${newIndex}-`);
+        });
+        newForm.querySelectorAll('[id^="id_schritte-"]').forEach(element => {
+            element.id = element.id.replace(/id_schritte-\d+-/, `id_schritte-${newIndex}-`);
+        });
+        newForm.querySelectorAll('[for^="id_schritte-"]').forEach(element => {
+            element.setAttribute('for', element.getAttribute('for').replace(/id_schritte-\d+-/, `id_schritte-${newIndex}-`));
+        });
+
         // Setze Reihenfolge
         const reihenfolgeInput = newForm.querySelector('input[name$="-reihenfolge"]');
         if (reihenfolgeInput) {
             reihenfolgeInput.value = newIndex + 1;
+        }
+
+        // Leere das ID-Feld (für neue Schritte)
+        const idInput = newForm.querySelector('input[name$="-id"]');
+        if (idInput) {
+            idInput.value = '';
         }
 
         // Update Schritt-Nummer in der Anzeige

@@ -36,29 +36,20 @@ except ImportError:
     button_text='Stammblatt erstellen'
 )
 class StammblattPDFEinzelnService(BaseService):
-    """
-    Erstellt ein detailliertes Stammblatt-PDF für einen Notariatskandidat.
-
-    **Parameter:**
-    - anwaerter_id: ID des Anwärters (required)
-    - workflow_instanz: Optional - Workflow-Zuordnung
-    """
+    """Erstellt ein detailliertes Stammblatt-PDF für einen Notariatskandidat."""
 
     service_id = 'stammblatt_pdf_einzeln'
     name = 'Stammblatt-PDF erstellen (Einzeln)'
     beschreibung = """
     Erstellt ein detailliertes Stammblatt-PDF für einen Notariatskandidat.
 
-    Das Stammblatt enthält:
-    - Persönliche Daten des Anwärters
-    - Zugelassen am / Wartezeit
-    - Betreuender Notar mit Kontaktdaten
-    - Notarstelle
-    - Qualifikationen und Ausbildung
+    Das Stammblatt enthält alle wichtigen Informationen auf einen Blick:
+    - Persönliche Daten und Kontaktinformationen
+    - Zulassungsdatum und aktuelle Wartezeit
+    - Betreuender Notar mit Kontaktdaten und Notarstelle
+    - Qualifikationen und weitere Notizen
 
-    **Parameter:**
-    - anwaerter_id: ID des Anwärters
-    - workflow_instanz: Optional - Workflow-Zuordnung
+    Das generierte PDF wird automatisch im Dokumenten-Management-System gespeichert.
     """
 
     def validiere_parameter(self) -> None:
@@ -284,22 +275,16 @@ class StammblattPDFEinzelnService(BaseService):
     button_text='Stammblätter erstellen (Masse)'
 )
 class StammblattPDFMassenService(BaseService):
-    """
-    Erstellt Stammblatt-PDFs für mehrere Notariatskandidat.
-
-    **Parameter:**
-    - anwaerter_ids: Liste von Kandidaten-IDs (required)
-    - workflow_instanz: Optional - Workflow-Zuordnung
-    """
+    """Erstellt Stammblatt-PDFs für mehrere Notariatskandidaten auf einmal."""
 
     service_id = 'stammblatt_pdf_masse'
     name = 'Stammblatt-PDF erstellen (Masse)'
     beschreibung = """
-    Erstellt Stammblatt-PDFs für mehrere Notariatskandidat auf einmal.
+    Erstellt Stammblatt-PDFs für mehrere Notariatskandidaten auf einmal.
 
-    **Parameter:**
-    - anwaerter_ids: Liste von Kandidaten-IDs
-    - workflow_instanz: Optional - Workflow-Zuordnung
+    Ideal für die schnelle Erstellung vieler Stammblätter - zum Beispiel zur Vorbereitung
+    von Präsidiumssitzungen oder für umfassende Übersichten. Alle generierten PDFs werden
+    automatisch im Dokumenten-Management-System gespeichert und können dort abgerufen werden.
     """
 
     def validiere_parameter(self) -> None:
@@ -334,6 +319,9 @@ class StammblattPDFMassenService(BaseService):
                     anwaerter_id=anwaerter_id,
                     workflow_instanz=workflow_instanz
                 )
+
+                # Service-Ausführung weitergeben (wichtig für Verknüpfung!)
+                einzeln_service._service_ausfuehrung = self._service_ausfuehrung
 
                 # Service direkt ausführen (ohne execute() um doppelte Protokollierung zu vermeiden)
                 einzeln_service.validiere_parameter()
@@ -370,30 +358,18 @@ class StammblattPDFMassenService(BaseService):
     button_text='Besetzungsvorschlag erstellen'
 )
 class BesetzungsvorschlagService(BaseService):
-    """
-    Erstellt tabellarischen Besetzungsvorschlag mit Top 3 Bewerbern.
-
-    **Parameter:**
-    - anwaerter_ids: Liste mit 3 Kandidaten-IDs (sortiert nach Priorität) (required)
-    - notarstelle_id: ID der zu besetzenden Notarstelle (required)
-    - empfehlung: Empfehlungstext (optional)
-    - workflow_instanz: Optional - Workflow-Zuordnung
-    """
+    """Erstellt tabellarischen Besetzungsvorschlag mit Top 3 Bewerbern."""
 
     service_id = 'besetzungsvorschlag_erstellen'
     name = 'Besetzungsvorschlag erstellen'
     beschreibung = """
-    Erstellt tabellarischen Besetzungsvorschlag mit Top 3 Bewerbern.
+    Erstellt einen professionellen Besetzungsvorschlag für eine freie Notarstelle.
 
-    Das Dokument enthält:
-    - Übersichtstabelle mit allen 3 Bewerbern
-    - Vergleich: Name, Wartezeit, Betreuender Notar
-    - Empfehlung der Kammer
+    Das Dokument enthält eine übersichtliche Vergleichstabelle der drei besten Bewerber
+    mit allen relevanten Informationen: Name, Wartezeit und betreuender Notar. Optional
+    kann eine Empfehlung der Kammer hinzugefügt werden.
 
-    **Parameter:**
-    - anwaerter_ids: Liste mit 3 Kandidaten-IDs (sortiert)
-    - notarstelle_id: ID der Notarstelle
-    - empfehlung: Empfehlungstext (optional)
+    Perfekt geeignet zur Vorlage beim Präsidium für Besetzungsentscheidungen.
     """
 
     def validiere_parameter(self) -> None:

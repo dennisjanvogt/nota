@@ -14,6 +14,33 @@ from apps.services.registry import service_registry
 logger = logging.getLogger(__name__)
 
 
+def parse_personen_ids(encoded_string, filter_typ=None):
+    """
+    Parse encoded person IDs from hidden field.
+
+    Format: "typ:id,typ:id,..."
+
+    Args:
+        encoded_string: Encoded person IDs string
+        filter_typ: Optional filter for person type ('notar' or 'kandidat')
+
+    Returns:
+        list of IDs (in order)
+    """
+    if not encoded_string:
+        return []
+
+    persons = []
+    for item in encoded_string.split(','):
+        if ':' not in item:
+            continue
+        typ, person_id = item.split(':', 1)
+        if filter_typ is None or typ == filter_typ:
+            persons.append(person_id)
+
+    return persons
+
+
 @login_required
 def service_katalog_view(request):
     """
@@ -114,17 +141,19 @@ def service_ausfuehren_view(request, service_id):
             if workflow_instanz:
                 parameter['workflow_instanz'] = workflow_instanz
 
-            # Spezialfall: Besetzungsvorschlag mit 3 separaten Kandidaten-Feldern
-            if service_id == 'besetzungsvorschlag_erstellen':
-                anwaerter_ids = [
-                    form.cleaned_data['anwaerter_1'].pk,
-                    form.cleaned_data['anwaerter_2'].pk,
-                    form.cleaned_data['anwaerter_3'].pk
-                ]
-                parameter['anwaerter_ids'] = anwaerter_ids
+            # Spezialfall: StammblattPDFMasse mit Autocomplete
+            if service_id == 'stammblatt_pdf_masse':
+                # cleaned_data['anwaerter_ids'] ist bereits geparste Liste von IDs
+                parameter['anwaerter_ids'] = form.cleaned_data.get('anwaerter_ids', [])
+
+            # Spezialfall: Besetzungsvorschlag mit Autocomplete (3 Kandidaten in Prioritätsreihenfolge)
+            elif service_id == 'besetzungsvorschlag_erstellen':
+                # cleaned_data['kandidaten_ids'] ist bereits geparste Liste von 3 IDs in Reihenfolge
+                parameter['anwaerter_ids'] = form.cleaned_data.get('kandidaten_ids', [])
                 parameter['notarstelle_id'] = form.cleaned_data['notarstelle'].pk
                 if form.cleaned_data.get('empfehlung'):
                     parameter['empfehlung'] = form.cleaned_data['empfehlung']
+
             else:
                 # Standard Form-Daten zu Service-Parametern konvertieren
                 for field_name, value in form.cleaned_data.items():
@@ -156,13 +185,21 @@ def service_ausfuehren_view(request, service_id):
         else:
             form = form_class()
 
+    # Custom Templates für Autocomplete-Services
+    custom_templates = {
+        'stammblatt_pdf_masse': 'services/stammblatt_pdf_masse.html',
+        'besetzungsvorschlag_erstellen': 'services/besetzungsvorschlag.html',
+    }
+
+    template_name = custom_templates.get(service_id, 'services/service_ausfuehren.html')
+
     context = {
         'service': service_def,
         'form': form,
         'workflow_instanz': workflow_instanz
     }
 
-    return render(request, 'services/service_ausfuehren.html', context)
+    return render(request, template_name, context)
 
 
 @login_required

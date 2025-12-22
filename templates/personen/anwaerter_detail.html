@@ -43,8 +43,10 @@
 
 <!-- Persönliche Daten -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Persönliche Daten</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-person"></i> Persönliche Daten
+        </h5>
     </div>
     <div class="card-body">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
@@ -102,8 +104,10 @@
 
 <!-- Ausbildungsdaten -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Ausbildungsdaten</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-mortarboard"></i> Ausbildungsdaten
+        </h5>
     </div>
     <div class="card-body">
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-lg);">
@@ -132,8 +136,10 @@
 <!-- Notizen -->
 {% if anwaerter.notiz %}
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Notizen</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-sticky"></i> Notizen
+        </h5>
     </div>
     <div class="card-body">
         <div style="white-space: pre-wrap; font-size: 15px; line-height: 1.6;">{{ anwaerter.notiz }}</div>
@@ -144,8 +150,10 @@
 <!-- Workflows -->
 {% if workflows %}
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Workflows ({{ workflows.count }})</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-diagram-3"></i> Workflows ({{ workflows.count }})
+        </h5>
     </div>
     <div class="card-body">
         <div style="display: grid; gap: var(--spacing-md);">
@@ -183,8 +191,10 @@
 </div>
 {% else %}
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h2 class="card-title">Workflows</h2>
+    <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <h5 class="mb-0">
+            <i class="bi bi-diagram-3"></i> Workflows
+        </h5>
     </div>
     <div class="card-body">
         <div class="empty-state" style="padding: var(--spacing-lg);">
