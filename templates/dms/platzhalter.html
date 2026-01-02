@@ -190,27 +190,30 @@
 </div>
 
 <!-- PDF Preview Modal -->
-<div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="pdfPreviewModalLabel">
-                    <i class="bi bi-file-earmark-pdf"></i> <span id="pdfTitle">Dokument</span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
-            </div>
-            <div class="modal-body p-0">
-                <iframe id="pdfFrame" style="width: 100%; height: 100%; border: none;" src="about:blank"></iframe>
-            </div>
-            <div class="modal-footer">
-                <a id="pdfDownloadBtn" href="" download class="btn btn-primary">
-                    <i class="bi bi-download"></i> Herunterladen
-                </a>
-                <a id="pdfOpenBtn" href="" target="_blank" class="btn btn-secondary">
-                    <i class="bi bi-box-arrow-up-right"></i> In neuem Tab öffnen
-                </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
-            </div>
+<div id="pdfPreviewModal" class="pdf-modal-overlay" onclick="closePdfPreview(event)">
+    <div class="pdf-modal-content" onclick="event.stopPropagation()">
+        <div class="pdf-modal-header">
+            <h5 class="pdf-modal-title">
+                <i class="bi bi-file-earmark-pdf" style="color: var(--danger);"></i>
+                <span id="pdfTitle">Dokument</span>
+            </h5>
+            <button type="button" class="pdf-modal-close" onclick="closePdfPreview()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="pdf-modal-body">
+            <iframe id="pdfFrame" src="about:blank"></iframe>
+        </div>
+        <div class="pdf-modal-footer">
+            <a id="pdfDownloadBtn" href="" download class="btn btn-primary">
+                <i class="bi bi-download"></i> Herunterladen
+            </a>
+            <a id="pdfOpenBtn" href="" target="_blank" class="btn btn-secondary">
+                <i class="bi bi-box-arrow-up-right"></i> In neuem Tab öffnen
+            </a>
+            <button type="button" class="btn btn-secondary" onclick="closePdfPreview()">
+                <i class="bi bi-x"></i> Schließen
+            </button>
         </div>
     </div>
 </div>
@@ -219,6 +222,7 @@
 
 {% block extra_css %}
 <style>
+    /* Filter Modal */
     .modal {
         display: none;
         position: fixed;
@@ -226,7 +230,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.6);
         z-index: 1000;
         align-items: center;
         justify-content: center;
@@ -236,15 +240,16 @@
         display: flex;
     }
 
-    .modal-content {
-        background-color: white;
-        border-radius: var(--border-radius);
-        box-shadow: var(--box-shadow-lg);
+    .modal > .modal-content {
+        background-color: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
         width: 90%;
         max-width: 500px;
         max-height: 80vh;
         display: flex;
         flex-direction: column;
+        border: 1px solid var(--border-color);
     }
 
     .modal-header {
@@ -259,6 +264,7 @@
         margin: 0;
         font-size: 18px;
         font-weight: 600;
+        color: var(--text-primary);
     }
 
     .modal-body {
@@ -297,20 +303,152 @@
         margin-bottom: 6px;
         font-weight: 500;
         font-size: 14px;
+        color: var(--text-primary);
     }
 
     .form-control {
         width: 100%;
-        padding: 8px 12px;
+        padding: 10px 14px;
         border: 1px solid var(--border-color);
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         font-size: 14px;
+        background: var(--bg-elevated);
+        color: var(--text-primary);
     }
 
     .form-control:focus {
         outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        border-color: var(--primary-500);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    }
+
+    /* PDF Preview Modal - Separate styling */
+    .pdf-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .pdf-modal-overlay.show {
+        display: flex;
+    }
+
+    .pdf-modal-content {
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 1200px;
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .pdf-modal-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg-elevated);
+        flex-shrink: 0;
+    }
+
+    .pdf-modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pdf-modal-close {
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .pdf-modal-close:hover {
+        background: var(--danger-bg);
+        border-color: var(--danger);
+        color: var(--danger);
+    }
+
+    .pdf-modal-body {
+        flex: 1;
+        overflow: hidden;
+        background: #525659;
+        display: flex;
+    }
+
+    .pdf-modal-body iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .pdf-modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        background: var(--bg-elevated);
+        flex-shrink: 0;
+    }
+
+    /* Table fixes */
+    .table .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+    .table .text-danger {
+        color: var(--danger) !important;
+    }
+
+    .table .bg-secondary {
+        background: var(--bg-elevated) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .table .bg-primary {
+        background: var(--primary-gradient) !important;
+    }
+
+    /* Pagination */
+    .pagination .page-item .page-link {
+        background: var(--bg-surface) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .pagination .page-item:hover .page-link {
+        background: var(--bg-hover) !important;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        background: var(--bg-elevated) !important;
+        color: var(--text-muted) !important;
     }
 </style>
 {% endblock %}
@@ -358,17 +496,11 @@ document.addEventListener('keydown', function(e) {
 
 // PDF Preview Functions
 function showPdfPreview(pdfUrl, title) {
-    console.log('showPdfPreview called with:', pdfUrl, title);
-
-    // Modal-Elemente holen
-    const modalElement = document.getElementById('pdfPreviewModal');
+    const modal = document.getElementById('pdfPreviewModal');
     const pdfFrame = document.getElementById('pdfFrame');
     const pdfTitle = document.getElementById('pdfTitle');
     const pdfDownloadBtn = document.getElementById('pdfDownloadBtn');
     const pdfOpenBtn = document.getElementById('pdfOpenBtn');
-
-    console.log('Modal element:', modalElement);
-    console.log('Bootstrap:', typeof bootstrap);
 
     // Daten setzen
     pdfTitle.textContent = title;
@@ -377,17 +509,30 @@ function showPdfPreview(pdfUrl, title) {
     pdfOpenBtn.href = pdfUrl;
 
     // Modal anzeigen
-    const modal = new bootstrap.Modal(modalElement);
-    modal.show();
-
-    console.log('Modal should be visible now');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
 }
 
-// PDF aus iframe entfernen wenn Modal geschlossen wird (Performance)
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('pdfPreviewModal').addEventListener('hidden.bs.modal', function () {
-        document.getElementById('pdfFrame').src = '';
-    });
+function closePdfPreview(event) {
+    if (event && event.target !== event.currentTarget) return;
+
+    const modal = document.getElementById('pdfPreviewModal');
+    const pdfFrame = document.getElementById('pdfFrame');
+
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+
+    // PDF aus iframe entfernen (Performance)
+    setTimeout(() => {
+        pdfFrame.src = 'about:blank';
+    }, 300);
+}
+
+// ESC key schließt auch PDF Modal
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePdfPreview();
+    }
 });
 </script>
 {% endblock %}

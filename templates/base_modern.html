@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -114,6 +114,14 @@
             </div>
         </nav>
 
+        <!-- Theme Toggle -->
+        <div class="theme-toggle-wrapper">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Theme wechseln">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+                <span id="themeText">Dark</span>
+            </button>
+        </div>
+
         <!-- User Menu (at bottom) -->
         <div class="user-menu">
             <button class="user-menu-button" type="button" onclick="toggleUserProfileMenu(event)">
@@ -181,7 +189,7 @@
     <div id="stammdatenModal" class="modal-overlay" onclick="closeStammdatenModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
             <div class="modal-header">
-                <h3 style="margin: 0; font-size: 20px; font-weight: 600;">
+                <h3 class="modal-title">
                     <i class="bi bi-database"></i> Stammdaten
                 </h3>
                 <button type="button" class="modal-close" onclick="closeStammdatenModal()">
@@ -189,33 +197,33 @@
                 </button>
             </div>
             <div class="modal-body" style="padding: 0;">
-                <div class="list-group" style="border-radius: 0;">
-                    <a href="{% url 'notare_liste' %}" class="list-group-item list-group-item-action" style="border-left: none; border-right: none; border-top: none; padding: 16px 24px; display: flex; align-items: center; gap: 12px;">
-                        <i class="bi bi-person-badge" style="font-size: 24px; color: var(--primary-orange);"></i>
+                <div class="list-group">
+                    <a href="{% url 'notare_liste' %}" class="list-group-item list-group-item-action stammdaten-item">
+                        <i class="bi bi-person-badge stammdaten-icon" style="color: var(--warning);"></i>
                         <div>
-                            <div style="font-weight: 500; font-size: 15px;">Notare</div>
-                            <div style="font-size: 13px; color: var(--text-secondary);">Alle registrierten Notare verwalten</div>
+                            <div class="stammdaten-title">Notare</div>
+                            <div class="stammdaten-desc">Alle registrierten Notare verwalten</div>
                         </div>
                     </a>
-                    <a href="{% url 'anwaerter_liste' %}" class="list-group-item list-group-item-action" style="border-left: none; border-right: none; padding: 16px 24px; display: flex; align-items: center; gap: 12px;">
-                        <i class="bi bi-person" style="font-size: 24px; color: var(--secondary-blue);"></i>
+                    <a href="{% url 'anwaerter_liste' %}" class="list-group-item list-group-item-action stammdaten-item">
+                        <i class="bi bi-person stammdaten-icon" style="color: var(--info);"></i>
                         <div>
-                            <div style="font-weight: 500; font-size: 15px;">Notariatskandidaten</div>
-                            <div style="font-size: 13px; color: var(--text-secondary);">Alle Kandidaten verwalten</div>
+                            <div class="stammdaten-title">Notariatskandidaten</div>
+                            <div class="stammdaten-desc">Alle Kandidaten verwalten</div>
                         </div>
                     </a>
-                    <a href="{% url 'notarstellen_liste' %}" class="list-group-item list-group-item-action" style="border-left: none; border-right: none; padding: 16px 24px; display: flex; align-items: center; gap: 12px;">
-                        <i class="bi bi-building" style="font-size: 24px; color: var(--primary-blue);"></i>
+                    <a href="{% url 'notarstellen_liste' %}" class="list-group-item list-group-item-action stammdaten-item">
+                        <i class="bi bi-building stammdaten-icon" style="color: var(--success);"></i>
                         <div>
-                            <div style="font-weight: 500; font-size: 15px;">Notarstellen</div>
-                            <div style="font-size: 13px; color: var(--text-secondary);">Alle Notarstellen verwalten</div>
+                            <div class="stammdaten-title">Notarstellen</div>
+                            <div class="stammdaten-desc">Alle Notarstellen verwalten</div>
                         </div>
                     </a>
-                    <a href="{% url 'sprengel_liste' %}" class="list-group-item list-group-item-action" style="border-left: none; border-right: none; border-bottom: none; padding: 16px 24px; display: flex; align-items: center; gap: 12px;">
-                        <i class="bi bi-geo-alt" style="font-size: 24px; color: var(--primary-purple);"></i>
+                    <a href="{% url 'sprengel_liste' %}" class="list-group-item list-group-item-action stammdaten-item">
+                        <i class="bi bi-geo-alt stammdaten-icon" style="color: var(--primary-400);"></i>
                         <div>
-                            <div style="font-weight: 500; font-size: 15px;">Sprengel</div>
-                            <div style="font-size: 13px; color: var(--text-secondary);">Notarsprengel & Gerichtsbezirke verwalten</div>
+                            <div class="stammdaten-title">Sprengel</div>
+                            <div class="stammdaten-desc">Notarsprengel & Gerichtsbezirke verwalten</div>
                         </div>
                     </a>
                 </div>
@@ -223,11 +231,92 @@
         </div>
     </div>
 
+    <style>
+        /* Stammdaten Modal - Override Bootstrap list-group styles */
+        #stammdatenModal .list-group {
+            background: var(--bg-surface) !important;
+            border: none !important;
+        }
+        #stammdatenModal .list-group-item,
+        #stammdatenModal .list-group-item-action {
+            background: var(--bg-surface) !important;
+            border: none !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        #stammdatenModal .list-group-item:last-child {
+            border-bottom: none !important;
+        }
+        #stammdatenModal .list-group-item:hover,
+        #stammdatenModal .list-group-item-action:hover {
+            background: var(--bg-hover) !important;
+        }
+        .stammdaten-item {
+            padding: 16px 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+        .stammdaten-icon {
+            font-size: 24px;
+        }
+        .stammdaten-title {
+            font-weight: 500;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+        .stammdaten-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+    </style>
+
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Scripts -->
     <script>
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('nota-theme', newTheme);
+
+            updateThemeUI(newTheme);
+        }
+
+        function updateThemeUI(theme) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+
+            if (icon && text) {
+                if (theme === 'dark') {
+                    icon.className = 'bi bi-moon-fill';
+                    text.textContent = 'Dark';
+                } else {
+                    icon.className = 'bi bi-sun-fill';
+                    text.textContent = 'Light';
+                }
+            }
+        }
+
+        // Initialize theme on page load
+        (function() {
+            const savedTheme = localStorage.getItem('nota-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            // Update UI after DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    updateThemeUI(savedTheme);
+                });
+            } else {
+                updateThemeUI(savedTheme);
+            }
+        })();
+
         function toggleUserProfileMenu(event) {
             if (event) {
                 event.stopPropagation();

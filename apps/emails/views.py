@@ -4,10 +4,10 @@ Views für E-Mail-Verwaltung.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.mail import send_mail, BadHeaderError
 from django.conf import settings
 from .models import EmailVorlage, GesendeteEmail
 from .forms import EmailVorlageForm, EmailSendenForm
+from .services import EmailService
 from apps.personen.models import Notar, NotarAnwaerter
 
 
@@ -154,27 +154,23 @@ def email_vorbereiten_view(request, vorlage_id):
 def email_senden(request, vorlage, data, notar=None, anwaerter=None):
     """E-Mail tatsächlich versenden."""
     try:
-        # E-Mail versenden
-        send_mail(
-            subject=data['betreff'],
-            message=data['nachricht'],
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[data['empfaenger']],
-            fail_silently=False,
-        )
-
-        # Protokollieren
-        GesendeteEmail.objects.create(
-            vorlage=vorlage,
-            gesendet_von=request.user,
+        # E-Mail mit HTML-Template versenden
+        gesendete_email = EmailService.email_einfach_senden(
             empfaenger=data['empfaenger'],
-            cc_empfaenger=data['cc_empfaenger'],
             betreff=data['betreff'],
             nachricht=data['nachricht'],
-            notar=notar,
-            anwaerter=anwaerter,
-            erfolgreich=True
+            benutzer=request.user,
+            cc_empfaenger=[e.strip() for e in data.get('cc_empfaenger', '').split(',')] if data.get('cc_empfaenger') else None,
+            service_ausfuehrung=None
         )
+
+        # Vorlage und Personen nachträglich verknüpfen
+        gesendete_email.vorlage = vorlage
+        if notar:
+            gesendete_email.notar = notar
+        if anwaerter:
+            gesendete_email.anwaerter = anwaerter
+        gesendete_email.save()
 
         messages.success(
             request,
@@ -189,15 +185,13 @@ def email_senden(request, vorlage, data, notar=None, anwaerter=None):
         else:
             return redirect('vorlagen_liste')
 
-    except BadHeaderError:
-        messages.error(request, 'Ungültige Header-Daten in der E-Mail.')
     except Exception as e:
         # Fehler protokollieren
         GesendeteEmail.objects.create(
             vorlage=vorlage,
             gesendet_von=request.user,
             empfaenger=data['empfaenger'],
-            cc_empfaenger=data['cc_empfaenger'],
+            cc_empfaenger=data.get('cc_empfaenger', ''),
             betreff=data['betreff'],
             nachricht=data['nachricht'],
             notar=notar,

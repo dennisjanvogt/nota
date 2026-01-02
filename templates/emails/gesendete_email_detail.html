@@ -124,7 +124,7 @@
 
         <div>
             <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Nachricht</div>
-            <div style="background-color: #f8f9fa; padding: var(--spacing-md); border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="background-color: var(--bg-elevated); padding: var(--spacing-md); border-radius: 8px; border: 1px solid var(--border-color);">
                 <pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit; margin: 0; font-size: 14px; line-height: 1.6;">{{ email.nachricht }}</pre>
             </div>
         </div>
@@ -133,9 +133,9 @@
 
 <!-- Fehler Card (nur wenn nicht erfolgreich) -->
 {% if not email.erfolgreich and email.fehler %}
-<div class="card" style="margin-bottom: var(--spacing-lg); border-left: 4px solid #dc3545;">
-    <div class="card-header" style="background-color: #fff5f5;">
-        <h2 class="card-title" style="color: #dc3545;">
+<div class="card" style="margin-bottom: var(--spacing-lg); border-left: 4px solid var(--danger);">
+    <div class="card-header" style="background-color: var(--danger-bg);">
+        <h2 class="card-title" style="color: var(--danger);">
             <i class="bi bi-exclamation-triangle"></i> Fehler beim Versand
         </h2>
     </div>

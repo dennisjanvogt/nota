@@ -38,7 +38,7 @@
                     {% if ausfuehrung.ergebnis_daten %}
                     <hr>
                     <h6>Ergebnis-Daten</h6>
-                    <pre class="bg-light p-3 rounded" style="max-height: 400px; overflow: auto; white-space: pre-wrap; word-wrap: break-word;"><code>{{ ausfuehrung.ergebnis_daten|safe }}</code></pre>
+                    <pre class="p-3 rounded" style="max-height: 400px; overflow: auto; white-space: pre-wrap; word-wrap: break-word; background: var(--bg-elevated); color: var(--text-primary);"><code>{{ ausfuehrung.ergebnis_daten|safe }}</code></pre>
                     {% endif %}
                 {% else %}
                     <div class="alert alert-danger mb-0">

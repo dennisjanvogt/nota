@@ -120,8 +120,8 @@
                         </button>
                     </div>
                 </div>
-                <div class="card-body" style="background: #f8f9fa;">
-                    <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm); background: white; border-left: 3px solid var(--primary-color); border-radius: 4px;">
+                <div class="card-body" style="background: var(--bg-elevated);">
+                    <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm); background: var(--bg-surface); border-left: 3px solid var(--primary-500); border-radius: 4px;">
                         <div style="font-size: 13px; color: var(--text-secondary);">
                             <i class="bi bi-lightbulb" style="color: #ffc107;"></i>
                             <strong>Tipp:</strong> Klicken Sie auf "Reihenfolge ändern" um Schritte per Drag & Drop zu sortieren
@@ -132,11 +132,11 @@
 
                     <div id="schritte-formset">
                         {% for schritt_form in formset %}
-                        <div class="schritt-form" data-index="{{ forloop.counter0 }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 2px solid #e9ecef; border-radius: 8px; background: white; transition: all 0.2s;">
+                        <div class="schritt-form" data-index="{{ forloop.counter0 }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); transition: all 0.2s;">
                             {{ schritt_form.id }}
                             {{ schritt_form.reihenfolge }}
 
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 2px solid #f1f3f5;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--border-color);">
                                 <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                                     <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #28a745, #20c997); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px;">
                                         <span class="schritt-nummer">{{ forloop.counter }}</span>
@@ -152,8 +152,8 @@
                             </div>
 
                             <div class="form-group" style="margin-bottom: var(--spacing-sm);">
-                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 6px; display: block;">
-                                    <i class="bi bi-pencil-square" style="color: #6c757d;"></i>
+                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-pencil-square" style="color: var(--text-muted);"></i>
                                     {{ schritt_form.name.label }} *
                                 </label>
                                 {{ schritt_form.name }}
@@ -165,8 +165,8 @@
                             </div>
 
                             <div class="form-group" style="margin-bottom: var(--spacing-sm);">
-                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 6px; display: block;">
-                                    <i class="bi bi-chat-text" style="color: #6c757d;"></i>
+                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-chat-text" style="color: var(--text-muted);"></i>
                                     {{ schritt_form.beschreibung.label }}
                                 </label>
                                 {{ schritt_form.beschreibung }}
@@ -179,8 +179,8 @@
 
                             <!-- Service-Auswahl -->
                             <div class="form-group" style="margin-bottom: var(--spacing-sm);">
-                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 6px; display: block;">
-                                    <i class="bi bi-tools" style="color: #6c757d;"></i>
+                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-tools" style="color: var(--text-muted);"></i>
                                     {{ schritt_form.service.label }}
                                 </label>
                                 {{ schritt_form.service }}
@@ -198,8 +198,8 @@
 
                             <!-- E-Mail-Vorlage-Auswahl -->
                             <div class="form-group" style="margin-bottom: var(--spacing-sm);">
-                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: #495057; margin-bottom: 6px; display: block;">
-                                    <i class="bi bi-envelope" style="color: #6c757d;"></i>
+                                <label class="form-label" style="font-weight: 500; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-envelope" style="color: var(--text-muted);"></i>
                                     {{ schritt_form.email_vorlage.label }}
                                 </label>
                                 {{ schritt_form.email_vorlage }}
@@ -215,10 +215,10 @@
                                 {% endif %}
                             </div>
 
-                            <div style="padding: 8px 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <div style="padding: 8px 12px; background: var(--bg-elevated); border-radius: 6px; border: 1px solid var(--border-color);">
                                 <div class="form-check">
                                     {{ schritt_form.ist_optional }}
-                                    <label class="form-check-label" for="{{ schritt_form.ist_optional.id_for_label }}" style="font-size: 13px; font-weight: 500; color: #6c757d;">
+                                    <label class="form-check-label" for="{{ schritt_form.ist_optional.id_for_label }}" style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">
                                         <i class="bi bi-check-circle"></i>
                                         {{ schritt_form.ist_optional.label }}
                                     </label>
@@ -241,7 +241,7 @@
 
     <!-- Buttons -->
     <div class="card">
-        <div class="card-body" style="background: #f8f9fa;">
+        <div class="card-body" style="background: var(--bg-elevated);">
             <div style="display: flex; justify-content: space-between; gap: var(--spacing-md); align-items: center;">
                 <a href="{% if template %}{% url 'workflow_template_detail' template.id %}{% else %}{% url 'workflow_template_liste' %}{% endif %}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Abbrechen
@@ -321,7 +321,7 @@
         display: flex;
     }
     .modal-content {
-        background: white;
+        background: var(--bg-surface);
         border-radius: 12px;
         width: 90%;
         max-width: 600px;
@@ -474,8 +474,8 @@
     /* Service und E-Mail-Vorlagen Select Styling */
     .form-group select[multiple] {
         min-height: 80px;
-        background-color: white;
-        border: 1px solid #dee2e6;
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border-color);
         border-radius: 6px;
         padding: 8px;
     }
@@ -491,8 +491,8 @@
     }
 
     .form-group select:not([multiple]) {
-        background-color: white;
-        border: 1px solid #dee2e6;
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border-color);
         border-radius: 6px;
         padding: 8px 12px;
     }

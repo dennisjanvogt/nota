@@ -27,7 +27,7 @@
             <div class="stat-card-icon orange">
                 <i class="bi bi-person-badge"></i>
             </div>
-            <div>
+            <div class="stat-card-content">
                 <div class="stat-card-label">Notare</div>
                 <div class="stat-card-value">{{ statistiken.notare_gesamt }}</div>
             </div>
@@ -39,7 +39,7 @@
             <div class="stat-card-icon green">
                 <i class="bi bi-person-plus"></i>
             </div>
-            <div>
+            <div class="stat-card-content">
                 <div class="stat-card-label">Notariatskandidat</div>
                 <div class="stat-card-value">{{ statistiken.anwaerter_gesamt }}</div>
             </div>
@@ -51,7 +51,7 @@
             <div class="stat-card-icon blue">
                 <i class="bi bi-building"></i>
             </div>
-            <div>
+            <div class="stat-card-content">
                 <div class="stat-card-label">Notarstellen</div>
                 <div class="stat-card-value">{{ statistiken.notarstellen_gesamt }}</div>
             </div>
@@ -60,10 +60,10 @@
 
     <a href="{% url 'workflow_liste' %}" class="stat-card-link">
         <div class="stat-card">
-            <div class="stat-card-icon orange">
+            <div class="stat-card-icon purple">
                 <i class="bi bi-diagram-3"></i>
             </div>
-            <div>
+            <div class="stat-card-content">
                 <div class="stat-card-label">Offene Workflows</div>
                 <div class="stat-card-value">{{ statistiken.workflows_offen }}</div>
             </div>
@@ -72,107 +72,95 @@
 </div>
 
 <!-- Dashboard Grid: Deadline-Übersicht + Zusätzliche Stats -->
-<div style="margin-bottom: var(--spacing-xl);">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);" class="dashboard-grid">
-        <!-- Tortendiagramm: Workflows nach Deadline -->
-        <div class="card">
-            <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; justify-content: space-between; align-items: center;">
-                <h5 class="mb-0">
-                    <i class="bi bi-pie-chart-fill"></i> Workflows nach Deadline
-                </h5>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <span class="badge bg-primary" style="font-size: 14px; padding: 6px 12px;">{{ statistiken.workflows_offen }}</span>
-                </div>
+<div class="dashboard-grid">
+    <!-- Tortendiagramm: Workflows nach Deadline -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="bi bi-pie-chart-fill"></i> Workflows nach Deadline
+            </h5>
+            <span class="badge badge-primary">{{ statistiken.workflows_offen }}</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="deadlineChart"></canvas>
             </div>
-            <div class="card-body">
-                <div style="position: relative; height: 300px; display: flex; align-items: center; justify-content: center;">
-                    <canvas id="deadlineChart"></canvas>
+            <!-- Legende -->
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #EF4444;"></div>
+                    <span>Überfällig ({{ deadline_stats.ueberfaellig }})</span>
                 </div>
-                <!-- Legende -->
-                <div style="margin-top: var(--spacing-lg); display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 12px; height: 12px; background: #dc3545; border-radius: 2px;"></div>
-                        <span style="font-size: 12px; color: var(--text-secondary);">Überfällig ({{ deadline_stats.ueberfaellig }})</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 12px; height: 12px; background: #ffc107; border-radius: 2px;"></div>
-                        <span style="font-size: 12px; color: var(--text-secondary);">≤ 1 Tag ({{ deadline_stats.1_tag }})</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 12px; height: 12px; background: #0d6efd; border-radius: 2px;"></div>
-                        <span style="font-size: 12px; color: var(--text-secondary);">≤ 5 Tage ({{ deadline_stats.5_tage }})</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 12px; height: 12px; background: #198754; border-radius: 2px;"></div>
-                        <span style="font-size: 12px; color: var(--text-secondary);">> 5 Tage ({{ deadline_stats.mehr }})</span>
-                    </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #F59E0B;"></div>
+                    <span>≤ 1 Tag ({{ deadline_stats.1_tag }})</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3B82F6;"></div>
+                    <span>≤ 5 Tage ({{ deadline_stats.5_tage }})</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #10B981;"></div>
+                    <span>> 5 Tage ({{ deadline_stats.mehr }})</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Quick Stats -->
-        <div class="card">
-            <div class="card-header" style="padding: 18px 24px; margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) 0 calc(-1 * var(--spacing-xl)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; justify-content: space-between; align-items: center;">
-                <h5 class="mb-0">
-                    <i class="bi bi-speedometer2"></i> Schnellübersicht
-                </h5>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <span class="badge bg-primary" style="font-size: 14px; padding: 6px 12px;">{{ statistiken.workflows_gesamt }}</span>
+    <!-- Quick Stats -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="bi bi-speedometer2"></i> Schnellübersicht
+            </h5>
+            <span class="badge badge-primary">{{ statistiken.workflows_gesamt }}</span>
+        </div>
+        <div class="card-body">
+            <div class="quick-stats">
+                <!-- Total Workflows -->
+                <div class="quick-stat-item">
+                    <div class="quick-stat-icon" style="background: var(--primary-gradient); box-shadow: 0 4px 12px var(--primary-glow);">
+                        <i class="bi bi-diagram-3-fill" style="color: white;"></i>
+                    </div>
+                    <div class="quick-stat-content">
+                        <div class="quick-stat-label">Gesamt Workflows</div>
+                        <div class="quick-stat-value">{{ statistiken.workflows_gesamt }}</div>
+                    </div>
                 </div>
-            </div>
-            <div class="card-body">
-                <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
-                    <!-- Total Workflows -->
-                    <div class="stats-item">
-                        <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-sm);">
-                            <div class="stats-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                <i class="bi bi-diagram-3-fill"></i>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">Gesamt Workflows</div>
-                                <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1;">{{ statistiken.workflows_gesamt }}</div>
-                            </div>
+
+                <!-- Completion Rate -->
+                <div class="quick-stat-item">
+                    <div class="quick-stat-icon" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); box-shadow: 0 4px 12px var(--success-glow);">
+                        <i class="bi bi-check-circle-fill" style="color: white;"></i>
+                    </div>
+                    <div class="quick-stat-content">
+                        <div class="quick-stat-label">Abschlussrate</div>
+                        <div class="quick-stat-value">
+                            {% widthratio statistiken.workflows_abgeschlossen statistiken.workflows_gesamt 100 %}%
                         </div>
                     </div>
+                    <div class="progress" style="width: 100%; margin-top: 8px;">
+                        <div class="progress-bar success" style="width: {% widthratio statistiken.workflows_abgeschlossen statistiken.workflows_gesamt 100 %}%;"></div>
+                    </div>
+                </div>
 
-                    <!-- Completion Rate -->
-                    <div class="stats-item">
-                        <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-sm);">
-                            <div class="stats-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">Abschlussrate</div>
-                                <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1;">
-                                    {% widthratio statistiken.workflows_abgeschlossen statistiken.workflows_gesamt 100 %}%
-                                </div>
-                            </div>
-                        </div>
-                        <div style="height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;">
-                            <div style="height: 100%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%); width: {% widthratio statistiken.workflows_abgeschlossen statistiken.workflows_gesamt 100 %}%; transition: width 0.5s ease;"></div>
+                <!-- Active Users -->
+                <div class="quick-stat-item" style="flex-wrap: wrap;">
+                    <div class="quick-stat-icon" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); box-shadow: 0 4px 12px var(--info-glow);">
+                        <i class="bi bi-people-fill" style="color: white;"></i>
+                    </div>
+                    <div class="quick-stat-content">
+                        <div class="quick-stat-label">Gesamte Personen</div>
+                        <div class="quick-stat-value">
+                            {{ statistiken.notare_gesamt|add:statistiken.anwaerter_gesamt }}
                         </div>
                     </div>
-
-                    <!-- Active Users -->
-                    <div class="stats-item">
-                        <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-                            <div class="stats-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                                <i class="bi bi-people-fill"></i>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">Gesamte Personen</div>
-                                <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1;">
-                                    {{ statistiken.notare_gesamt|add:statistiken.anwaerter_gesamt }}
-                                </div>
-                            </div>
+                    <div class="person-breakdown">
+                        <div class="person-stat">
+                            <i class="bi bi-person-badge"></i> {{ statistiken.notare_gesamt }} Notare
                         </div>
-                        <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-sm); font-size: 12px; color: var(--text-secondary);">
-                            <div style="flex: 1; padding: 6px; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
-                                <i class="bi bi-person-badge"></i> {{ statistiken.notare_gesamt }} Notare
-                            </div>
-                            <div style="flex: 1; padding: 6px; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
-                                <i class="bi bi-mortarboard"></i> {{ statistiken.anwaerter_gesamt }} Kandidaten
-                            </div>
+                        <div class="person-stat">
+                            <i class="bi bi-mortarboard"></i> {{ statistiken.anwaerter_gesamt }} Kandidaten
                         </div>
                     </div>
                 </div>
@@ -189,35 +177,123 @@
         text-decoration: none;
         color: inherit;
         display: block;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .stat-card-link:hover {
-        transform: translateY(-2px);
     }
 
     .stat-card-link:hover .stat-card {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        border-color: var(--primary-color);
+        transform: translateY(-4px);
+        border-color: rgba(139, 92, 246, 0.4);
+        box-shadow: var(--shadow-lg), var(--shadow-glow);
     }
 
-    .stat-card-link:active {
-        transform: translateY(0);
+    /* Chart Container */
+    .chart-container {
+        position: relative;
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    @media (max-width: 1024px) {
-        div[style*="grid-template-columns"] {
-            grid-template-columns: 1fr !important;
-        }
-
-        .dashboard-grid {
-            grid-template-columns: 1fr !important;
-        }
+    /* Chart Legend */
+    .chart-legend {
+        margin-top: var(--spacing-lg);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-sm);
     }
 
-    /* Dashboard Grid Animations */
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+
+    /* Quick Stats */
+    .quick-stats {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .quick-stat-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-base);
+    }
+
+    .quick-stat-item:hover {
+        background: var(--bg-hover);
+        border-color: rgba(139, 92, 246, 0.2);
+    }
+
+    .quick-stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .quick-stat-content {
+        flex: 1;
+    }
+
+    .quick-stat-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .quick-stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+
+    /* Person Breakdown */
+    .person-breakdown {
+        width: 100%;
+        display: flex;
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-sm);
+    }
+
+    .person-stat {
+        flex: 1;
+        padding: 8px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        text-align: center;
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    /* Dashboard Grid Animation */
     .dashboard-grid .card {
         animation: fadeInUp 0.5s ease-out;
+    }
+
+    .dashboard-grid .card:nth-child(2) {
+        animation-delay: 0.1s;
     }
 
     @keyframes fadeInUp {
@@ -231,32 +307,12 @@
         }
     }
 
-    /* Schnellübersicht Stats */
-    .stats-item {
-        padding: var(--spacing-md);
-        border-radius: 8px;
-        background: var(--bg-primary);
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr !important;
+        }
     }
-
-    .stats-item:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transform: translateY(-2px);
-    }
-
-    .stats-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 22px;
-        flex-shrink: 0;
-    }
-
 </style>
 {% endblock %}
 
@@ -265,10 +321,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
-// Deadline Pie Chart
+// Deadline Pie Chart with Dark Theme
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('deadlineChart');
     if (ctx) {
+        // Get current theme
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+
         const data = {
             labels: ['Überfällig', '≤ 1 Tag', '≤ 5 Tage', '> 5 Tage'],
             datasets: [{
@@ -279,10 +338,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     {{ deadline_stats.mehr }}
                 ],
                 backgroundColor: [
-                    '#dc3545',  // Rot
-                    '#ffc107',  // Gelb
-                    '#0d6efd',  // Blau
-                    '#198754'   // Grün
+                    '#EF4444',  // Rot - Danger
+                    '#F59E0B',  // Gelb - Warning
+                    '#3B82F6',  // Blau - Info
+                    '#10B981'   // Grün - Success
                 ],
                 borderWidth: 0,
                 hoverOffset: 10
@@ -297,10 +356,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 maintainAspectRatio: true,
                 plugins: {
                     legend: {
-                        display: false  // Wir haben unsere eigene Legende
+                        display: false
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        backgroundColor: isDark ? 'rgba(17, 20, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                        titleColor: isDark ? '#EAEAF0' : '#1E293B',
+                        bodyColor: isDark ? '#9AA0B2' : '#64748B',
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                        borderWidth: 1,
                         padding: 12,
                         cornerRadius: 8,
                         titleFont: {
